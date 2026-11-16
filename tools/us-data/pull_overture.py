@@ -73,25 +73,11 @@ def tidy_name(n):
 
 def title_city(c): return ' '.join(w.capitalize() for w in (c or '').split())
 
-def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('state'); ap.add_argument('--target', type=int, default=500); ap.add_argument('--min-conf', type=float, default=0.65)
-    a = ap.parse_args(); st = a.state.upper()
-    rel = latest_release(); print('Overture release:', rel)
-    files = list_files(rel); print(len(files), 'files')
-    box = BBOX.get(st)
-    where_box = f'bbox.xmin BETWEEN {box[0]} AND {box[1]} AND bbox.ymin BETWEEN {box[2]} AND {box[3]} AND' if box else ''
-    con = duckdb.connect(); con.execute('INSTALL httpfs; LOAD httpfs;')
-    lst = '[' + ','.join("'" + u + "'" for u in files) + ']'
-    q = f"""SELECT id, names.primary AS name, taxonomy.primary AS cat, addresses[1].freeform AS street, addresses[1].locality AS city, addresses[1].postcode AS zip,
-        phones[1] AS phone, websites[1] AS website, emails[1] AS email, socials AS socials, confidence, ST_Y(geometry) AS lat, ST_X(geometry) AS lng
-      FROM read_parquet({lst})
-      WHERE {where_box} addresses[1].region = '{st}' AND operating_status = 'open'
-        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
-    con.execute('INSTALL spatial; LOAD spatial;')
-    rows = con.execute(q).fetchall(); cols = [d[0] for d in con.description]
-    raw = [dict(zip(cols, r)) for r in rows]; print('raw rows:', len(raw))
-    stats = collections.Counter()
-    keep = []
+STATES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split()
+
+def clean_and_pick(st, raw, target, min_conf):
+    """cleaning rules for one state's raw rows -> (clean list, picked list, removal stats, per-city counter)"""
+    stats = collections.Counter(); keep = []
     for r in raw:
         name = tidy_name(r['name']); d = domain_of(r['website']); ph = phone10(r['phone'])
         if not name: stats['no name'] += 1; continue
@@ -100,17 +86,15 @@ def main():
         if not r['street'] or not r['city']: stats['no address'] += 1; continue
         if not ph: stats['no valid phone'] += 1; continue
         if not d or d in AGGREGATORS or any(d.endswith('.' + g) for g in AGGREGATORS): stats['no own website'] += 1; continue
-        if (r['confidence'] or 0) < a.min_conf: stats['low confidence'] += 1; continue
+        if (r['confidence'] or 0) < min_conf: stats['low confidence'] += 1; continue
         keep.append({'name': name, 'street': re.sub(r'\s+', ' ', r['street']).strip(), 'city': title_city(r['city']), 'state': st, 'zip': (r['zip'] or '')[:5],
                      'phone': show_phone(ph), 'phone_raw': ph, 'website': site_of(r['website']), 'domain': d, 'email': r['email'] or '', 'socials': '|'.join(r['socials'] or []),
                      'confidence': round(r['confidence'] or 0, 2), 'lat': round(r['lat'], 5), 'lng': round(r['lng'], 5), 'overture_id': r['id'], 'category': r['cat']})
-    # one record per website domain and per phone: keep the highest confidence, then the name that reads most like a firm
     def rank(x): return (x['confidence'], 1 if re.search(r'\b(law|legal|firm|attorneys|lawyers)\b', x['name'], re.I) else 0, -len(x['name']))
     byd = {}
     for x in sorted(keep, key=rank, reverse=True):
-        k = x['domain']
-        if k in byd: stats['duplicate website'] += 1; continue
-        byd[k] = x
+        if x['domain'] in byd: stats['duplicate website'] += 1; continue
+        byd[x['domain']] = x
     byp = {}
     for x in sorted(byd.values(), key=rank, reverse=True):
         if x['phone_raw'] in byp: stats['duplicate phone'] += 1; continue
@@ -120,21 +104,57 @@ def main():
         k = (re.sub(r'[^a-z0-9]', '', x['name'].lower()), x['city'].lower())
         if k in seen: stats['duplicate name in city'] += 1; continue
         seen.add(k); clean.append(x)
-    print('after cleaning:', len(clean))
-    # pick the best N, keeping any one city to at most 15% so Miami cannot take every slot
-    cap = max(5, int(a.target * 0.15)); per = collections.Counter(); picked = []
+    cap = max(5, int(target * 0.15)); per = collections.Counter(); picked = []
     for x in sorted(clean, key=lambda x: (x['confidence'], 1 if x['email'] else 0, 1 if x['socials'] else 0), reverse=True):
         if per[x['city']] >= cap: continue
         picked.append(x); per[x['city']] += 1
-        if len(picked) >= a.target: break
+        if len(picked) >= target: break
+    return clean, picked, stats, per
+
+def write_state(st, clean, picked):
     out = os.path.join('data', 'states', st); os.makedirs(out, exist_ok=True)
-    fields = list(clean[0].keys()) if clean else []
+    fields = list(clean[0].keys()) if clean else ['name']
     for fn, data in (('candidates.csv', clean), ('selected.csv', picked)):
         with open(os.path.join(out, fn), 'w', newline='') as f:
             w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(data)
+
+def fetch(con, lst, where_geo):
+    q = f"""SELECT id, names.primary AS name, taxonomy.primary AS cat, addresses[1].freeform AS street, addresses[1].locality AS city, addresses[1].postcode AS zip, addresses[1].region AS region,
+        phones[1] AS phone, websites[1] AS website, emails[1] AS email, socials AS socials, confidence, ST_Y(geometry) AS lat, ST_X(geometry) AS lng
+      FROM read_parquet({lst})
+      WHERE {where_geo} AND operating_status = 'open'
+        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
+    rows = con.execute(q).fetchall(); cols = [d[0] for d in con.description]
+    return [dict(zip(cols, r)) for r in rows]
+
+def main():
+    ap = argparse.ArgumentParser(); ap.add_argument('state', help="a state code like FL, or ALL for every state"); ap.add_argument('--target', type=int, default=500); ap.add_argument('--min-conf', type=float, default=0.65)
+    a = ap.parse_args(); st = a.state.upper()
+    rel = latest_release(); print('Overture release:', rel)
+    files = list_files(rel); print(len(files), 'files')
+    con = duckdb.connect(); con.execute('INSTALL httpfs; LOAD httpfs; INSTALL spatial; LOAD spatial;')
+    lst = '[' + ','.join("'" + u + "'" for u in files) + ']'
+    if st == 'ALL':
+        # contiguous US, Alaska and Hawaii boxes keep the read fast; the exact state comes from each place's own address
+        geo = "((bbox.xmin BETWEEN -125.1 AND -66.5 AND bbox.ymin BETWEEN 24.3 AND 49.5) OR (bbox.xmin BETWEEN -171 AND -129 AND bbox.ymin BETWEEN 51 AND 72) OR (bbox.xmin BETWEEN -161 AND -154 AND bbox.ymin BETWEEN 18.5 AND 22.5)) AND addresses[1].country = 'US'"
+        raw_all = fetch(con, lst, geo); print('raw US rows:', len(raw_all))
+        by = collections.defaultdict(list)
+        for r in raw_all:
+            if r['region'] in STATES: by[r['region']].append(r)
+        print(f"{'state':5} {'raw':>7} {'clean':>7} {'picked':>7}")
+        total = 0
+        for s_ in STATES:
+            clean, picked, stats, per = clean_and_pick(s_, by.get(s_, []), a.target, a.min_conf)
+            if clean: write_state(s_, clean, picked)
+            total += len(clean); print(f'{s_:5} {len(by.get(s_, [])):7d} {len(clean):7d} {len(picked):7d}', flush=True)
+        print('total clean firms in the US:', total); return
+    box = BBOX.get(st)
+    where_box = f'bbox.xmin BETWEEN {box[0]} AND {box[1]} AND bbox.ymin BETWEEN {box[2]} AND {box[3]} AND' if box else ''
+    raw = fetch(con, lst, f"{where_box} addresses[1].region = '{st}'"); print('raw rows:', len(raw))
+    clean, picked, stats, per = clean_and_pick(st, raw, a.target, a.min_conf)
+    print('after cleaning:', len(clean)); write_state(st, clean, picked)
     print('\nRemoved along the way:'); [print(f'  {v:6d}  {k}') for k, v in stats.most_common()]
-    print(f'\nPicked {len(picked)} of {len(clean)} clean firms (max {cap} per city). Files in {out}/')
-    print('Top cities in the pick:', per.most_common(10))
+    print(f'\nPicked {len(picked)} of {len(clean)} clean firms. Files in data/states/{st}/')
 
 if __name__ == '__main__':
     main()
