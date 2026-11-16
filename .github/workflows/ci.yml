@@ -1,0 +1,60 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Syntax + bundle check
+        run: npm run check
+      - name: Migrations apply and seed loads
+        run: |
+          npm run db:migrate:local
+          npm run db:seed:local
+      - name: End-to-end smoke test (sign-in, admin API, security rules)
+        timeout-minutes: 5
+        env:
+          WRANGLER_SEND_METRICS: "false"
+          CI: "true"
+        run: |
+          printf 'ADMIN_EMAILS=smoke-admin@example.com\nDEV_ECHO_LINK=1\nPUBLIC_CACHE_TTL=0\nSTRIPE_WEBHOOK_SECRET=whsec_smoke_test_secret\nSTRIPE_PORTAL_URL=https://billing.stripe.com/p/login/smoke\n' > .dev.vars
+          node scripts/gen-test-gsc.mjs
+          # IMPORTANT: keep the log OUTSIDE the repo. The dev server watches the repo folder (the
+          # website lives at its root), so a log file inside it would trigger endless reloads.
+          LOG="${RUNNER_TEMP:-/tmp}/dev-server.log"
+          # Run the dev server fully detached and always stop it, so the step can finish.
+          nohup npx wrangler dev --test-scheduled --ip 127.0.0.1 --port 8799 > "$LOG" 2>&1 < /dev/null &
+          SERVER=$!
+          trap 'kill $SERVER 2>/dev/null || true; pkill -f workerd 2>/dev/null || true' EXIT
+          READY=0
+          for i in $(seq 1 25); do
+            if curl -sf --max-time 3 http://127.0.0.1:8799/api/health > /dev/null; then READY=1; break; fi
+            sleep 2
+          done
+          if [ "$READY" != 1 ]; then echo "--- dev server never became ready; its log: ---"; tail -n 120 "$LOG"; exit 1; fi
+          BASE=http://127.0.0.1:8799 node scripts/smoke.mjs || { echo "--- dev server log ---"; tail -n 120 "$LOG"; exit 1; }
+      - name: Extra firms load (loading them twice changes nothing)
+        run: |
+          npm run db:extra:local
+          npm run db:extra:local
+          npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS dynamic_live_firms FROM firms WHERE page_mode='dynamic' AND status='live'"
+      - name: Logo and hours updates for the original firms load (twice, changing nothing the second time)
+        run: |
+          npm run db:updates:local
+          npm run db:updates:local
+          npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS logos_now FROM firms WHERE json_extract(data, '$.type') = 'logo'"
+      - name: Journal history loads (twice, adding nothing the second time)
+        run: |
+          npm run db:journal:local
+          npm run db:journal:local
+          npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS shipped_prs, MIN(day) AS first_day, MAX(day) AS last_day FROM ship_log"

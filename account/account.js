@@ -1,0 +1,749 @@
+// LawDB firm-owner dashboard. No framework, no build step.
+// SECURITY: everything shown here (including enquiries typed by the public) is inserted as text nodes only.
+
+import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, planPanel, lockIcon, PROVINCES } from '/admin/ui.js';
+import { analyticsView, analyticsPreview } from '/admin/firm-analytics.js';
+import { profileEditor } from '/admin/profile-editor.js';
+
+const app = document.getElementById('app');
+const mount = (...nodes) => app.replaceChildren(...nodes);
+let user = null;
+let memberships = [];
+
+// ---------------------------------------------------------------- sign in / create account
+const ICONS = {
+  google: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#8a919b" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#c9a050" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>`,
+  linkedin: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="6" fill="#142434"/><path fill="#fff" d="M9 18h6v21H9zM12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM19 18h5.7v2.9h.1c.8-1.5 2.7-3.3 5.7-3.3 6 0 7.1 3.9 7.1 9V39h-6V28c0-2.6 0-6-3.7-6s-4.2 2.8-4.2 5.8V39h-6z"/></svg>`,
+};
+const icon = (k) => h('img', { src: 'data:image/svg+xml;utf8,' + encodeURIComponent(ICONS[k]), alt: '', width: 20, height: 20 });
+const SIGNIN_MESSAGES = {
+  failed: 'We could not sign you in with that account. Please try again, or use the other sign-in button.',
+  cancelled: 'Sign-in was cancelled. You can try again whenever you like.',
+  unavailable: 'That sign-in option is not available right now. Please try the other button, or come back soon.',
+};
+
+async function renderLogin() {
+  document.body.classList.remove('ap', 'ap-in');
+  const msg = h('div');
+  const q = new URLSearchParams(location.search).get('signin');
+  if (SIGNIN_MESSAGES[q]) msg.replaceChildren(note('msg-err', SIGNIN_MESSAGES[q]));
+  let providers = {};
+  try { providers = await api('GET', '/api/auth/providers'); } catch { /* the email link always works */ }
+  const email = h('input', { type: 'email', id: 'email', required: true, autocomplete: 'email', placeholder: 'you@example.com' });
+  const btn = h('button', { class: 'auth-continue', type: 'submit' }, 'Continue');
+  const form = h('form', {
+    class: 'auth-form',
+    onsubmit: async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      msg.replaceChildren();
+      try {
+        await api('POST', '/api/auth/request-link', { email: email.value, signup: true });
+        const sent = email.value;
+        form.replaceChildren(
+          h('h2', { class: 'auth-sent-h' }, 'Check your email'),
+          h('p', { class: 'muted' }, 'We sent a one-time sign-in link to ', h('b', null, sent), '. It works once and expires in 15 minutes.'),
+          h('p', { class: 'muted small' }, h('a', { href: '/account/' }, 'Use a different email')));
+      } catch (err) {
+        msg.replaceChildren(note('msg-err', err.message));
+        btn.disabled = false;
+      }
+    },
+  }, h('label', { for: 'email' }, 'Email address'), email, btn);
+  const OFFERED = ['google', 'linkedin'];
+  const social = OFFERED.filter((k) => providers[k]).map((k) => h('a', { class: 'provider', href: `/api/auth/${k}/start` }, icon(k), k === 'google' ? 'Continue with Google' : 'Continue with LinkedIn'));
+  // Members sign in with Google or LinkedIn only. The email box is the fallback when neither is set up, so nobody is ever locked out (admins use the email link on /admin/).
+  const join = new URLSearchParams(location.search).get('join') === '1';
+  const chip = ([label, href]) => h('a', { class: 'auth-chip', href }, label);
+  const band = (cls, title, text, items) => h('section', { class: `auth-band ${cls}` }, h('div', { class: 'auth-band-in' },
+    h('div', { class: 'auth-band-text' }, h('h2', null, title), h('p', null, text)),
+    h('div', { class: 'auth-chips' }, ...items.map(chip))));
+  const AREAS = [['Business', '/business-lawyers'], ['Criminal defence', '/criminal-defence-lawyers'], ['Employment', '/employment-lawyers'], ['Family', '/family-lawyers'], ['Immigration', '/immigration-lawyers'], ['Litigation', '/litigation-lawyers'], ['Personal injury', '/personal-injury-lawyers'], ['Real estate', '/real-estate-lawyers'], ['Traffic tickets', '/traffic-ticket-lawyers'], ['Wills and estates', '/wills-estate-lawyers']];
+  const PROVINCES = [['Ontario', '/ontario/'], ['Quebec', '/quebec/'], ['British Columbia', '/british-columbia/'], ['Alberta', '/alberta/'], ['Manitoba', '/manitoba/']];
+  // Two firm cards and a map pin, drawn for LawDB (shown as an image so it needs no extra files).
+  const ART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440"><circle cx="260" cy="225" r="205" fill="#f4ecd8"/><rect x="110" y="95" width="250" height="150" rx="14" fill="#fff" stroke="#e3dfd3"/><circle cx="148" cy="136" r="18" fill="#142434"/><rect x="178" y="124" width="120" height="11" rx="5" fill="#142434"/><rect x="178" y="144" width="80" height="8" rx="4" fill="#c9a050"/><rect x="132" y="176" width="206" height="8" rx="4" fill="#e3dfd3"/><rect x="132" y="194" width="170" height="8" rx="4" fill="#e3dfd3"/><rect x="132" y="214" width="84" height="20" rx="10" fill="#c9a050"/><rect x="200" y="215" width="260" height="150" rx="14" fill="#fff" stroke="#e3dfd3"/><circle cx="238" cy="256" r="18" fill="#c9a050"/><rect x="268" y="244" width="130" height="11" rx="5" fill="#142434"/><rect x="268" y="264" width="90" height="8" rx="4" fill="#c9a050"/><rect x="222" y="296" width="216" height="8" rx="4" fill="#e3dfd3"/><rect x="222" y="314" width="150" height="8" rx="4" fill="#e3dfd3"/><rect x="222" y="334" width="84" height="20" rx="10" fill="#142434"/><circle cx="108" cy="318" r="34" fill="#142434"/><polygon points="86,340 130,340 108,384" fill="#142434"/><circle cx="108" cy="318" r="13" fill="#f5f3ec"/><g fill="#c9a050"><circle cx="410" cy="120" r="6"/><circle cx="430" cy="140" r="4"/><circle cx="395" cy="150" r="3"/></g></svg>';
+  document.body.classList.add('lw-auth');
+  mount(h('div', { class: 'auth-wrap' },
+    h('section', { class: 'auth-hero' },
+      h('div', { class: 'auth-hero-copy' },
+        h('h1', null, join ? 'Create your free LawDB account' : 'Welcome to Canada’s legal directory'),
+        h('div', { class: 'auth-btns' }, ...social, social.length ? null : form, msg),
+        h('p', { class: 'auth-terms' }, 'By continuing, you agree to LawDB’s ', h('a', { href: '/terms' }, 'Terms'), ' and ', h('a', { href: '/privacy-policy' }, 'Privacy Policy'), '. There is no password to remember.'),
+        h('p', { class: 'auth-new' }, join ? 'Already a member? ' : 'New to LawDB? ', h('a', { href: join ? '/account/' : '/account/?join=1' }, join ? 'Sign in' : 'Join now'))),
+      h('div', { class: 'auth-hero-art' }, h('img', { src: 'data:image/svg+xml;utf8,' + encodeURIComponent(ART), alt: 'Two law firm profile cards and a map pin', width: 520, height: 440 }))),
+    band('areas', 'Explore by kind of case', 'Real, reviewed law firms near you, sorted by the kind of case you have.', AREAS),
+    band('provinces', 'Find a firm in your province', 'Five provinces are live now, with more coming soon.', PROVINCES)));
+}
+
+// ---------------------------------------------------------------- shell
+// The owner dashboard has the same bars as the admin: a slim bar with the numbers that matter to the firm and the user menu, then the sections.
+function shell(active, content, { wide = false } = {}) {
+  document.body.classList.remove('lw-auth');
+  document.body.classList.add('ap', 'ap-in'); // hides the public header and footer on these pages (see msp.css)
+  const mine = approved();
+  const fresh = mine.reduce((n, m) => n + (m.newLeads || 0), 0);
+  // What a firm owner uses every day comes first, on the left. Analytics and Enquiries are always there: on a Basic plan (or before claiming a firm) they carry
+  // a padlock and open a preview of what Featured shows. Everything else (the member side: feed, network, saved, your own profile) is under "More".
+  const unlocked = mine.some((m) => m.featured);
+  const primary = [
+    ['firms', mine.length > 1 ? 'My firms' : mine.length ? 'My firm' : 'Your firm'],
+    ['stats', 'Analytics', !unlocked],
+    ['leads', 'Enquiries', !unlocked],
+  ];
+  const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'My network'], ['saved', 'Saved']];
+  const moreActive = more.some(([id]) => id === active);
+  const initial = (user.name || user.email || '?').trim()[0].toUpperCase();
+  const stat = (label, n) => h('span', null, label, ' ', h('b', null, n));
+  return h('div', null,
+    h('header', { class: 'appbar' }, h('div', { class: 'appbar-in' },
+      h('a', { class: 'brand', href: '/' }, h('img', { src: '/images/logo-icon.png', alt: '' }), 'LawDB.ca'),
+      h('div', { class: 'stats' }, ...(mine.length ? [stat('Your firms:', mine.length), stat('Featured:', mine.filter((m) => m.featured).length), stat('New enquiries:', fresh)] : [h('span', null, 'Welcome to LawDB')])),
+      h('div', { class: 'right' },
+        h('details', { class: 'user' }, h('summary', null, h('span', { class: 'ava' }, initial), (user.name || user.email.split('@')[0]), ' ▾'),
+          h('div', { class: 'menu' }, h('div', { class: 'who' }, user.email),
+            h('a', { href: '/find-lawyers' }, 'Back to LawDB.ca'),
+            h('a', { href: '#', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout').catch(() => {}); location.reload(); } }, 'Sign out'),
+            h('a', { href: '#', title: 'Ends every session on every device', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout-all').catch(() => {}); location.reload(); } }, 'Sign out everywhere'))))) ),
+    h('nav', { class: 'menubar', 'aria-label': 'Sections' }, h('div', { class: 'menubar-in has-more' },
+      primary.map(([id, label, lock]) => h('a', { href: `#${id}`, 'aria-current': id === active ? 'page' : false, title: lock ? 'A Featured feature: open to see what it shows' : false },
+        label, lock && h('span', { class: 'tab-lock', role: 'img', 'aria-label': 'Featured feature' }, lockIcon(12)),
+        id === 'leads' && fresh > 0 && h('span', { class: 'lx-count', 'aria-label': `${fresh} new` }, fresh))),
+      h('details', { class: 'mb-more' + (moreActive ? ' on' : '') },
+        h('summary', { 'aria-current': moreActive ? 'page' : false }, moreActive ? (more.find(([id]) => id === active) || [])[1] : 'More', ' ▾'),
+        h('div', { class: 'mb-menu' }, more.map(([id, label]) => h('a', { href: `#${id}`, 'aria-current': id === active ? 'page' : false, onclick: (e) => e.currentTarget.closest('details').removeAttribute('open') }, label)))))),
+    h('main', { class: 'page' + (wide ? '' : ' narrow') }, content));
+}
+
+const approved = () => memberships.filter((m) => m.status === 'approved');
+document.addEventListener('click', (e) => { const d = document.querySelector('.mb-more[open]'); if (d && !d.contains(e.target)) d.removeAttribute('open'); });
+const where = (m) => `${m.city}, ${PROVINCES[m.province] || m.province}`;
+
+// ---------------------------------------------------------------- my firms
+function viewFirms() {
+  if (!memberships.length) {
+    const row = (t, lock) => h('li', { class: lock ? 'locked' : '' }, lock ? lockIcon(13) : h('span', { class: 'tick', 'aria-hidden': 'true' }, '\u2713'), t);
+    return h('div', null, h('h1', null, 'Welcome'),
+      h('div', { class: 'card' }, h('p', null, 'You are signed in, but you do not manage a firm yet.'),
+        h('p', { class: 'muted' }, 'Find your firm in the directory and ask to manage it, or add it if it is not listed. We check every request, so your listing stays trustworthy.'),
+        h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm'))),
+      h('div', { class: 'card' }, h('h2', null, 'What you get once it is yours'),
+        h('div', { class: 'fx-two' },
+          h('div', null, h('b', null, 'Basic, free'), h('ul', { class: 'fx-list' }, ['Keep your name, phone, address, website and hours up to date', 'Write your own description and tagline', 'Every enquiry emailed to you', 'Your blog posts shown as cards', 'Your totals for the last 30 days'].map((t) => row(t, false)))),
+          h('div', null, h('b', null, 'Featured, with a free first month'), h('ul', { class: 'fx-list' }, ['Your logo, cover and photos', 'A booking link and the Book a call button', 'Enquiries to a second email address', 'The analytics dashboard: views, clicks, where visitors come from', 'The enquiries inbox, with notes and export', 'Placed above Basic firms in your city'].map((t) => row(t, true))))),
+        h('p', { class: 'muted' }, 'Curious? Open ', h('a', { href: '#stats' }, 'Analytics'), ' to see the dashboard with sample numbers.')));
+  }
+  return h('div', null, h('h1', null, 'My firms'), memberships.map((m) => {
+    const state = m.status === 'approved' ? null
+      : m.status === 'pending' ? note('msg-ok', 'Waiting for approval. We will email you as soon as it is done.')
+      : note('msg-err', 'This request was declined. If that is a mistake, write to info@lawdb.ca.');
+    return h('div', { class: 'card' },
+      h('div', { class: 'row spread' }, h('b', null, m.name), h('span', { class: 'badge' + (m.status === 'approved' ? (m.featured ? ' featured' : '') : ' new') }, m.status === 'approved' ? (m.trialEnds ? 'Featured, free month' : m.featured ? 'Featured' : 'Basic') : m.status === 'pending' ? 'Pending' : 'Declined')),
+      h('p', { class: 'muted' }, where(m)), state,
+      m.status === 'approved' && m.strength && strengthLine(m),
+      m.status === 'approved' && !m.featured && m.firmStatus === 'live' && h('p', { class: 'muted fx-lockline' }, lockIcon(13), ' Locked on Basic: a booking link, pictures, a second enquiry email, the analytics dashboard and the enquiries inbox.'),
+      m.status === 'approved' && h('div', { class: 'row' },
+        h('a', { href: `#edit/${m.slug}` }, h('button', { class: 'primary', type: 'button' }, 'Edit my profile')),
+        h('a', { href: `#stats/${m.slug}` }, h('button', { type: 'button' }, !m.featured && m.firmStatus === 'live' ? 'Analytics and free month' : 'Analytics')),
+        !m.featured && m.firmStatus === 'live' && h('a', { href: `#edit/${m.slug}` }, h('button', { type: 'button' }, 'Upgrade to Featured')),
+        h('a', { href: `#leads/${m.slug}` }, h('button', { type: 'button' }, 'Enquiries')),
+        m.firmStatus === 'live' && h('a', { href: `/firms/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View public page')));
+  }));
+}
+
+// ---------------------------------------------------------------- find / claim / add
+function viewFind(slug) {
+  const results = h('div');
+  const panel = h('div');
+  const search = h('input', { type: 'search', placeholder: 'Search by firm name or city', 'aria-label': 'Search firms' });
+  let timer;
+
+  async function find() {
+    const q = search.value.trim();
+    if (q.length < 2) return results.replaceChildren();
+    try {
+      const { firms } = await api('GET', '/api/account/search?q=' + encodeURIComponent(q));
+      results.replaceChildren(...(firms.length
+        ? firms.map((f) => h('button', { class: 'firm-row', type: 'button', onclick: () => claimForm(f) },
+            h('span', null, f.name, h('small', null, `${f.city}, ${f.province}`)), f.managed && h('span', { class: 'badge' }, 'Has an owner')))
+        : [h('p', { class: 'muted' }, 'No match. If your firm is not listed you can add it below.')]));
+    } catch (err) { results.replaceChildren(note('msg-err', err.message)); }
+  }
+
+  function contactFields() {
+    const f = {
+      contactName: h('input', { type: 'text', required: true, maxlength: 100, autocomplete: 'name' }),
+      jobTitle: h('input', { type: 'text', maxlength: 100, placeholder: 'e.g. Partner, Office manager' }),
+      message: h('textarea', { maxlength: 1000, placeholder: 'Anything that helps us confirm it is you (optional)' }),
+    };
+    const terms = h('input', { type: 'checkbox', required: true, id: 'terms' });
+    return {
+      f,
+      el: [field('Your name', f.contactName), field('Your role at the firm', f.jobTitle), field('Note for our team', f.message),
+        h('label', { class: 'check small', for: 'terms' }, terms, h('span', null, 'I am authorised to act for this firm and I accept the ', h('a', { href: '/terms#firm-terms', target: '_blank', rel: 'noopener' }, 'Terms for firms'), '.'))],
+      get: () => ({ contactName: f.contactName.value, jobTitle: f.jobTitle.value, message: f.message.value, acceptTerms: terms.checked }),
+    };
+  }
+
+  function claimForm(firm) {
+    const c = contactFields();
+    const out = h('div');
+    const go = h('button', { class: 'primary', type: 'submit' }, 'Ask to manage this firm');
+    panel.replaceChildren(h('form', { class: 'card', onsubmit: async (e) => {
+      e.preventDefault();
+      go.disabled = true;
+      try {
+        await api('POST', '/api/account/claims', { slug: firm.slug, ...c.get() });
+        await loadMe();
+        location.hash = '#firms';
+      } catch (err) { out.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
+    } },
+      h('h2', null, firm.name), h('p', { class: 'muted' }, `${firm.city}, ${firm.province}. We will email you when your request is approved. Signed in with your work email (the same address as the firm's website)? That helps us approve you faster.`),
+      c.el, h('div', { class: 'row' }, go, h('button', { type: 'button', onclick: () => panel.replaceChildren() }, 'Cancel')), out));
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function addForm() {
+    const c = contactFields();
+    const out = h('div');
+    const f = {
+      name: h('input', { type: 'text', required: true, maxlength: 200 }),
+      city: h('input', { type: 'text', required: true, maxlength: 80 }),
+      province: h('select', null, Object.entries(PROVINCES).map(([code, n]) => h('option', { value: code }, n))),
+      address: h('input', { type: 'text', maxlength: 300, placeholder: 'Street address, so clients and the map find you' }),
+      phone: h('input', { type: 'text', maxlength: 30 }),
+      website: h('input', { type: 'text', maxlength: 300, placeholder: 'https://' }),
+      tags: h('input', { type: 'text', placeholder: 'e.g. Family Law, Divorce, Child Custody' }),
+      about: h('textarea', { class: 'tall', maxlength: 2000 }),
+    };
+    const cats = categoryChecks([]);
+    const hrs = hoursEditor(null);
+    const go = h('button', { class: 'primary', type: 'submit' }, 'Submit for approval');
+    panel.replaceChildren(h('form', { class: 'card', onsubmit: async (e) => {
+      e.preventDefault();
+      go.disabled = true;
+      try {
+        const payload = {
+          ...c.get(), name: f.name.value, city: f.city.value, province: f.province.value, address: f.address.value, phone: f.phone.value,
+          website: f.website.value, tags: splitTags(f.tags.value), caseTypes: cats.get(), about: f.about.value,
+        };
+        if (hrs.anyOpen()) payload.hours = hrs.get();
+        await api('POST', '/api/account/firms', payload);
+        await loadMe();
+        location.hash = '#firms';
+      } catch (err) {
+        out.replaceChildren(note('msg-err', err.message));
+        if (err.message.includes('already listed')) out.append(h('p', { class: 'muted' }, 'Search for it above and ask to manage it.'));
+        go.disabled = false;
+      }
+    } },
+      h('h2', null, 'Add your firm'), h('p', { class: 'muted' }, 'It appears on LawDB once we have checked it. Everything here can be changed later.'),
+      field('Firm name', f.name), field('City', f.city), field('Province', f.province), field('Address', f.address), field('Phone', f.phone), field('Website', f.website),
+      field('Practice areas (comma separated)', f.tags), h('label', null, 'Categories'), cats.el,
+      field('About the firm', f.about, 'A few sentences clients will read on your page.'),
+      h('label', null, 'Opening hours'), hrs.el,
+      h('h3', null, 'About you'), c.el,
+      h('div', { class: 'row' }, go, h('button', { type: 'button', onclick: () => panel.replaceChildren() }, 'Cancel')), out));
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(find, 250); });
+  if (slug) { // opened from a firm page's "Claim this listing"
+    api('GET', '/api/account/search?slug=' + encodeURIComponent(slug)).then(({ firms }) => { if (firms[0]) claimForm(firms[0]); }).catch(() => {});
+  }
+  return h('div', null, h('h1', null, 'Add or claim a firm'),
+    h('div', { class: 'card' }, h('b', null, 'Is your firm already listed?'), h('p', { class: 'muted' }, 'Search for it and ask to manage it.'), search, results),
+    panel,
+    h('div', { class: 'card' }, h('b', null, 'Not listed?'), h('p', { class: 'muted' }, 'Add your firm. It is free.'),
+      h('button', { type: 'button', onclick: addForm }, 'Add my firm')));
+}
+
+// ---------------------------------------------------------------- edit profile
+async function viewEdit(slug, flash) {
+  const base = '/api/account/firms/' + encodeURIComponent(slug);
+  const data = await api('GET', base);
+  const reload = async (message) => mount(shell('firms', await viewEdit(slug, message || undefined), { wide: true }));
+  return h('div', null, h('p', null, h('a', { href: '#firms' }, '← My firms')),
+    profileEditor({ mode: 'owner', data, base, flash, onSaved: reload }));
+}
+
+// ---------------------------------------------------------------- analytics
+function viewStats(slug) {
+  const mine = approved();
+  if (!mine.length) {
+    const waiting = memberships.some((m) => m.status === 'pending');
+    return analyticsPreview({
+      message: waiting ? 'Your request to manage a firm is waiting for approval. Once it is approved, this is where your own numbers appear: page views, visitors, and which buttons were clicked. The dashboard is a Featured feature, free for your first month.'
+        : 'This is the dashboard Featured firms get: page views, visitors, which buttons were clicked and where visitors came from. Claim your firm to see your own numbers. It is a Featured feature, free for your first month.',
+      button: waiting ? null : h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm')),
+    });
+  }
+  if (!slug) {
+    if (mine.length === 1) { location.replace(`#stats/${mine[0].slug}`); return h('p', { class: 'muted' }, 'Loading\u2026'); }
+    return h('div', null, h('h1', null, 'Analytics'), mine.length ? mine.map((m) => h('a', { class: 'firm-row', href: `#stats/${m.slug}` }, h('span', null, m.name, h('small', null, where(m))), h('span', { class: 'badge' + (m.featured ? ' featured' : '') }, m.trialEnds ? 'Free month' : m.featured ? 'Featured' : 'Basic'))) : h('p', { class: 'muted' }, 'You do not manage a firm yet.'));
+  }
+  if (!mine.some((m) => m.slug === slug)) return note('msg-err', 'You do not manage this firm.');
+  const firmName = (mine.find((m) => m.slug === slug) || {}).name || slug;
+  const back = mine.length > 1 ? h('p', null, h('a', { href: '#stats' }, '\u2190 All my firms')) : null;
+  return h('div', null, back, analyticsView({ base: `/api/account/firms/${encodeURIComponent(slug)}`, mode: 'owner', slug, name: firmName, onPlanChange: () => loadMe().catch(() => {}) }));
+}
+
+// ---------------------------------------------------------------- enquiries
+async function viewLeads(slug) {
+  const mine = approved();
+  if (!mine.length) {
+    return h('div', null, h('h1', null, 'Enquiries'), h('div', { class: 'card lx-locked' },
+      h('div', { class: 'row spread' }, h('h2', null, 'Your enquiries inbox'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
+      h('p', { class: 'muted' }, 'When someone writes to your firm through your LawDB page, the enquiry is emailed to you. Featured firms also get them here, in one inbox.'),
+      h('ul', { class: 'lx-perks' }, ['Every enquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each enquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
+      h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm'))));
+  }
+  if (!slug) {
+    if (mine.length === 1) { location.replace(`#leads/${mine[0].slug}`); return h('p', { class: 'muted' }, 'Loading…'); }
+    return h('div', null, h('h1', null, 'Enquiries'), mine.length ? mine.map((m) => h('a', { class: 'firm-row', href: `#leads/${m.slug}` }, h('span', null, m.name, h('small', null, where(m))), m.newLeads > 0 && h('span', { class: 'badge new' }, `${m.newLeads} new`))) : h('p', { class: 'muted' }, 'You do not manage a firm yet.'));
+  }
+  const firmName = (memberships.find((m) => m.slug === slug) || {}).name || slug;
+  const base = `/api/account/firms/${encodeURIComponent(slug)}/leads`;
+  const back = mine.length > 1 ? h('p', null, h('a', { href: '#leads' }, '\u2190 All my firms')) : null;
+  const first = await api('GET', `${base}?peek=1`); // learns the plan and the numbers without marking anything as opened
+
+  if (first.locked) {
+    const s = first.summary;
+    return h('div', null, back, h('h1', null, 'Enquiries for ' + firmName),
+      h('div', { class: 'card lx-locked' },
+        h('h2', null, s.total ? `${s.total} ${s.total === 1 ? 'enquiry' : 'enquiries'} so far` : 'No enquiries yet'),
+        h('p', { class: 'muted' }, s.total
+          ? `${s.new} still new, ${s.week} in the last 7 days. We email you every enquiry as it arrives, so none are lost. Featured members also read and manage them here.`
+          : 'When someone contacts you through your LawDB page, we email it to you. Featured members also read and manage enquiries here.'),
+        h('ul', { class: 'lx-perks' }, ['Every enquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each enquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
+        first.upgradeUrl ? h('a', { href: first.upgradeUrl }, h('button', { class: 'primary', type: 'button' }, `Upgrade to Featured, ${first.price}`)) : h('a', { href: `#edit/${slug}` }, h('button', { class: 'primary', type: 'button' }, 'See my plan'))));
+  }
+
+  let status = '', q = '', next = null, timer;
+  const list = h('div'), more = h('div', { class: 'row' }), tiles = h('div', { class: 'lx-tiles' });
+  const tile = (n, label, hot) => h('div', { class: 'lx-tile' + (hot ? ' hot' : '') }, h('b', null, String(n)), h('span', null, label));
+  const drawTiles = (s) => tiles.replaceChildren(tile(s.new, 'New', s.new > 0), tile(s.week, 'Last 7 days'), tile(s.month, 'Last 30 days'), tile(s.total, 'All time'));
+  drawTiles(first.summary);
+
+  const card = (l) => {
+    const badge = h('span', { class: 'badge ' + (l.status === 'new' ? 'new' : '') }, l.status);
+    const save = async (patch) => api('PATCH', `/api/account/leads/${l.id}`, patch);
+    const setStatus = async (v) => { await save({ status: v }); l.status = v; badge.textContent = v; badge.className = 'badge ' + (v === 'new' ? 'new' : ''); sel.value = v; };
+    const sel = h('select', { 'aria-label': 'Enquiry status', onchange: async () => {
+      sel.disabled = true;
+      try { await setStatus(sel.value); } catch (err) { saved.replaceChildren(note('msg-err', err.message)); sel.value = l.status; }
+      sel.disabled = false;
+    } }, ['new', 'contacted', 'closed', 'spam'].map((v) => h('option', { value: v, selected: v === l.status }, v)));
+    const saved = h('span', { class: 'muted small', 'aria-live': 'polite' });
+    const memo = h('textarea', { class: 'lx-note', rows: 2, maxlength: 1000, placeholder: 'Private note, only you see it', 'aria-label': 'Private note' }, l.note || '');
+    let was = l.note || '';
+    memo.addEventListener('blur', async () => {
+      if (memo.value.trim() === was) return;
+      try { await save({ note: memo.value }); was = memo.value.trim(); saved.textContent = 'Saved'; setTimeout(() => { saved.textContent = ''; }, 1800); }
+      catch (err) { saved.replaceChildren(note('msg-err', err.message)); }
+    });
+    const subject = encodeURIComponent(`Re: your enquiry to ${firmName}`);
+    const body = encodeURIComponent(`Hello${l.name ? ' ' + l.name.split(' ')[0] : ''},\r\n\r\nThank you for contacting ${firmName}. `);
+    const reply = l.email && h('a', { class: 'lx-act', href: `mailto:${l.email}?subject=${subject}&body=${body}`, onclick: () => { if (l.status === 'new') setStatus('contacted').catch(() => {}); } }, 'Reply by email');
+    const call = l.phone && h('a', { class: 'lx-act', href: 'tel:' + l.phone.replace(/[^\d+]/g, ''), onclick: () => { if (l.status === 'new') setStatus('contacted').catch(() => {}); } }, 'Call');
+    return h('article', { class: 'card lead' + (l.unread ? ' unread' : '') },
+      h('div', { class: 'row spread' }, h('b', null, l.unread && h('span', { class: 'lx-dot', title: 'Not opened before' }), l.name || '(no name)'), badge),
+      h('div', { class: 'meta' }, l.email && h('a', { href: 'mailto:' + l.email }, l.email), l.phone && h('a', { href: 'tel:' + l.phone.replace(/[^\d+]/g, '') }, l.phone), h('span', null, when(l.created_at))),
+      l.message ? h('div', { class: 'body' }, l.message) : h('div', { class: 'body muted' }, '(no message)'),
+      h('div', { class: 'row' }, reply, call, h('label', { class: 'muted' }, 'Status '), sel),
+      memo, saved);
+  };
+
+  async function load(reset) {
+    if (reset) { list.replaceChildren(); next = null; }
+    more.replaceChildren();
+    try {
+      const qs = new URLSearchParams({ limit: '30' });
+      if (status) qs.set('status', status);
+      if (q) qs.set('q', q);
+      if (next) qs.set('before', String(next));
+      const data = await api('GET', `${base}?${qs}`);
+      if (reset) drawTiles(data.summary);
+      if (!data.leads.length && reset) list.append(h('p', { class: 'muted' }, q || status ? 'No enquiries match.' : 'No enquiries yet. When someone contacts you through your LawDB page, it appears here and we email you.'));
+      data.leads.forEach((l) => list.append(card(l)));
+      next = data.next;
+      if (next) more.append(h('button', { type: 'button', onclick: () => load(false) }, 'Load more'));
+    } catch (err) { list.append(note('msg-err', err.message)); }
+  }
+
+  const chips = [['', 'Active'], ['new', 'New'], ['contacted', 'Contacted'], ['closed', 'Closed'], ['spam', 'Spam']];
+  const chipRow = h('div', { class: 'lx-chips', role: 'group', 'aria-label': 'Filter by status' }, chips.map(([v, label]) => {
+    const b = h('button', { type: 'button', class: 'lx-chip', 'aria-pressed': v === status ? 'true' : 'false', onclick: () => {
+      status = v; chipRow.querySelectorAll('.lx-chip').forEach((c) => c.setAttribute('aria-pressed', c === b ? 'true' : 'false')); load(true);
+    } }, label);
+    return b;
+  }));
+  const search = h('input', { type: 'search', placeholder: 'Search name, email, message or note', 'aria-label': 'Search enquiries' });
+  search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { q = search.value.trim(); load(true); }, 300); });
+
+  await load(true);
+  await loadMe().catch(() => {}); // the "new" count on the tab clears once they have been opened
+  return h('div', null, back,
+    h('div', { class: 'row spread' }, h('h1', null, 'Enquiries for ' + firmName), h('a', { class: 'lx-export', href: `${base}.csv`, download: '' }, 'Export to spreadsheet')),
+    tiles, h('div', { class: 'lx-bar' }, chipRow, search), list, more,
+    h('p', { class: 'muted small' }, 'Enquiries are kept in full for 12 months, then only the date and status remain. Notes are private to your firm.'));
+}
+
+
+// ---------------------------------------------------------------- following, feed, saved
+const shortText = (t, n = 200) => (t && t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t || '');
+
+function storyRow(s, onChange) {
+  const save = h('button', { type: 'button' }, s.saved ? 'Saved ✓' : 'Save');
+  save.addEventListener('click', async () => {
+    save.disabled = true;
+    try {
+      const r = s.saved ? await api('DELETE', `/api/account/saved/${s.id}`) : await api('POST', '/api/account/saved', { postId: s.id });
+      s.saved = r.saved; save.textContent = s.saved ? 'Saved ✓' : 'Save'; if (onChange) onChange(s);
+    } catch (err) { save.textContent = err.message; }
+    save.disabled = false;
+  });
+  return h('div', { class: 'audit' },
+    h('div', null, h('a', { href: `/firms/${s.firm.slug}` }, h('b', null, s.firm.name)), ' ', s.firm.featured && h('span', { class: 'badge featured' }, 'Featured'), ' ', h('span', { class: 'muted' }, s.publishedAt ? when(s.publishedAt) : '')),
+    h('div', null, h('a', { href: s.href }, s.title)),
+    s.excerpt && h('div', { class: 'muted' }, shortText(s.excerpt)),
+    h('div', { class: 'row' }, h('a', { href: s.href }, 'Read the story'), save));
+}
+
+// "Use your LinkedIn photo?" Shown once after signing in with LinkedIn or Google (the server keeps the picture's address until the person answers).
+// Yes: LawDB copies the picture into the person's own profile photo. No: remembered, never asked again.
+function photoOfferCard() {
+  const o = user.photoOffer;
+  const msg = h('div');
+  const card = h('div', { class: 'card pf-offer' });
+  const answer = async (accept) => {
+    msg.replaceChildren(note('msg-ok', accept ? 'Copying your photo…' : 'OK.'));
+    try {
+      const data = await api('POST', '/api/account/photo-offer', { accept });
+      user.avatar = data.profile.avatar; user.photoOffer = data.profile.photoOffer;
+      try { sessionStorage.removeItem('lawdb_me'); } catch (e) {}
+      card.replaceChildren(h('p', null, h('b', null, accept ? 'Done. Your photo is on your profile.' : 'No problem, we will not ask again.')));
+      if (accept && window.lawdbRefresh) window.lawdbRefresh();
+    } catch (err) { msg.replaceChildren(note('msg-err', err.message)); }
+  };
+  card.append(
+    h('img', { class: 'pf-offer-img', src: o.url, alt: `Your ${o.name} photo`, referrerpolicy: 'no-referrer', width: 84, height: 84 }),
+    h('div', null,
+      h('p', null, h('b', null, `Use your ${o.name} photo?`)),
+      h('p', { class: 'muted' }, `You signed in with ${o.name}. We can use the same profile photo here. Only you can see it for now.` + (o.provider === 'linkedin' ? ' LinkedIn does not share cover photos with other sites, so you can add a cover yourself on your profile.' : '')),
+      h('div', { class: 'row' }, h('button', { class: 'primary', type: 'button', onclick: () => answer(true) }, 'Yes, use it'), h('button', { type: 'button', onclick: () => answer(false) }, 'No thanks')),
+      msg));
+  return card;
+}
+
+async function viewFeed() {
+  const { stories } = await api('GET', '/api/account/feed');
+  api('POST', '/api/account/feed/seen', {}).then(() => { try { sessionStorage.removeItem('lawdb_notif'); } catch (e) {} if (window.lawdbDot) window.lawdbDot(0); }).catch(() => {});
+  const nF = (await api('GET', '/api/account/following')).firms.length;
+  const first = (user.name || '').split(/\s+/)[0];
+  return h('div', null, h('h1', null, first ? `Welcome, ${first}!` : 'Your feed'),
+    (!user.name || !user.kind) && h('div', { class: 'card' }, h('p', null, h('b', null, 'Finish your profile')), h('p', { class: 'muted' }, 'Add your name and tell us who you are. It takes a few seconds.'), h('a', { href: '#profile' }, h('button', { class: 'primary', type: 'button' }, 'Continue setting up your profile'))),
+    user.photoOffer && !user.avatar && photoOfferCard(),
+    user.name && !user.avatar && !user.photoOffer && h('div', { class: 'card' }, h('p', null, h('b', null, 'Add a profile photo')), h('p', { class: 'muted' }, 'A photo makes your account feel like yours. It takes a few seconds.'), h('a', { href: '#profile' }, h('button', { type: 'button' }, 'Add a photo'))),
+    h('p', { class: 'muted' }, 'The latest stories from the firms you follow.'),
+    nF === 0
+      ? h('div', { class: 'card' }, h('p', null, 'You are not following any firms yet.'), h('p', { class: 'muted' }, 'Follow firms to see their new articles here. You can follow any firm from its profile page, from LawDB News, or search for firms below.'), h('a', { href: '#network' }, h('button', { class: 'primary', type: 'button' }, 'Find firms to follow')))
+      : stories.length
+        ? h('div', { class: 'card' }, stories.map((s) => storyRow(s)))
+        : h('div', { class: 'card' }, h('p', { class: 'muted' }, 'The firms you follow have no stories yet. New ones appear here when they publish.')));
+}
+
+const logoSrc = (f) => (f.logo ? (/^(https?:)?\//.test(f.logo) ? f.logo : `/${f.logo}`) : '');
+const initialsOf = (name) => (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+// A LinkedIn-style Follow pill: "+ Follow", then "Following" (which turns into "Unfollow" when you point at it).
+function followPill(f, onChange) {
+  const b = h('button', { type: 'button', class: 'fbtn' });
+  let on = !!f.following;
+  const paint = () => { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.replaceChildren(...(on ? [h('span', { class: 'a' }, '✓ Following'), h('span', { class: 'b' }, 'Unfollow')] : ['+ Follow'])); };
+  paint();
+  b.addEventListener('click', async () => {
+    b.disabled = true;
+    try {
+      const r = on ? await api('DELETE', `/api/account/follow/${encodeURIComponent(f.slug)}`) : await api('POST', '/api/account/follow', { slug: f.slug });
+      on = r.following; f.followers = r.followers; f.following = on; paint(); if (onChange) onChange(on, r);
+    } catch (err) { b.title = err.message; b.textContent = 'Try again'; setTimeout(paint, 2000); }
+    b.disabled = false;
+  });
+  return b;
+}
+
+function firmRow(f, onChange) {
+  const src = logoSrc(f);
+  const place = `${f.city}, ${PROVINCES[f.province] || f.province}`;
+  const facts = [f.why, f.followers ? `${f.followers.toLocaleString('en-CA')} follower${f.followers === 1 ? '' : 's'}` : '', f.rating ? `★ ${Number(f.rating).toFixed(1)}` : ''].filter(Boolean).join(' · ');
+  return h('div', { class: 'nw-row' },
+    h('a', { class: 'nw-ava', href: `/firms/${f.slug}`, 'aria-hidden': 'true', tabindex: '-1' }, src ? h('img', { src, alt: '', loading: 'lazy' }) : initialsOf(f.name)),
+    h('div', { class: 'nw-info' }, h('a', { href: `/firms/${f.slug}` }, h('b', null, f.name)), f.featured && h('span', { class: 'badge featured' }, 'Featured'), h('span', { class: 'muted' }, place), facts && h('span', { class: 'muted' }, facts)),
+    followPill(f, onChange));
+}
+
+// "My network": the firms you follow, and firms worth following next (same place as your firms or you, then the best rated).
+async function viewNetwork() {
+  const { following, suggestions } = await api('GET', '/api/account/network');
+  const count = h('span', null, String(following.length));
+  const followingList = h('div', { class: 'card nw-list' }, following.length ? following.map((f) => firmRow({ ...f, following: true })) : [h('p', { class: 'muted' }, 'You are not following any firms yet. Start with the suggestions above, or search for a firm.')]);
+  const suggest = h('div', { class: 'card nw-list' }, suggestions.length ? suggestions.map((f) => firmRow(f, (on) => { count.textContent = String(Math.max(0, Number(count.textContent) + (on ? 1 : -1))); })) : [h('p', { class: 'muted' }, 'You follow every firm we can suggest. Nice.')]);
+  const search = h('input', { type: 'search', placeholder: 'Search any firm by name or city', 'aria-label': 'Search firms to follow' });
+  const results = h('div', { class: 'nw-list' });
+  let timer;
+  search.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      const q = search.value.trim();
+      if (q.length < 2) return results.replaceChildren();
+      try {
+        const { firms } = await api('GET', '/api/account/search?q=' + encodeURIComponent(q));
+        results.replaceChildren(...firms.map((f) => firmRow({ ...f, following: false })));
+      } catch (err) { results.replaceChildren(note('msg-err', err.message)); }
+    }, 250);
+  });
+  return h('div', null, h('h1', null, 'My network'),
+    h('p', { class: 'muted' }, 'Follow firms to see their newest articles in your feed. Only you can see who you follow; firms see just how many people follow them.'),
+    h('div', { class: 'card' }, search, results),
+    h('h2', null, 'Firms you may want to follow'), suggest,
+    h('h2', null, 'Following (', count, ')'), followingList);
+}
+
+async function viewSaved() {
+  const { stories } = await api('GET', '/api/account/saved');
+  const box = h('div', { class: 'card' });
+  const draw = () => box.replaceChildren(...(stories.length ? stories.map((s) => storyRow(s, (x) => { if (!x.saved) { stories.splice(stories.indexOf(x), 1); draw(); } })) : [h('p', { class: 'muted' }, 'Nothing saved yet. Tap Save on any story to keep it here.')]));
+  draw();
+  return h('div', null, h('h1', null, 'Saved stories'), box);
+}
+
+
+// ---------------------------------------------------------------- profile
+const KIND_LABELS = [['lawyer', 'A lawyer'], ['staff', 'Law firm staff'], ['public', 'Looking for a lawyer'], ['other', 'Something else']];
+// Profile photo and cover: the picture is cropped to the right shape (a centred square, or 3:1 for the cover) and shrunk in the browser,
+// so uploads are small and fast.
+async function cropJpeg(file, w, h) {
+  const bmp = await createImageBitmap(file).catch(() => null);
+  if (!bmp) throw new Error('That file could not be read as a picture. Try a JPEG or PNG.');
+  const scale = Math.max(w / bmp.width, h / bmp.height);
+  const sw = w / scale, sh = h / scale;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(bmp, (bmp.width - sw) / 2, (bmp.height - sh) / 2, sw, sh, 0, 0, w, h);
+  return await new Promise((ok, no) => c.toBlob((b) => (b ? ok(b) : no(new Error('Could not prepare that picture.'))), 'image/jpeg', 0.86));
+}
+
+// The top of the profile, like a LinkedIn profile: a cover banner with the profile photo sitting on it.
+function photoCard() {
+  const box = h('div', { class: 'card pf-head' });
+  const msg = h('div');
+  const mkInput = (label) => h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', class: 'photo-input', 'aria-label': label });
+  const avIn = mkInput('Choose a profile photo'), cvIn = mkInput('Choose a cover photo');
+  const draw = () => {
+    const cover = h('div', { class: user.cover ? 'pf-cover' : 'pf-cover gen' }, user.cover && h('img', { src: user.cover, alt: 'Your cover photo' }),
+      h('div', { class: 'pf-cbtns' },
+        h('button', { type: 'button', onclick: () => cvIn.click() }, user.cover ? 'Change cover' : 'Add cover photo'),
+        user.cover && h('button', { type: 'button', onclick: () => remove('cover') }, 'Remove')));
+    const face = user.avatar ? h('img', { src: user.avatar, alt: 'Your profile photo' }) : h('span', null, initialsOf(user.name || user.email));
+    const who = h('div', { class: 'pf-who' }, h('b', null, user.name || 'Your name'), [user.jobTitle, user.employer].filter(Boolean).length && h('span', { class: 'muted' }, [user.jobTitle, user.employer].filter(Boolean).join(' at ')), (user.city || user.province) && h('span', { class: 'muted' }, [user.city, PROVINCES[user.province] || user.province].filter(Boolean).join(', ')));
+    box.replaceChildren(cover, h('div', { class: 'pf-body' }, h('div', { class: 'ph' }, face), who,
+      h('div', { class: 'row' }, h('button', { type: 'button', class: 'primary', onclick: () => avIn.click() }, user.avatar ? 'Change photo' : 'Add photo'), user.avatar && h('button', { type: 'button', onclick: () => remove('avatar') }, 'Remove photo')),
+      h('p', { class: 'muted pf-note' }, 'Only you can see your photos for now. JPEG, PNG or WebP.'), msg), avIn, cvIn);
+  };
+  const done = (profile) => {
+    user.avatar = profile.avatar; user.cover = profile.cover;
+    try { sessionStorage.removeItem('lawdb_me'); } catch (e) {}
+    draw(); if (window.lawdbRefresh) window.lawdbRefresh();
+  };
+  async function remove(kind) {
+    try { done((await api('DELETE', `/api/account/${kind}`)).profile); msg.replaceChildren(note('msg-ok', 'Removed.')); } catch (err) { msg.replaceChildren(note('msg-err', err.message)); }
+  }
+  const wire = (input, kind, w, h2) => input.addEventListener('change', async () => {
+    const file = input.files[0]; input.value = '';
+    if (!file) return;
+    msg.replaceChildren(note('msg-ok', 'Uploading…'));
+    try {
+      const blob = await cropJpeg(file, w, h2);
+      const res = await fetch(`/api/account/${kind}`, { method: 'PUT', credentials: 'same-origin', headers: { 'content-type': blob.type }, body: blob });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || `Upload failed (${res.status})`);
+      done(data.profile); msg.replaceChildren(note('msg-ok', 'Saved. Looking good!'));
+    } catch (err) { msg.replaceChildren(note('msg-err', err.message)); }
+  });
+  wire(avIn, 'avatar', 400, 400); wire(cvIn, 'cover', 1200, 400);
+  draw();
+  return box;
+}
+
+async function viewProfile() {
+  const { ratings } = await api('GET', '/api/account/ratings');
+  const f = (id, label, key, extra = {}) => { const i = h('input', { type: 'text', id, value: user[key] || '', maxlength: 100, ...extra }); return [h('label', { for: id }, label), i, i]; };
+  const [l1, name] = f('pname', 'Your name', 'name', { autocomplete: 'name' }); const [l2, city] = f('pcity', 'City', 'city', { autocomplete: 'address-level2' });
+  const [l3, title] = f('ptitle', 'Job title', 'jobTitle'); const [l4, emp] = f('pemp', 'Law firm or employer', 'employer');
+  const prov = h('select', { id: 'pprov' }, h('option', { value: '' }, 'Province or territory'), Object.entries(PROVINCES).map(([v, l]) => { const o = h('option', { value: v }, l); if (v === user.province) o.selected = true; return o; }));
+  const kind = h('select', { id: 'pkind' }, h('option', { value: '' }, 'Choose one'), KIND_LABELS.map(([v, l]) => { const o = h('option', { value: v }, l); if (v === user.kind) o.selected = true; return o; }));
+  const msg = h('div');
+  const form = h('form', { onsubmit: async (e) => {
+    e.preventDefault(); msg.replaceChildren();
+    try { const r = await api('PATCH', '/api/account/profile', { name: name.value, city: city.value, province: prov.value, jobTitle: title.value, employer: emp.value, kind: kind.value }); Object.assign(user, r.profile); if (window.lawdbRefresh) window.lawdbRefresh(); msg.replaceChildren(note('msg-ok', 'Saved.')); }
+    catch (err) { msg.replaceChildren(note('msg-err', err.message)); }
+  } }, h('label', { for: 'pname' }, 'Your name'), name, h('label', { for: 'pkind' }, 'I am'), kind, h('label', { for: 'pcity' }, 'City'), city, h('label', { for: 'pprov' }, 'Province or territory'), prov, h('label', { for: 'ptitle' }, 'Job title'), title, h('label', { for: 'pemp' }, 'Law firm or employer'), emp, h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit' }, 'Save')), msg);
+  const mine = h('div', { class: 'card' });
+  const drawMine = () => mine.replaceChildren(...(ratings.length ? ratings.map((r) => {
+    const del = h('button', { type: 'button' }, 'Remove');
+    del.addEventListener('click', async () => { del.disabled = true; try { await api('DELETE', `/api/account/ratings/${encodeURIComponent(r.slug)}`); ratings.splice(ratings.indexOf(r), 1); drawMine(); } catch { del.disabled = false; } });
+    return h('div', { class: 'audit' }, h('div', null, h('a', { href: `/firms/${r.slug}#rate` }, h('b', null, r.name)), ' ', h('span', { class: 'muted' }, '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + (r.commentStatus === 'pending' ? ' · comment waiting for review' : ''))), r.comment && h('div', { class: 'muted' }, r.comment), h('div', { class: 'row' }, del));
+  }) : [h('p', { class: 'muted' }, 'You have not rated any firms yet. Open a firm page and use "Rate this firm".')]));
+  drawMine();
+  return h('div', null, h('h1', null, 'Your profile'), h('p', { class: 'muted' }, `Signed in as ${user.email}. Your name personalises your dashboard and emails.`), photoCard(), h('div', { class: 'card' }, form), h('h2', null, 'Your ratings'), mine,
+    h('p', { class: 'muted' }, h('a', { href: '#', title: 'Ends every session on every device', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout-all').catch(() => {}); try { localStorage.setItem('lawdb_in', '0'); sessionStorage.removeItem('lawdb_me'); } catch (err) {} location.replace('/account/'); } }, 'Sign out of every device')));
+}
+
+// After signing in from a Follow or Save button on a public page, finish what the person asked for.
+async function finishPending() {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem('lawdb_pending') || 'null'); localStorage.removeItem('lawdb_pending'); } catch {}
+  if (!p) return false;
+  try {
+    if (p.type === 'follow') { await api('POST', '/api/account/follow', { slug: p.slug }); location.hash = '#network'; return true; }
+    if (p.type === 'back' && typeof p.url === 'string' && /^\/firms\/[a-z0-9-]+(#rate(=[1-5])?)?$/.test(p.url)) { location.replace(p.url); return true; }
+    if (p.type === 'claim' && /^[a-z0-9-]+$/.test(String(p.slug))) { location.hash = '#find/' + p.slug; return true; }
+    if (p.type === 'save') { await api('POST', '/api/account/saved', { postId: Number(p.id) }); location.hash = '#saved'; return true; }
+  } catch { /* the page still opens; the person can try again */ }
+  return false;
+}
+
+
+// ---------------------------------------------------------------- welcome steps (new accounts)
+// Four short screens, like a signup wizard: your name, where you are, your current role, and what brings you to LawDB.
+const GOALS = [
+  ['find', 'I am looking for a lawyer', 'Find a firm near me'],
+  ['clients', 'I am a lawyer who wants more clients', 'List or claim my firm'],
+  ['staff', 'I work at a law firm', 'Help manage our listing'],
+  ['follow', 'I follow the legal profession', 'Follow firms and read their news'],
+  ['study', 'I am a student or researcher', 'Learn about firms and the law'],
+  ['other', 'Something else', ''],
+];
+let cityList = null;
+
+function renderWizard() {
+  document.body.classList.remove('ap', 'ap-in');
+  const parts = (user.name || '').trim().split(/\s+/);
+  const d = { first: parts[0] || '', last: parts.slice(1).join(' '), city: user.city || '', province: user.province || '', title: user.jobTitle || '', employer: user.employer || '', goal: user.goal || '' };
+  let step = 0;
+  const steps = 4;
+  const valid = [() => d.first.trim() && d.last.trim(), () => d.city.trim(), () => d.title.trim(), () => !!d.goal];
+
+  const input = (id, label, key, attrs = {}) => {
+    const i = h('input', { type: 'text', id, value: d[key], maxlength: 80, ...attrs });
+    i.addEventListener('input', () => { d[key] = i.value; refresh(); });
+    return [h('label', { for: id }, label), i];
+  };
+  let go;
+  const refresh = () => { if (go) go.disabled = !valid[step](); };
+
+  async function finish(skipped) {
+    go.disabled = true;
+    try {
+      const body = skipped ? { complete: true } : { name: `${d.first.trim()} ${d.last.trim()}`.trim(), city: d.city.trim(), province: d.province, jobTitle: d.title.trim(), employer: d.employer.trim(), goal: d.goal, complete: true };
+      const r = await api('PATCH', '/api/account/profile', body);
+      Object.assign(user, r.profile);
+      if (skipped) { location.hash = '#feed'; return render(); }
+      if (d.goal === 'find') return location.assign('/find-lawyers');
+      location.hash = d.goal === 'clients' || d.goal === 'staff' ? '#find' : '#feed';
+      return render();
+    } catch (err) { go.disabled = false; msgBox.replaceChildren(note('msg-err', err.message)); }
+  }
+
+  const msgBox = h('div');
+  function body() {
+    if (step === 0) return [h('h1', { class: 'wiz-h' }, 'Join LawDB. It is free'), h('p', { class: 'muted center-text' }, 'Follow firms, save stories and rate the firms you have worked with.'), ...input('w-first', 'First name', 'first', { autocomplete: 'given-name' }), ...input('w-last', 'Last name', 'last', { autocomplete: 'family-name' })];
+    if (step === 1) {
+      const box = h('input', { type: 'text', id: 'w-city', value: d.city ? (d.province ? `${d.city}, ${d.province}` : d.city) : '', placeholder: 'Start typing a city', autocomplete: 'off', maxlength: 80 });
+      const list = h('div', { class: 'wiz-list' });
+      const pickCity = (c, pv) => { d.city = c; d.province = pv; box.value = pv ? `${c}, ${pv}` : c; list.replaceChildren(); refresh(); };
+      const draw = () => {
+        const q = box.value.trim().toLowerCase(); d.city = box.value.trim(); d.province = ''; refresh();
+        if (q.length < 1) return list.replaceChildren();
+        const hits = (cityList || []).filter((c) => c.city.toLowerCase().startsWith(q) || `${c.city}, ${c.province}`.toLowerCase().startsWith(q)).slice(0, 6);
+        list.replaceChildren(...hits.map((c) => h('button', { type: 'button', onclick: () => pickCity(c.city, c.province) }, `${c.city}, ${PROVINCES[c.province] || c.province}`)));
+      };
+      box.addEventListener('input', draw);
+      if (!cityList) api('GET', '/api/cities').then((r) => { cityList = r.cities; }).catch(() => { cityList = []; });
+      return [h('h1', { class: 'wiz-h' }, 'Add your location'), h('p', { class: 'muted center-text' }, 'Pick the city closest to you. It helps us show firms nearby.'), h('label', { for: 'w-city' }, 'Location'), box, list];
+    }
+    if (step === 2) return [h('h1', { class: 'wiz-h' }, 'What is your most recent experience?'), ...input('w-title', 'Job title', 'title', { placeholder: 'For example: Lawyer, Paralegal, Student', autocomplete: 'organization-title' }), ...input('w-emp', 'Law firm or employer (optional)', 'employer', { maxlength: 100, autocomplete: 'organization' })];
+    return [h('h1', { class: 'wiz-h' }, 'What brings you to LawDB?'), h('p', { class: 'muted center-text' }, 'This helps us personalise your LawDB.'),
+      h('div', { class: 'wiz-opts' }, GOALS.map(([k, label, sub]) => h('button', { type: 'button', class: 'wiz-opt', 'aria-pressed': d.goal === k ? 'true' : 'false', onclick: () => { d.goal = k; draw(); } }, h('b', null, label), sub && h('span', null, sub))))];
+  }
+  function draw() {
+    go = h('button', { class: 'primary wiz-go', type: 'button' }, step === steps - 1 ? 'Finish' : 'Continue');
+    go.addEventListener('click', () => { if (!valid[step]()) return; if (step === steps - 1) finish(false); else { step++; draw(); const f = app.querySelector('input'); if (f) f.focus(); } });
+    mount(h('div', { class: 'wiz' },
+      h('div', { class: 'wiz-top' }, h('a', { class: 'brand', href: '/' }, h('img', { src: '/images/logo-icon.png', alt: '' }), 'LawDB'), h('a', { href: '#', class: 'wiz-skip', onclick: (e) => { e.preventDefault(); finish(true); } }, 'Skip for now')),
+      h('div', { class: 'card wiz-card' }, step > 0 && h('button', { type: 'button', class: 'wiz-back', 'aria-label': 'Back', onclick: () => { step--; draw(); } }, '←'), ...body(), go, msgBox),
+      h('div', { class: 'wiz-bar', role: 'progressbar', 'aria-valuemin': 1, 'aria-valuemax': steps, 'aria-valuenow': step + 1 }, Array.from({ length: steps }, (_, i) => h('i', { class: i <= step ? 'on' : '' })))));
+    refresh();
+  }
+  draw();
+}
+
+// ---------------------------------------------------------------- router
+async function loadMe() {
+  const data = await api('GET', '/api/account/me');
+  user = data.user;
+  memberships = data.memberships;
+}
+
+let renderSeq = 0;
+async function render() {
+  const seq = ++renderSeq; // a slower, older render must never overwrite a newer one
+  document.body.classList.toggle('lw-focus', !!(user && !user.onboarded));
+  if (user && !user.onboarded) return renderWizard();
+  const [name, arg] = location.hash.slice(1).split('/');
+  const tab = ['feed', 'network', 'saved', 'profile', 'find', 'leads', 'stats'].includes(name) ? name : name === 'following' ? 'network' : 'firms';
+  mount(shell(tab, h('p', { class: 'muted' }, 'Loading…')));
+  try {
+    let view;
+    if (name === 'find') view = viewFind(arg);
+    else if (tab === 'feed') view = await viewFeed();
+    else if (tab === 'network') view = await viewNetwork();
+    else if (tab === 'saved') view = await viewSaved();
+    else if (tab === 'profile') view = await viewProfile();
+    else if (name === 'edit' && arg) { view = await viewEdit(arg); if (seq !== renderSeq) return; return mount(shell('firms', view, { wide: true })); }
+    else if (name === 'leads') view = await viewLeads(arg);
+    else if (name === 'stats') view = viewStats(arg);
+    else { await loadMe(); view = viewFirms(); }
+    if (seq !== renderSeq) return;
+    mount(shell(tab, view));
+  } catch (err) {
+    if (err.status === 401) return boot();
+    if (seq !== renderSeq) return;
+    mount(shell(tab, note('msg-err', err.message)));
+  }
+}
+
+async function boot() {
+  try {
+    const who = await api('GET', '/api/auth/me');
+    try { localStorage.setItem('lawdb_in', who.user ? '1' : '0'); } catch (e) {}
+    if (!who.user) return await renderLogin();
+    await loadMe();
+  } catch (err) { return mount(h('div', { class: 'wrap' }, note('msg-err', err.message))); }
+  await finishPending();
+  window.removeEventListener('hashchange', render);
+  window.addEventListener('hashchange', render);
+  render();
+}
+
+boot();
+
+// "Profile strength 82/100" with a bar and the next things to add (the number comes from the server: src/lib/profile-strength.js).
+function strengthLine(m) {
+  const s = m.strength;
+  const fill = h('span', { class: 'ed-bar-fill' });
+  fill.style.width = `${Math.max(0, Math.min(100, s.score))}%`;
+  return h('div', { class: 'fx-strength' },
+    h('div', { class: 'row spread' }, h('b', null, `Profile strength ${s.score}/100`), s.todo.length ? h('a', { href: `#edit/${m.slug}` }, 'Improve it') : h('span', { class: 'muted' }, 'Complete')),
+    h('div', { class: 'ed-bar', role: 'img', 'aria-label': `Profile strength ${s.score} out of 100` }, fill),
+    s.todo.length ? h('p', { class: 'muted' }, 'Next: ', s.todo.map((i) => `${i.label} (+${i.points})`).join(' \u00b7 ')) : null);
+}

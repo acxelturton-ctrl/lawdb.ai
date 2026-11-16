@@ -1,0 +1,57 @@
+{
+  // LawDB.ca: static site + Worker API + D1 database.
+  // The Worker name here must match the Cloudflare project name exactly.
+  "name": "lawdb-ai",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    // Static files are served directly (free, fast). The Worker only runs for the API, the three data
+    // files, and the pages that embed the firm list (find-lawyers, the province/city hubs): for those it
+    // swaps in the live database list, falling back to the static file if the database is unavailable.
+    "run_worker_first": [
+      "/api/*",
+      "/firms_data.json", "/blog_data.json", "/firms_hours.json",
+      "/find-lawyers",
+      "/", "/for-firms",
+      "/firms/*",
+      "/report-listing",
+      "/news", "/news/*", "/sitemap-news.xml", "/sitemap-firms.xml", "/*.html",
+      "/img/*",
+      "/alberta/", "/manitoba/",
+      "/ontario/*/", "/quebec/*/", "/british-columbia/*/", "/alberta/*/", "/manitoba/*/"
+    ]
+  },
+  // The site will live at lawdb.ai (a custom domain set up in the dashboard). Keep the duplicate *.workers.dev
+  // address and the per-version preview addresses switched off; without these two lines every deploy turns them back on.
+  "workers_dev": false,
+  "preview_urls": false,
+  // Keep anything added by hand in the dashboard (e.g. a "Text" variable) when this config is deployed.
+  "keep_vars": true,
+  // Non-secret settings. Secrets (BREVO_API_KEY, ADMIN_EMAILS) are set in the Cloudflare dashboard:
+  // Workers & Pages -> lawdb -> Settings -> Variables and Secrets.
+  "vars": {
+    "SITE_ORIGIN": "https://lawdb.ai",
+    "MAIL_FROM_EMAIL": "info@lawdb.ai",
+    "MAIL_FROM_NAME": "LawDB",
+    // The Featured plan (CAD $89/month). Owners reach it from their dashboard with their firm and email attached.
+    "STRIPE_PAYMENT_LINK": ""
+  },
+  // Nightly at 07:17 UTC: housekeeping (retention rules) and a backup of every table into the KV store below.
+  "triggers": { "crons": ["17 7 * * *", "37 7 * * *", "*/5 * * * *", "7 * * * *"] },
+  "kv_namespaces": [
+    { "binding": "BACKUPS", "id": "REPLACE_WITH_NEW_KV_NAMESPACE_ID" }
+  ],
+  // Firm pictures (private bucket; served to the public only through /img/<id>).
+  "r2_buckets": [
+    { "binding": "IMAGES", "bucket_name": "lawdb-ai-images" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lawdb-ai",
+      "database_id": "REPLACE_WITH_NEW_D1_DATABASE_ID"
+    }
+  ]
+}

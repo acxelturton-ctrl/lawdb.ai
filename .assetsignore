@@ -1,0 +1,15 @@
+wrangler.jsonc
+.assetsignore
+.gitignore
+.git
+.github
+node_modules
+.wrangler
+*.zip
+*.md
+package.json
+package-lock.json
+src
+scripts
+migrations
+db

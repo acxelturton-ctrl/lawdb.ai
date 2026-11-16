@@ -1,0 +1,288 @@
+// Small UI helpers shared by the admin area and the owner dashboard. No framework, no build step.
+// SECURITY: text from visitors is only ever inserted with text nodes (never innerHTML).
+
+export function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === false || v == null) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+
+export async function api(method, path, body) {
+  const res = await fetch(path, {
+    method,
+    headers: body ? { 'content-type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: 'same-origin',
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = new Error((data && data.error) || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export const when = (utc) => new Date(utc.replace(' ', 'T') + 'Z').toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+
+export const note = (cls, text) => h('p', { class: cls, role: cls === 'msg-err' ? 'alert' : 'status' }, text);
+
+export const CASE_LABELS = {
+  traffic: 'Traffic Ticket', criminal: 'Criminal Charges', family: 'Family Law / Divorce', injury: 'Personal Injury / Accident',
+  realestate: 'Buying or Selling a Home', wills: 'Wills, Estates & Power of Attorney', business: 'Business / Corporate',
+  employment: 'Employment Dispute', immigration: 'Immigration', litigation: 'Civil Lawsuit / Litigation',
+};
+export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+export const PROVINCES = { AB: 'Alberta', BC: 'British Columbia', MB: 'Manitoba', NB: 'New Brunswick', NL: 'Newfoundland and Labrador', NS: 'Nova Scotia', NT: 'Northwest Territories', NU: 'Nunavut', ON: 'Ontario', PE: 'Prince Edward Island', QC: 'Quebec', SK: 'Saskatchewan', YT: 'Yukon' };
+
+// Opening hours editor. Days that already have split hours (two ranges) are kept as they are.
+export function hoursEditor(hours) {
+  let dirty = false;
+  const rows = DAY_NAMES.map((name, i) => {
+    const ivs = (hours && hours[String(i + 1)]) || [];
+    const multi = ivs.length > 1;
+    const open = h('input', { type: 'checkbox', checked: ivs.length > 0, 'aria-label': `${name} open`, disabled: multi });
+    const from = h('input', { type: 'time', value: ivs[0] ? ivs[0][0] : '09:00', 'aria-label': `${name} opens` });
+    const to = h('input', { type: 'time', value: ivs[0] ? ivs[0][1] : '17:00', 'aria-label': `${name} closes` });
+    const mark = () => { dirty = true; };
+    [open, from, to].forEach((el) => el.addEventListener('change', mark));
+    return { name, ivs, multi, open, from, to, el: h('div', { class: 'hrow' }, h('span', null, name), open, multi ? h('span', { class: 'muted hwide' }, 'Split hours kept as they are') : [from, to]) };
+  });
+  return {
+    el: h('div', { class: 'hours-edit' }, rows.map((r) => r.el)),
+    isDirty: () => dirty,
+    anyOpen: () => rows.some((r) => r.multi || r.open.checked),
+    get() {
+      const out = {};
+      rows.forEach((r, i) => {
+        if (r.multi) out[String(i + 1)] = r.ivs;
+        else if (r.open.checked) out[String(i + 1)] = [[r.from.value, r.to.value]];
+      });
+      return out;
+    },
+  };
+}
+
+export function categoryChecks(selected) {
+  const boxes = Object.entries(CASE_LABELS).map(([id, label]) => {
+    const input = h('input', { type: 'checkbox', value: id, checked: (selected || []).includes(id) });
+    return { id, input, el: h('label', { class: 'check small' }, input, label) };
+  });
+  return { el: h('div', { class: 'checks' }, boxes.map((b) => b.el)), get: () => boxes.filter((b) => b.input.checked).map((b) => b.id) };
+}
+
+export const splitTags = (v) => v.split(',').map((t) => t.trim()).filter(Boolean);
+export const field = (label, el, hint) => [h('label', null, label), el, hint && h('p', { class: 'muted' }, hint)];
+
+
+// ---------------------------------------------------------------- pictures
+// Logo, cover and photos for one firm. `base` is the images endpoint (owner or admin). Each upload or removal
+// is saved straight away; it does not wait for the profile form's Save button.
+// `locked`: a Basic firm. Adding or changing pictures is a Featured benefit, so the upload controls are left out; the pictures it
+// already has stay, and it can still remove them.
+export function picturesPanel(base, { locked = false } = {}) {
+  const root = h('div', { class: 'card pics' });
+  const out = h('div');
+  const MAX = 3 * 1024 * 1024;
+
+  async function send(method, url, file) {
+    const res = await fetch(url, {
+      method,
+      headers: file ? { 'content-type': file.type || 'application/octet-stream' } : {},
+      body: file,
+      credentials: 'same-origin',
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || `Request failed (${res.status})`);
+    return data;
+  }
+
+  async function upload(kind, file, alt) {
+    if (!file) return;
+    if (file.size > MAX) return out.replaceChildren(note('msg-err', 'That picture is over 3 MB. Please choose a smaller one.'));
+    out.replaceChildren(note('msg-ok', 'Uploading…'));
+    try {
+      await send('POST', `${base}?kind=${kind}${alt ? '&alt=' + encodeURIComponent(alt) : ''}`, file);
+      out.replaceChildren(note('msg-ok', 'Saved. It appears on the site within about a minute.'));
+      await load();
+    } catch (err) { out.replaceChildren(note('msg-err', err.message)); }
+  }
+
+  async function remove(img) {
+    if (!confirm('Remove this picture?')) return;
+    try { await send('DELETE', `${base}/${img.id}`); out.replaceChildren(note('msg-ok', 'Removed.')); await load(); }
+    catch (err) { out.replaceChildren(note('msg-err', err.message)); }
+  }
+
+  function section(title, kind, imgs, hint, multi) {
+    const input = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', 'aria-label': `Choose ${title.toLowerCase()}` });
+    const alt = multi ? h('input', { type: 'text', maxlength: 120, placeholder: 'Short description (optional)', 'aria-label': 'Picture description' }) : null;
+    const go = h('button', { type: 'button' }, imgs.length && !multi ? 'Replace' : 'Upload');
+    go.addEventListener('click', () => upload(kind, input.files[0], alt ? alt.value.trim() : ''));
+    return h('div', { class: 'pics-sec' },
+      h('b', null, title), h('p', { class: 'muted' }, hint),
+      h('div', { class: 'thumbs' }, imgs.map((img) => h('figure', null,
+        h('img', { src: img.url, alt: img.alt || title, loading: 'lazy' }),
+        h('button', { type: 'button', onclick: () => remove(img) }, 'Remove')))),
+      // A Basic firm sees the upload controls greyed out, with the reason, instead of nothing at all.
+      locked ? h('div', { class: 'row pics-locked' }, h('input', { type: 'file', disabled: true, 'aria-label': `${title}: upload (needs Featured)` }), h('button', { type: 'button', disabled: true }, lockIcon(), ' Upload', h('span', { class: 'ed-pill' }, 'Featured')))
+        : h('div', { class: 'row' }, input, alt, go));
+  }
+
+  function draw(images) {
+    const by = (k) => images.filter((i) => i.kind === k);
+    root.replaceChildren(
+      h('h2', null, 'Pictures'),
+      locked
+        ? h('p', { class: 'muted' }, h('b', null, 'Adding and changing pictures is a Featured benefit. '), 'Upgrade to Featured to add your logo, cover and photos. Pictures you already have stay, and you can remove them.')
+        : h('p', { class: 'muted' }, 'JPEG, PNG or WebP, up to 3 MB each. Only upload pictures you own or have permission to use, and do not show clients without their consent.'),
+      section('Logo', 'logo', by('logo'), 'Shown on your listing and page. A square picture works best.', false),
+      section('Cover picture', 'cover', by('cover'), 'The wide picture at the top of your page.', false),
+      section('Photos', 'photo', by('photo'), 'Up to 6 photos, shown on your page.', true),
+      out);
+  }
+
+  async function load() {
+    try { draw((await api('GET', base)).images); }
+    catch (err) { root.replaceChildren(note('msg-err', err.message)); }
+  }
+  load();
+  return root;
+}
+
+// ---------------------------------------------------------------- blog cards
+// "Latest from the firm's blog": cards built from the firm's public blog feed. `base` is the feed endpoint
+// (owner or admin). Changes are saved straight away.
+export function feedPanel(base) {
+  const root = h('div', { class: 'card feedp' });
+  const out = h('div');
+
+  async function call(method, url, body) {
+    const res = await fetch(url, { method, headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || `Request failed (${res.status})`);
+    return data;
+  }
+  const act = async (fn, okText) => {
+    try { const d = await fn(); out.replaceChildren(note('msg-ok', okText(d))); draw(d); }
+    catch (err) { out.replaceChildren(note('msg-err', err.message)); }
+  };
+
+  function statusLine(feed, posts) {
+    if (!feed) return 'Not set up yet. Switch it on and we will look for the firm\'s blog feed.';
+    if (!feed.enabled) return 'Switched off. Nothing is shown on the page.';
+    if (feed.status === 'ok') return `Working. ${posts.length} recent post${posts.length === 1 ? '' : 's'} found${feed.lastCheckedAt ? ', last checked ' + when(feed.lastCheckedAt) : ''}.`;
+    if (feed.status === 'none') return 'We could not find a blog feed on the website yet. If the firm has a blog, enter its feed address below. We try again every week.';
+    if (feed.status === 'error') return 'The last check failed: ' + (feed.lastError || 'unknown problem') + ' We keep the earlier posts and try again tonight.';
+    return 'Looking for the blog feed. Check back in a minute.';
+  }
+
+  function draw({ feed, posts }) {
+    const enabled = h('input', { type: 'checkbox', checked: !!(feed && feed.enabled), id: 'feed-on' });
+    enabled.addEventListener('change', () => act(() => call('PATCH', base, { enabled: enabled.checked }), () => (enabled.checked ? 'Switched on.' : 'Switched off.')));
+    const address = h('input', { type: 'text', placeholder: 'Found automatically. Or paste the feed address, e.g. https://yourfirm.ca/feed', value: feed && feed.source === 'manual' ? feed.feedUrl || '' : '', 'aria-label': 'Blog feed address' });
+    const save = h('button', { type: 'button' }, 'Save address');
+    save.addEventListener('click', () => act(() => call('PATCH', base, { feedUrl: address.value }), () => 'Saved. Checking the feed now.'));
+    const check = h('button', { type: 'button' }, 'Check now');
+    check.addEventListener('click', () => act(() => call('POST', base + '/refresh'), (d) => (d.result && d.result.status === 'error' ? 'Checked, but there was a problem.' : 'Checked.')));
+    root.replaceChildren(h('div', null,
+      h('h2', null, 'Blog cards'),
+      h('p', { class: 'muted' }, 'Shows the firm\'s latest blog posts on its page as small cards: a headline, a short excerpt, and a link to read the full article on the firm\'s own website. Only the headline and a short excerpt from the public feed are used.'),
+      h('label', { class: 'check', for: 'feed-on' }, enabled, 'Show blog cards on the firm\'s page'),
+      note('muted', statusLine(feed, posts)),
+      posts.length > 0 && h('ul', { class: 'feed-posts' }, posts.slice(0, 3).map((p) => h('li', null, p.title))),
+      field('Feed address (optional)', address),
+      h('div', { class: 'row' }, save, check),
+      out));
+  }
+
+  call('GET', base).then(draw).catch((err) => root.replaceChildren(note('msg-err', err.message)));
+  return root;
+}
+
+// ---------------------------------------------------------------- plan and billing (owner)
+// Shows Basic or Featured, and the right button: upgrade (opens the Stripe checkout with the firm and email attached)
+// or manage billing (Stripe's own page, where the card can be changed or the subscription cancelled).
+// What Featured really changes on LawDB: every line is something the site does today. A Basic listing keeps its facts up to date
+// (name, phone, address, website, hours, practice areas), writes its own description and tagline, gets every enquiry by email, and has its blog posts shown as cards.
+export const FEATURED_PERKS = [
+  ['A page that is yours to customize.', 'Add a book-a-call button with your own booking link, and your logo, cover and photos.'],
+  ['Listed above Basic firms.', 'In search results for your city and case type, with a large Featured Partner card at the top of the Find results.'],
+  ['First in the search box.', 'Shown first in the live suggestions, with a gold Featured badge, as people type their case and city.'],
+  ['A gold pin and a gold tick.', 'A highlighted pin on the map, and a gold tick and Featured badge on your profile and wherever your firm appears.'],
+  ['Listed first among nearby firms.', 'On other firms\' profiles and story pages, your firm comes first in the nearby firms row.'],
+  ['A page for every office.', 'A firm with offices in several cities gets a page for each, in its own city and on the map. One Featured plan covers every page.'],
+  ['An analytics dashboard.', 'Page views, visitors, every button clicked, where visitors came from, their devices and regions, with trends and a spreadsheet export.'],
+  ['An enquiries dashboard.', 'Read, filter, add private notes, reply with one tap and export your enquiries to a spreadsheet.'],
+  ['Articles that work harder.', 'A Featured badge on each story on LawDB News, a LawDB page for every article that search engines can find, and higher placement in the home page news strip.'],
+];
+
+// One click, no card: starts the owner's free month of Featured (POST .../trial), then reloads so every screen shows the new plan.
+// `base` is the firm's API address (/api/account/firms/<slug>); the button is disabled while it works and shows the reason if it is refused.
+export async function startFreeMonth(base, btn) {
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${base}/trial`, { method: 'POST', credentials: 'same-origin' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Could not start the free month');
+    location.reload();
+  } catch (err) { btn.disabled = false; btn.after(note('msg-err', err.message)); }
+}
+
+// A small padlock for "this needs Featured" (drawn with createElementNS, never innerHTML).
+export function lockIcon(size = 13) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', width: size, height: size, 'aria-hidden': 'true', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) svg.setAttribute(k, v);
+  const p = document.createElementNS(NS, 'path'); p.setAttribute('d', 'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3'); svg.appendChild(p);
+  return svg;
+}
+
+export function planPanel(base) {
+  const root = h('div', { class: 'card planp' });
+  const fmt = (d) => (d ? new Date(d.replace(' ', 'T') + 'Z').toLocaleDateString([], { dateStyle: 'long' }) : '');
+  const perks = () => h('ul', { class: 'perks', style: 'margin:8px 0 14px;padding-left:20px;line-height:1.55' }, FEATURED_PERKS.map(([t, d]) => h('li', null, h('b', null, t), ' ', d)));
+
+  function draw(p) {
+    const featured = p.featured;
+    const sub = p.subscription;
+    let line;
+    if (featured && sub) {
+      line = sub.status === 'past_due' ? 'Featured. The last payment did not go through. Please update your card on the billing page.'
+        : sub.cancelAtPeriodEnd ? `Featured until ${fmt(sub.periodEnd)}. It will not renew.`
+        : `Featured${sub.periodEnd ? '. Renews on ' + fmt(sub.periodEnd) : ''}.`;
+    } else if (featured && p.trial && p.trial.status === 'active') line = `Featured for your free month: ${p.trial.daysLeft} ${p.trial.daysLeft === 1 ? 'day' : 'days'} left (until ${fmt(p.trial.endsAt)}). Nothing is charged; the listing goes back to Basic when it ends unless you subscribe.`;
+    else if (featured) line = 'Featured. Managed by LawDB.';
+    else line = p.trial && p.trial.status !== 'active' ? `Basic (free). Your free month ended on ${fmt(p.trial.endsAt)}.` : 'Basic (free).';
+    root.replaceChildren(h('div', null,
+      h('div', { class: 'row spread' }, h('h2', null, 'Your plan'), h('span', { class: 'badge' + (featured ? ' featured' : '') }, featured ? 'Featured' : 'Basic')),
+      h('p', null, line),
+      featured && p.trial && p.trial.status === 'active' && p.upgradeUrl && h('div', { class: 'row' }, h('a', { href: p.upgradeUrl, target: '_blank', rel: 'noopener' }, h('button', { class: 'primary', type: 'button' }, `Keep Featured, ${p.price}`))),
+      featured && h('div', null,
+        h('p', null, h('b', null, 'What your Featured listing includes')),
+        perks()),
+      !featured && h('div', null,
+        h('p', null, h('b', null, `Why get Featured, ${p.price}`)),
+        h('p', { class: 'muted' }, 'Your Basic listing keeps your facts up to date (name, phone, address, website, hours and practice areas), has every enquiry emailed to you, and shows your blog posts as cards. Featured adds:'),
+        perks(),
+        h('p', { class: 'muted' }, 'Featured changes where and how your firm is shown on LawDB. It does not guarantee calls, clients or search-engine rankings, and you can cancel any time.'),
+        p.trialAvailable && h('div', { class: 'fa-offer' },
+          h('p', null, h('b', null, `Try it free for ${p.trialDays} days.`), ' No card needed. Your listing is Featured straight away, with the analytics dashboard, and goes back to Basic by itself when the month ends unless you subscribe.'),
+          (() => { const b = h('button', { class: 'primary', type: 'button' }, 'Start my free month'); b.addEventListener('click', () => startFreeMonth(base.replace(/\/plan$/, ''), b)); return b; })()),
+        p.upgradeUrl ? h('a', { href: p.upgradeUrl, target: '_blank', rel: 'noopener' }, h('button', { class: p.trialAvailable ? '' : 'primary', type: 'button' }, 'Upgrade to Featured')) : h('p', { class: 'muted' }, 'Upgrading is not available right now.'),
+        p.upgradeUrl && h('p', { class: 'muted' }, 'Checkout opens on Stripe. Your listing becomes Featured automatically once the payment goes through. Please pay with the same email address you sign in with, so the payment can be matched to your firm.')),
+      p.portalUrl && h('div', { class: 'row' }, h('a', { href: p.portalUrl, target: '_blank', rel: 'noopener' }, h('button', { type: 'button' }, 'Manage billing')))));
+  }
+
+  fetch(base, { credentials: 'same-origin' }).then((r) => r.json().then((d) => (r.ok ? draw(d) : Promise.reject(new Error(d.error || 'Could not load your plan'))))).catch((err) => root.replaceChildren(note('msg-err', err.message)));
+  return root;
+}

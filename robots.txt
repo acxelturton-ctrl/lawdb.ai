@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /api/
+Disallow: /email-previews/
+
+Sitemap: https://lawdb.ca/sitemap.xml
+Sitemap: https://lawdb.ca/sitemap-news.xml
+Sitemap: https://lawdb.ca/sitemap-firms.xml

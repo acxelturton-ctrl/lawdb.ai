@@ -1,0 +1,126 @@
+import { json, cached, clampInt, HttpError, isEmail } from '../lib/http.js';
+import { mailInBackground, leadEmail, reportEmail } from '../lib/email.js';
+import { sha256Hex } from '../lib/crypto.js';
+import { adminEmails } from '../lib/auth.js';
+import { PRACTICE } from '../lib/practice.js';
+
+export async function listFirms({ url, env }) {
+  const p = url.searchParams;
+  const where = ["status = 'live'"];
+  const args = [];
+  if (p.get('province')) { where.push('province = ?'); args.push(p.get('province').toUpperCase()); }
+  if (p.get('city')) { where.push('city = ? COLLATE NOCASE'); args.push(p.get('city')); }
+  if (p.get('region')) { where.push('region = ?'); args.push(p.get('region')); }
+  if (p.get('featured') === '1') where.push('featured = 1');
+  if (p.get('q')) {
+    where.push("(name LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\')");
+    const like = `%${p.get('q').replace(/[\\%_]/g, '\\$&')}%`;
+    args.push(like, like);
+  }
+  const limit = clampInt(p.get('limit'), 500, 1, 500);
+  const offset = clampInt(p.get('offset'), 0, 0, 100000);
+  const sql =
+    `SELECT data FROM firms ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ` +
+    `ORDER BY featured DESC, rating DESC, review_count DESC, name LIMIT ? OFFSET ?`;
+  const { results } = await env.DB.prepare(sql).bind(...args, limit, offset).all();
+  return cached(results.map((r) => JSON.parse(r.data)));
+}
+
+// The live numbers for the sign-in page: how many firms, cities and provinces are listed, and how many practice areas the site covers.
+export async function totals({ env }) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS firms, COUNT(DISTINCT province || '|' || city) AS cities, COUNT(DISTINCT province) AS provinces FROM firms WHERE status = 'live'").first();
+  return cached({ firms: row.firms, cities: row.cities, provinces: row.provinces, practiceAreas: Object.keys(PRACTICE).length }, 300);
+}
+
+export async function getFirm({ params, env }) {
+  const row = await env.DB.prepare("SELECT data, hours, about FROM firms WHERE slug = ? AND status = 'live'").bind(params.slug).first();
+  if (!row) throw new HttpError(404, 'Firm not found');
+  return cached({ ...JSON.parse(row.data), about: row.about || '', hours: row.hours ? JSON.parse(row.hours) : null });
+}
+
+export async function listBlog({ url, env }) {
+  const province = url.searchParams.get('province');
+  const stmt = province
+    ? env.DB.prepare('SELECT data FROM blog_posts WHERE province = ? ORDER BY sort_order').bind(province.toUpperCase())
+    : env.DB.prepare('SELECT data FROM blog_posts ORDER BY sort_order');
+  const { results } = await stmt.all();
+  return cached(results.map((r) => JSON.parse(r.data)));
+}
+
+const LIMITS = { name: 200, phone: 50, message: 5000, page: 300, field: 2000, fields: 40 };
+const MAX_LEAD_EMAILS_PER_FIRM_HOUR = 20;
+const MAX_LEADS_PER_IP_HOUR = 15;
+const RESERVED = new Set(['access_key', 'botcheck', 'name', 'email', 'phone', 'message', 'form', 'page']);
+
+export async function createLead({ request, env, url, exec }) {
+  let input;
+  try {
+    const type = request.headers.get('content-type') || '';
+    input = type.includes('application/json') ? await request.json() : Object.fromEntries((await request.formData()).entries());
+  } catch {
+    throw new HttpError(400, 'Invalid request body');
+  }
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new HttpError(400, 'Invalid request body');
+
+  // Honeypot: real people never fill the hidden "botcheck" field. Pretend success to bots.
+  if (input.botcheck) return json({ ok: true });
+
+  const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const name = str(input.name, LIMITS.name);
+  const email = str(input.email, 254);
+  const phone = str(input.phone, LIMITS.phone);
+  const message = str(input.message, LIMITS.message);
+  const form = str(input.form, 50) || 'contact';
+  const page = str(input.page, LIMITS.page) || request.headers.get('referer') || '';
+
+  if (!name) throw new HttpError(422, 'Name is required');
+  if (!isEmail(email)) throw new HttpError(422, 'A valid email is required');
+
+  // Everything else submitted is kept (capped) so no form field is ever lost.
+  const extra = {};
+  for (const [k, v] of Object.entries(input).slice(0, LIMITS.fields)) {
+    if (RESERVED.has(k)) continue;
+    if (typeof v === 'string') extra[k.slice(0, 60)] = v.slice(0, LIMITS.field);
+  }
+
+  // Throttles: 5 submissions per email per 10 minutes, and 15 per requester address per hour
+  // (a stored one-way hash, wiped after 7 days). A bot cycling fake emails still hits the second limit.
+  const ipHash = await sha256Hex('ip:' + (request.headers.get('cf-connecting-ip') || 'local'));
+  const fromIp = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE ip_hash = ? AND created_at > datetime('now','-1 hour')").bind(ipHash).first();
+  if (fromIp && fromIp.n >= MAX_LEADS_PER_IP_HOUR) throw new HttpError(429, 'Too many submissions, please try again later');
+  const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE email = ? AND created_at > datetime('now','-10 minutes')")
+    .bind(email)
+    .first();
+  if (recent && recent.n >= 5) throw new HttpError(429, 'Too many submissions, please try again later');
+
+  // A form on a firm's own profile page names that firm: route the enquiry to it.
+  const firmSlug = str(input.firm, 100);
+  const firm = firmSlug ? await env.DB.prepare("SELECT slug, name, featured, enquiry_email FROM firms WHERE slug = ? AND status = 'live'").bind(firmSlug).first() : null;
+
+  await env.DB.prepare('INSERT INTO leads (form,name,email,phone,message,payload,page,firm_slug,ip_hash) VALUES (?,?,?,?,?,?,?,?,?)')
+    .bind(form, name, email, phone || null, message || null, JSON.stringify(extra), page || null, firm ? firm.slug : null, ipHash)
+    .run();
+
+  // A report about a listing goes to the admin, never to the firm it is about.
+  if (form === 'report-listing') {
+    const to = [...adminEmails(env)];
+    if (to.length) mailInBackground(env, exec, { to, ...reportEmail(env.SITE_ORIGIN || url.origin, { slug: extra.reportedFirm, reason: extra.reason, name, email, message }) });
+    return json({ ok: true }, 201);
+  }
+
+  // Tell the firm's approved owners right away. Capped per firm per hour so a flood of fake
+  // enquiries cannot turn into a flood of email (every enquiry is still saved and shown in the dashboard).
+  if (firm) {
+    const [owners, sent] = await Promise.all([
+      env.DB.prepare("SELECT u.email FROM firm_members m JOIN users u ON u.id = m.user_id WHERE m.firm_slug = ? AND m.status = 'approved' AND u.disabled = 0").bind(firm.slug).all(),
+      env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE firm_slug = ? AND created_at > datetime('now','-1 hour')").bind(firm.slug).first(),
+    ]);
+    // The people who manage the listing, plus (a Featured benefit) the one address the firm chose for its enquiries, each only once.
+    const to = [...new Set([...owners.results.map((o) => o.email), ...(firm.featured && firm.enquiry_email ? [firm.enquiry_email] : [])].map((e) => e.toLowerCase()))];
+    if (to.length && sent.n <= MAX_LEAD_EMAILS_PER_FIRM_HOUR) {
+      mailInBackground(env, exec, { to, ...leadEmail(env.SITE_ORIGIN || url.origin, firm.name, { name, email, phone, message }) });
+    }
+  }
+
+  return json({ ok: true }, 201);
+}
