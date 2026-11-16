@@ -1,0 +1,29 @@
+/* LawDB.ai motion layer: smooth, quiet, and fully switched off for people who ask their device to reduce motion. */
+:root{ --ease-out:cubic-bezier(.22,.8,.2,1); }
+
+/* header turns to frosted glass once the page moves */
+.site-header{ transition:background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
+.site-header.is-scrolled{ background:rgba(245,243,236,.82) !important; -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); box-shadow:0 8px 30px rgba(20,36,52,.10); }
+
+@media (prefers-reduced-motion:no-preference){
+  /* hero text rises in, one piece after another */
+  .hero5 .h5-eyebrow, .hero5 .h5-rule, .hero5 h1, .hero5 .h5-sub, .hero5 .h5-search, .hero5 .h5-formula{ opacity:0; transform:translateY(22px); animation:mo-rise .9s var(--ease-out) forwards; }
+  .hero5 .h5-rule{ animation-delay:.08s; } .hero5 h1{ animation-delay:.16s; } .hero5 .h5-sub{ animation-delay:.26s; } .hero5 .h5-search{ animation-delay:.36s; } .hero5 .h5-formula{ animation-delay:.46s; }
+  .hero5 .h5-mark, .hero5 .h5-demo{ opacity:0; animation:mo-fade 1.4s .35s ease forwards; }
+  .hero5 .h5-mark{ animation-name:mo-fade-mark; }
+  @keyframes mo-rise{ to{ opacity:1; transform:none; } }
+  @keyframes mo-fade{ to{ opacity:1; } }
+  @keyframes mo-fade-mark{ to{ opacity:.22; } }
+
+  /* sections and grids reveal as they scroll into view (JS adds .mo-in; without JS everything is simply visible) */
+  .mo-on .mo-rv{ opacity:0; transform:translateY(34px); transition:opacity .8s var(--ease-out), transform .8s var(--ease-out); transition-delay:calc(var(--i,0) * 70ms); }
+  .mo-on .mo-rv.mo-in{ opacity:1; transform:none; }
+
+  /* touch feedback and lift */
+  .h4-case-grid a{ transition:transform .25s var(--ease-out), box-shadow .25s ease, border-color .15s, background .15s; }
+  .h4-case-grid a:hover, .h4-case-grid a:focus-visible{ transform:translateY(-4px); box-shadow:0 14px 28px -12px rgba(20,36,52,.28); }
+  .h5-go, .hz-solid, .hz-ghost, .hn-seeall, .bsl-more a, .btn-primary, .btn-ghost{ transition:transform .2s var(--ease-out), filter .2s, box-shadow .25s; }
+  .h5-go:hover, .hz-solid:hover{ transform:translateY(-2px); box-shadow:0 12px 26px -10px rgba(226,189,106,.55); }
+  .h5-go:active, .hz-solid:active, .hz-ghost:active{ transform:scale(.97); }
+  .hz-mock-card{ animation:mo-float 7s ease-in-out infinite; } @keyframes mo-float{ 50%{ transform:translateY(-8px); } }
+}
