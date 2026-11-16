@@ -118,12 +118,18 @@ def write_state(st, clean, picked):
         with open(os.path.join(out, fn), 'w', newline='') as f:
             w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(data)
 
-def fetch(con, lst, where_geo):
+def fetch(con, lst, where_geo, spool=None):
+    """Read the matching rows. With `spool` (a file path) the result is first written to a local parquet file, so a country-wide read does not have to fit in memory."""
     q = f"""SELECT id, names.primary AS name, taxonomy.primary AS cat, addresses[1].freeform AS street, addresses[1].locality AS city, addresses[1].postcode AS zip, addresses[1].region AS region,
         phones[1] AS phone, websites[1] AS website, emails[1] AS email, socials AS socials, confidence, ST_Y(geometry) AS lat, ST_X(geometry) AS lng
       FROM read_parquet({lst})
       WHERE {where_geo} AND operating_status = 'open'
         AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
+    if spool:
+        os.makedirs(os.path.dirname(spool), exist_ok=True)
+        con.execute("SET memory_limit='2GB'; SET threads=2;")
+        con.execute(f"COPY ({q}) TO '{spool}' (FORMAT PARQUET)")
+        q = f"SELECT * FROM read_parquet('{spool}')"
     rows = con.execute(q).fetchall(); cols = [d[0] for d in con.description]
     return [dict(zip(cols, r)) for r in rows]
 
@@ -137,7 +143,7 @@ def main():
     if st == 'ALL':
         # contiguous US, Alaska and Hawaii boxes keep the read fast; the exact state comes from each place's own address
         geo = "((bbox.xmin BETWEEN -125.1 AND -66.5 AND bbox.ymin BETWEEN 24.3 AND 49.5) OR (bbox.xmin BETWEEN -171 AND -129 AND bbox.ymin BETWEEN 51 AND 72) OR (bbox.xmin BETWEEN -161 AND -154 AND bbox.ymin BETWEEN 18.5 AND 22.5)) AND addresses[1].country = 'US'"
-        raw_all = fetch(con, lst, geo); print('raw US rows:', len(raw_all))
+        raw_all = fetch(con, lst, geo, spool='data/states/_us_raw.parquet'); print('raw US rows:', len(raw_all), flush=True)
         by = collections.defaultdict(list)
         for r in raw_all:
             if r['region'] in STATES: by[r['region']].append(r)
