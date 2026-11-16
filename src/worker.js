@@ -197,6 +197,7 @@ export default {
   // at 7 past every hour the free months (ending and warning) and the weekly owner reports.
   // They are separate runs so each stays within the platform's limit on outgoing requests.
   async scheduled(event, env, ctx) {
+    if (!env.DB) return; // preview mode: nothing to run without a database
     ctx.waitUntil(event.cron === '37 7 * * *' ? searchNightly(env).catch((err) => console.error('search console run failed', err))
       : event.cron === '*/5 * * * *' ? feedBatch(env).catch((err) => console.error('blog finder run failed', err))
       : event.cron === '7 * * * *' ? hourly(env).catch((err) => console.error('hourly run failed', err))
@@ -206,6 +207,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, '') || '/';
+    // Preview mode: until the database is connected (wrangler.jsonc), serve the plain static pages and answer the API with a clear message.
+    if (!env.DB) {
+      if (path.startsWith('/api/')) return json({ error: 'Preview mode: the database is not connected yet.' }, 503);
+      return env.ASSETS.fetch(request);
+    }
     try {
       if (!path.startsWith('/api/')) {
         // Only GET/HEAD reach here for site content; everything else is passed to the static files.
