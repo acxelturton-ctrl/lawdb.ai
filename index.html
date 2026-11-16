@@ -4,27 +4,27 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="./images/favicon-192.png"><link rel="icon" href="./favicon.ico" sizes="any"><link rel="apple-touch-icon" href="./images/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LawDB.ca | Find the Right Lawyer Near You</title>
-<meta name="description" content="LawDB is a Canada-wide law firm database. Tell us what your case is about and where you are, and we'll show you nearby lawyers with real Google ratings.">
-<link rel="canonical" href="https://lawdb.ca/">
+<title>LawDB.ai | Find the Right Lawyer Near You</title>
+<meta name="description" content="LawDB is a law firm directory for the United States. Choose the kind of lawyer you need and your city to find nearby law firms by practice area.">
+<link rel="canonical" href="https://lawdb.ai/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://lawdb.ca/">
-<meta property="og:site_name" content="LawDB.ca">
-<meta property="og:locale" content="en_CA">
-<meta property="og:image" content="https://lawdb.ca/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://lawdb.ai/">
+<meta property="og:site_name" content="LawDB.ai">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://lawdb.ai/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:site" content="@lawdbca">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="LawDB.ca | Find the Right Lawyer Near You">
 <meta name="twitter:description" content="LawDB is a Canada-wide law firm database. Tell us what your case is about and where you are, and we&#x27;ll show you nearby lawyers with real Google ratings.">
-<meta name="twitter:image" content="https://lawdb.ca/images/og-default.jpg">
+<meta name="twitter:image" content="https://lawdb.ai/images/og-default.jpg">
 <script type="application/ld+json">
 [
  {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "LawDB.ca",
-  "url": "https://lawdb.ca/",
-  "logo": "https://lawdb.ca/images/logo-icon.png",
+  "url": "https://lawdb.ai/",
+  "logo": "https://lawdb.ai/images/logo-icon.png",
   "sameAs": ["https://x.com/lawdbca","https://www.facebook.com/profile.php?id=61595212632512","https://www.linkedin.com/in/lawdb"],
   "description": "Canada's independent law firm directory, with real Google ratings for law firms across Ontario, Quebec, British Columbia, Alberta and Manitoba."
  },
@@ -32,7 +32,7 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "LawDB.ca",
-  "url": "https://lawdb.ca/"
+  "url": "https://lawdb.ai/"
  }
 ]
 </script>
@@ -345,6 +345,10 @@
   /* hero: the courthouse under a navy wash, white headline, glass search pill, gold button, navy "kind of lawyer + city" bar */
   .hero5{ position:relative; z-index:5; isolation:isolate; margin:0 auto; color:#fff; background:#1b242d; padding:30px 20px 26px; }
   .h5-bg{ position:absolute; inset:0; z-index:-2; overflow:hidden; pointer-events:none; }
+  .h5-bg{ display:flex; align-items:center; justify-content:flex-end; }
+  .h5-mark{ position:absolute; right:-12%; bottom:-6%; height:70%; width:auto; opacity:.22; }
+  .h5-mark rect{ fill:none !important; stroke:#c9a050; stroke-width:1.1; }
+  .h5-mark g{ display:none; }
   .h5-photo{ position:absolute; inset:0; width:100%; height:100%; max-width:none; object-fit:cover; object-position:50% 8%; }
   .hero5::before{ content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
     background:linear-gradient(180deg, rgba(20,36,52,0.82) 0%, rgba(20,36,52,0.66) 40%, rgba(27,36,45,0.78) 78%, rgba(27,36,45,0.92) 100%); }
@@ -423,6 +427,7 @@
     .hero5 h1{ font-size:clamp(48px,4.8vw,62px); }
     .h5-eyebrow{ font-size:13px; }
     .h5-sub{ font-size:18px; }
+    .h5-mark{ right:9%; top:50%; bottom:auto; transform:translateY(-50%); height:84%; opacity:.5; }
     .h5-photo{ left:auto; width:64%; object-position:46% 10%; -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 30%); mask-image:linear-gradient(90deg,transparent 0,#000 30%); }
     .hero5::before{ background:linear-gradient(90deg, rgba(20,36,52,0.9) 0%, rgba(20,36,52,0.62) 42%, rgba(20,36,52,0.25) 100%); }
     .h5-stats{ padding:30px 8px 28px; }
@@ -522,24 +527,24 @@
 <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
 </defs></svg>
-  <div class="h5-bg"><img class="h5-photo" src="images/find-skyline.webp" srcset="images/find-skyline-960.webp 960w, images/find-skyline.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" decoding="async"></div>
+  <div class="h5-bg"><svg class="h5-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 190" aria-hidden="true" focusable="false"><defs><linearGradient id="h5gold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="190"><stop offset="0" stop-color="#e6d4a4"/><stop offset=".45" stop-color="#e2bd6a"/><stop offset="1" stop-color="#c9a050"/></linearGradient></defs><rect x="22" y="6" width="116" height="16" rx="4" fill="url(#h5gold)"/><rect x="34" y="26" width="92" height="10" rx="3" fill="url(#h5gold)"/><rect x="48" y="42" width="64" height="34" rx="6" fill="url(#h5gold)"/><rect x="48" y="80" width="64" height="34" rx="6" fill="url(#h5gold)"/><rect x="48" y="118" width="64" height="34" rx="6" fill="url(#h5gold)"/><rect x="34" y="156" width="92" height="10" rx="3" fill="url(#h5gold)"/><rect x="22" y="170" width="116" height="14" rx="4" fill="url(#h5gold)"/><g fill="#142434" fill-opacity=".28"><circle cx="64" cy="59" r="3"/><circle cx="64" cy="97" r="3"/><circle cx="64" cy="135" r="3"/></g></svg></div>
   <div class="h5-inner">
-    <p class="h5-eyebrow">Trusted legal help.<br>Across Canada.</p>
+    <p class="h5-eyebrow">Trusted legal help.<br>Near you.</p>
     <span class="h5-rule"></span>
-    <h1>Find the right lawyer for <em>your</em> situation.</h1>
-    <p class="h5-sub">Real firms. Public Google ratings. Across Canada.</p>
+    <h1>Find the right lawyer <em>near you</em>.</h1>
+    <p class="h5-sub">Browse law firms by practice area and city across the United States.</p>
     <form id="heroForm" class="h5-search" action="/find-lawyers" method="get" role="search" autocomplete="off">
       <label class="h5-sr" for="heroInput">What kind of lawyer, and where?</label>
-      <div class="ls-wrap"><div class="ls-field"><svg class="ls-mag" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="heroInput" class="ls-in" name="q" type="text" placeholder="e.g. personal injury lawyer in Toronto" enterkeyhint="search" autocomplete="off"><button type="button" class="ls-x" aria-label="Clear search" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><a class="h5-filter" href="#cases" aria-label="Browse by case type"><svg width="22" height="22" aria-hidden="true"><use href="#i-sliders"/></svg></a></div>
+      <div class="ls-wrap"><div class="ls-field"><svg class="ls-mag" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="heroInput" class="ls-in" name="q" type="text" placeholder="e.g. car accident lawyer in Miami" enterkeyhint="search" autocomplete="off"><button type="button" class="ls-x" aria-label="Clear search" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><a class="h5-filter" href="#cases" aria-label="Browse by case type"><svg width="22" height="22" aria-hidden="true"><use href="#i-sliders"/></svg></a></div>
         <div id="heroSuggest" class="ls-sug"></div></div>
       <button type="submit" class="h5-go">Search <svg width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
     </form>
-    <div class="h5-formula"><div><b>1</b><span><strong>Kind of lawyer</strong><small>e.g. family lawyer</small></span></div><i>+</i><span class="h5-sep"></span><div><b>2</b><span><strong>City</strong><small>e.g. Vancouver</small></span></div></div>
+    <div class="h5-formula"><div><b>1</b><span><strong>Kind of lawyer</strong><small>e.g. family lawyer</small></span></div><i>+</i><span class="h5-sep"></span><div><b>2</b><span><strong>City</strong><small>e.g. Miami</small></span></div></div>
   </div>
 </div>
 <script src="suggest.js?v=5"></script>
 <script>LawdbSuggest(document.getElementById('heroInput'),document.getElementById('heroSuggest'),{root:''});</script>
-<div class="h5-stats"><div class="h5-stats-in h3-stats"><div><b data-live="firms">1,092</b><span>Law firms</span></div><div><b data-live="cities">62</b><span>Cities</span></div><div><b data-live="provinces">5</b><span>Provinces</span></div><div><b>10</b><span>Practice areas</span></div></div></div>
+<!-- Numbers strip (firms, cities, states, practice areas): add back once the US firm data is loaded. -->
 
 
 <style>
