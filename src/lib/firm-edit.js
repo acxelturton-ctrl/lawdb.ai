@@ -7,7 +7,7 @@ import { AVAILABILITY } from './profile-strength.js';
 import { audit } from './audit.js';
 import { checkOwnerText } from './content-rules.js';
 import { cleanBookingUrl } from './booking.js';
-import { PROVINCES } from '../render/firm-page.js';
+import { STATES, inUS } from '../lib/us.js';
 import { NETWORKS, cleanSocialUrl } from './social.js';
 import { placeFor } from './geocode.js';
 import { trialAdminChanged } from './trial.js';
@@ -60,9 +60,9 @@ export const FIRM_FIELDS = {
   },
   // Where the firm is. Admins only (see ADMIN_ONLY): moving a firm to another city also moves it between the city pages.
   city: (v) => str(v, 2, 80),
-  province: (v) => {
+  state: (v) => {
     const s = str(v, 2, 2).toUpperCase();
-    if (!(s in PROVINCES)) throw new HttpError(422, `province must be one of: ${Object.keys(PROVINCES).join(', ')}`);
+    if (!(s in STATES)) throw new HttpError(422, `state must be one of: ${Object.keys(STATES).join(', ')}`);
     return s;
   },
   // The firm's profile pages on Facebook, Instagram, LinkedIn, X and YouTube: { facebook: 'https://...', ... }. Only real profile addresses are kept
@@ -107,9 +107,8 @@ export const FIRM_FIELDS = {
 };
 
 // Only an admin can change these. `lat`/`lng` and `status` are handled on their own in applyFirmEdit (they are columns as well as data).
-export const ADMIN_ONLY = ['featured', 'city', 'province'];
+export const ADMIN_ONLY = ['featured', 'city', 'state'];
 export const FIRM_STATUSES = ['live', 'hidden'];
-const inCanada = (lat, lng) => lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52;
 
 // Opening hours: { "1": [["08:30","17:00"]], ... } where 1 = Monday ... 7 = Sunday; omitted/empty day = closed.
 export function normalizeHours(h) {
@@ -130,11 +129,11 @@ export function normalizeHours(h) {
   return Object.keys(out).length ? out : null;
 }
 
-// The address a Featured firm's enquiries are also sent to. One plain address; blank turns it off. Kept apart from the public firm data.
-export function cleanEnquiryEmail(v) {
+// The address a Featured firm's inquiries are also sent to. One plain address; blank turns it off. Kept apart from the public firm data.
+export function cleanInquiryEmail(v) {
   const s = str(v ?? '', 0, 254).toLowerCase();
   if (!s) return '';
-  if (!/^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(s)) throw new HttpError(422, 'enquiry email must be one email address, like intake@yourfirm.ca');
+  if (!/^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(s)) throw new HttpError(422, 'inquiry email must be one email address, like intake@yourfirm.ca');
   return s;
 }
 
@@ -142,20 +141,20 @@ export function cleanEnquiryEmail(v) {
 const OWNER_TEXT_FIELDS = { name: 'Firm name', blurb: 'Short description', tags: 'Practice areas' };
 
 // An owner on the Basic plan edits the facts (name, phone, address, website, hours, practice areas) and writes the page's description and
-// tagline. What needs Featured: a booking link, a second enquiry address and pictures (see addImage). A Basic owner can still clear a booking link.
+// tagline. What needs Featured: a booking link, a second inquiry address and pictures (see addImage). A Basic owner can still clear a booking link.
 export const FEATURED_LOCK = 'is a Featured benefit. Upgrade to Featured from your dashboard to customize your page.';
-const CUSTOMIZING = { bookingUrl: 'Adding a booking link', enquiryEmail: 'Sending enquiries to another address' };
+const CUSTOMIZING = { bookingUrl: 'Adding a booking link', inquiryEmail: 'Sending inquiries to another address' };
 
-// `admin` may also change the featured flag, the city and province, the map position and whether the firm is shown (status); owners may not.
+// `admin` may also change the featured flag, the city and state, the map position and whether the firm is shown (status); owners may not.
 export async function applyFirmEdit(env, actor, slug, body, { admin }) {
   const keys = Object.keys(body);
   if (!keys.length) throw new HttpError(422, 'Nothing to update');
   const fieldKeys = Object.keys(FIRM_FIELDS).filter((k) => admin || !ADMIN_ONLY.includes(k));
-  const extra = admin ? ['hours', 'about', 'lat', 'lng', 'status', 'enquiryEmail', 'languages', 'founded'] : ['hours', 'about', 'enquiryEmail', 'languages', 'founded'];
+  const extra = admin ? ['hours', 'about', 'lat', 'lng', 'status', 'inquiryEmail', 'languages', 'founded'] : ['hours', 'about', 'inquiryEmail', 'languages', 'founded'];
   const unknown = keys.filter((k) => !fieldKeys.includes(k) && !extra.includes(k));
   if (unknown.length) throw new HttpError(422, `Cannot edit: ${unknown.join(', ')}`);
 
-  const row = await env.DB.prepare('SELECT data, hours, about, status, enquiry_email FROM firms WHERE slug = ?').bind(slug).first();
+  const row = await env.DB.prepare('SELECT data, hours, about, status, inquiry_email FROM firms WHERE slug = ?').bind(slug).first();
   if (!row) throw new HttpError(404, 'Firm not found');
   const firm = JSON.parse(row.data);
   const customizing = admin || !!firm.featured;
@@ -174,13 +173,13 @@ export async function applyFirmEdit(env, actor, slug, body, { admin }) {
     if (row.status === 'pending') throw new HttpError(409, 'This listing is waiting for approval. Approve it under Approvals first.');
     if (body.status !== row.status) { changes.status = { from: row.status, to: body.status }; status = body.status; }
   }
-  let enquiryEmail = row.enquiry_email || null;
-  if ('enquiryEmail' in body) {
-    const next = cleanEnquiryEmail(body.enquiryEmail) || null;
-    if (next !== enquiryEmail) {
-      if (next && !customizing) throw new HttpError(403, `${CUSTOMIZING.enquiryEmail} ${FEATURED_LOCK}`);
-      changes.enquiryEmail = { from: enquiryEmail, to: next };
-      enquiryEmail = next;
+  let inquiryEmail = row.inquiry_email || null;
+  if ('inquiryEmail' in body) {
+    const next = cleanInquiryEmail(body.inquiryEmail) || null;
+    if (next !== inquiryEmail) {
+      if (next && !customizing) throw new HttpError(403, `${CUSTOMIZING.inquiryEmail} ${FEATURED_LOCK}`);
+      changes.inquiryEmail = { from: inquiryEmail, to: next };
+      inquiryEmail = next;
     }
   }
   // Languages and the year the firm started practising live in the firm's `details` ("At a glance"), next to what was read from its website.
@@ -212,30 +211,30 @@ export async function applyFirmEdit(env, actor, slug, body, { admin }) {
       firm[k] = next;
     }
   }
-  // Map position (admin): both numbers, inside Canada. Otherwise a changed address (or city) looks up the new spot, and only an exact find moves the pin.
+  // Map position (admin): both numbers, inside the United States. Otherwise a changed address (or city) looks up the new spot, and only an exact find moves the pin.
   if (admin && ('lat' in body || 'lng' in body)) {
     const lat = Number(body.lat), lng = Number(body.lng);
-    if (!inCanada(lat, lng)) throw new HttpError(422, 'lat and lng are both required and must be inside Canada');
+    if (!inUS(lat, lng)) throw new HttpError(422, 'lat and lng are both required and must be inside the United States');
     if (lat !== firm.lat || lng !== firm.lng) { changes.lat = { from: firm.lat ?? null, to: lat }; changes.lng = { from: firm.lng ?? null, to: lng }; firm.lat = lat; firm.lng = lng; delete firm.approxCoords; }
-  } else if ('address' in changes || 'city' in changes || 'province' in changes) {
-    const place = await placeFor(env, { address: firm.address, city: firm.city, province: firm.province });
-    if (place && !place.approx && inCanada(place.lat, place.lng) && (place.lat !== firm.lat || place.lng !== firm.lng)) {
+  } else if ('address' in changes || 'city' in changes || 'state' in changes) {
+    const place = await placeFor(env, { address: firm.address, city: firm.city, state: firm.state });
+    if (place && !place.approx && inUS(place.lat, place.lng) && (place.lat !== firm.lat || place.lng !== firm.lng)) {
       changes.lat = { from: firm.lat ?? null, to: place.lat }; changes.lng = { from: firm.lng ?? null, to: place.lng };
       firm.lat = place.lat; firm.lng = place.lng; delete firm.approxCoords;
     }
   }
   // Derived: the directions link follows the address; the region follows the city, so the directory filters and hub pages group the firm correctly.
   if ('address' in changes) firm.dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(firm.address || `${firm.name} ${firm.city}`).replace(/%20/g, '+')}`;
-  if ('city' in changes || 'province' in changes) {
-    const known = await env.DB.prepare('SELECT region FROM firms WHERE city = ? COLLATE NOCASE AND province = ? AND region IS NOT NULL AND slug != ? LIMIT 1').bind(firm.city, firm.province, slug).first();
+  if ('city' in changes || 'state' in changes) {
+    const known = await env.DB.prepare('SELECT region FROM firms WHERE city = ? COLLATE NOCASE AND state = ? AND region IS NOT NULL AND slug != ? LIMIT 1').bind(firm.city, firm.state, slug).first();
     firm.region = known ? known.region : '';
   }
   if (!Object.keys(changes).length) return { changed: [], firm: { ...firm, about: aboutText || '' }, status };
 
   // `data` is the source of truth; the indexed columns are derived from it.
-  const moved = 'city' in changes || 'province' in changes;
-  await env.DB.prepare("UPDATE firms SET data = ?, name = ?, city = ?, province = ?, region = COALESCE(?, region), featured = ?, lat = COALESCE(?, lat), lng = COALESCE(?, lng), hours = ?, about = ?, status = ?, enquiry_email = ?, updated_at = datetime('now') WHERE slug = ?")
-    .bind(JSON.stringify(firm), firm.name, firm.city, firm.province, moved ? firm.region ?? '' : null, firm.featured ? 1 : 0, firm.lat ?? null, firm.lng ?? null, hoursJson, aboutText, status, enquiryEmail, slug)
+  const moved = 'city' in changes || 'state' in changes;
+  await env.DB.prepare("UPDATE firms SET data = ?, name = ?, city = ?, state = ?, region = COALESCE(?, region), featured = ?, lat = COALESCE(?, lat), lng = COALESCE(?, lng), hours = ?, about = ?, status = ?, inquiry_email = ?, updated_at = datetime('now') WHERE slug = ?")
+    .bind(JSON.stringify(firm), firm.name, firm.city, firm.state, moved ? firm.region ?? '' : null, firm.featured ? 1 : 0, firm.lat ?? null, firm.lng ?? null, hoursJson, aboutText, status, inquiryEmail, slug)
     .run();
   await audit(env, actor, 'firm.update', 'firm', slug, changes);
   if ('featured' in changes) {
@@ -261,13 +260,13 @@ const initialsOf = (name) => {
 export async function prepareNewFirm(env, body, { requireCoords, coords, checkText } = {}) {
   const name = str(body.name, 2, 200);
   const city = str(body.city, 2, 80);
-  const province = typeof body.province === 'string' ? body.province.toUpperCase() : '';
-  if (!(province in PROVINCES)) throw new HttpError(422, `province must be one of: ${Object.keys(PROVINCES).join(', ')}`);
+  const state = typeof body.state === 'string' ? body.state.toUpperCase() : '';
+  if (!(state in STATES)) throw new HttpError(422, `state must be one of: ${Object.keys(STATES).join(', ')}`);
 
   let lat = null, lng = null;
   if (body.lat != null || body.lng != null || requireCoords) {
     lat = Number(body.lat); lng = Number(body.lng);
-    if (!(lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52)) throw new HttpError(422, 'lat and lng are required and must be inside Canada');
+    if (!inUS(lat, lng)) throw new HttpError(422, 'lat and lng are required and must be inside the United States');
   } else if (coords) ({ lat, lng } = coords);
   const approx = !!(coords && coords.approx && body.lat == null && body.lng == null);
 
@@ -275,7 +274,7 @@ export async function prepareNewFirm(env, body, { requireCoords, coords, checkTe
     name, city, featured: false,
     tags: 'tags' in body ? FIRM_FIELDS.tags(body.tags) : [],
     caseTypes: 'caseTypes' in body ? FIRM_FIELDS.caseTypes(body.caseTypes) : [],
-    province, lat, lng, ...(approx ? { approxCoords: true } : {}),
+    state, lat, lng, ...(approx ? { approxCoords: true } : {}),
     address: 'address' in body ? FIRM_FIELDS.address(body.address) : '',
     phone: 'phone' in body ? FIRM_FIELDS.phone(body.phone) : '',
     rating: 0, count: 0,
@@ -283,7 +282,7 @@ export async function prepareNewFirm(env, body, { requireCoords, coords, checkTe
     type: 'mono', initials: initialsOf(name),
   };
   // Same region as other firms in that city, so the directory filters and hub pages group it correctly.
-  const known = await env.DB.prepare('SELECT region FROM firms WHERE city = ? COLLATE NOCASE AND province = ? AND region IS NOT NULL LIMIT 1').bind(city, province).first();
+  const known = await env.DB.prepare('SELECT region FROM firms WHERE city = ? COLLATE NOCASE AND state = ? AND region IS NOT NULL LIMIT 1').bind(city, state).first();
   firm.region = known ? known.region : '';
 
   // Unique, URL-safe address.
@@ -295,7 +294,7 @@ export async function prepareNewFirm(env, body, { requireCoords, coords, checkTe
   }
   firm.slug = slug;
   firm.color = MONO_COLORS[[...slug].reduce((a, c) => a + c.charCodeAt(0), 0) % MONO_COLORS.length];
-  const q = encodeURIComponent(`${name} ${city} ${PROVINCES[province]}`).replace(/%20/g, '+');
+  const q = encodeURIComponent(`${name} ${city} ${STATES[state]}`).replace(/%20/g, '+');
   firm.mapsUrl = `https://www.google.com/maps/search/${q}`;
   firm.dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(firm.address || `${name} ${city}`).replace(/%20/g, '+')}`;
   firm.blurb = firm.tags[0] ? `${firm.tags[0]} in ${city}.` : `Law firm in ${city}.`;
@@ -312,8 +311,8 @@ export async function prepareNewFirm(env, body, { requireCoords, coords, checkTe
 
 export async function insertFirm(env, { firm, hours, about }, { status, createdBy }) {
   await env.DB.prepare(
-    "INSERT INTO firms (slug,name,city,province,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES (?,?,?,?,?,0,0,0,?,?,?,?,?,'dynamic',?,?)"
+    "INSERT INTO firms (slug,name,city,state,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES (?,?,?,?,?,0,0,0,?,?,?,?,?,'dynamic',?,?)"
   )
-    .bind(firm.slug, firm.name, firm.city, firm.province, firm.region, firm.lat, firm.lng, JSON.stringify(firm), hours ? JSON.stringify(hours) : null, about, status, createdBy ?? null)
+    .bind(firm.slug, firm.name, firm.city, firm.state, firm.region, firm.lat, firm.lng, JSON.stringify(firm), hours ? JSON.stringify(hours) : null, about, status, createdBy ?? null)
     .run();
 }

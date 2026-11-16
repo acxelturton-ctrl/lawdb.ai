@@ -94,7 +94,7 @@ export async function finishOAuth(env, request, url, exec, key) {
   const origin = siteOrigin(env, url);
   if (!c) return back(origin, 'signin=unavailable');
   const fail = async (reason) => { await audit(env, null, 'login.oauth_failed', 'provider', key, { reason }); return back(origin, 'signin=failed'); };
-  if (url.searchParams.get('error')) return back(origin, 'signin=cancelled');
+  if (url.searchParams.get('error')) return back(origin, 'signin=canceled');
   const code = url.searchParams.get('code') || '';
   const state = url.searchParams.get('state') || '';
   if (!code || !/^[0-9a-f]{64}$/.test(state)) return fail('missing code or state');

@@ -76,7 +76,7 @@ async function syncFirm(env, slug) {
   const mine = (v) => typeof v === 'string' && v.startsWith('img/');
   if (logo) {
     if (firm.src && !mine(firm.src) && !firm.origSrc) firm.origSrc = firm.src;
-    // A logo that fills its badge on its own colour (logoBg) belongs to the old picture; the new one is shown the usual way.
+    // A logo that fills its badge on its own color (logoBg) belongs to the old picture; the new one is shown the usual way.
     if (firm.logoBg) { firm.origLogoBg = firm.logoBg; delete firm.logoBg; }
     firm.type = 'logo';
     firm.src = `img/${logo.id}`;

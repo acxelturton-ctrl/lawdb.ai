@@ -1,6 +1,6 @@
-/* LawDB hero animation: "search signals" — pulses rise from Canadian cities and connect to nearby firm dots */
+/* LawDB hero animation: "search signals" — pulses rise from American cities and connect to nearby firm dots */
 (function(){
-  var C=[["Toronto",-79.38,43.65,9],["Ottawa",-75.7,45.42,5],["Montreal",-73.57,45.5,6],["Quebec City",-71.21,46.81,3],["Vancouver",-123.12,49.28,6],["Calgary",-114.07,51.05,5],["Edmonton",-113.49,53.55,4],["Winnipeg",-97.14,49.9,5],["Hamilton",-79.87,43.25,3],["London",-81.25,42.98,3],["Windsor",-83.03,42.31,2],["Kitchener",-80.49,43.45,3],["Barrie",-79.69,44.39,2],["Sudbury",-81,46.49,2],["Thunder Bay",-89.25,48.38,1],["Kingston",-76.48,44.23,2],["Halifax",-63.58,44.65,3],["Saskatoon",-106.67,52.13,2],["Regina",-104.62,50.45,2],["Victoria",-123.37,48.43,2],["Kelowna",-119.5,49.89,2],["Gatineau",-75.72,45.48,2],["Mississauga",-79.64,43.59,4],["Newmarket",-79.46,44.06,2]];
+  var C=[["New York",-74.0,40.71,9],["Los Angeles",-118.24,34.05,8],["Chicago",-87.63,41.88,6],["Houston",-95.37,29.76,6],["Miami",-80.19,25.77,7],["Atlanta",-84.39,33.75,5],["Dallas",-96.8,32.78,5],["Washington",-77.04,38.9,5],["Philadelphia",-75.17,39.95,4],["Boston",-71.06,42.36,4],["Phoenix",-112.07,33.45,4],["Seattle",-122.33,47.61,4],["San Francisco",-122.42,37.77,4],["Denver",-104.99,39.74,3],["Tampa",-82.46,27.95,5],["Orlando",-81.38,28.54,5],["Minneapolis",-93.27,44.98,3],["Detroit",-83.05,42.33,3],["San Diego",-117.16,32.72,3],["Las Vegas",-115.14,36.17,3],["Charlotte",-80.84,35.23,3],["Nashville",-86.78,36.16,3],["New Orleans",-90.07,29.95,3],["Jacksonville",-81.66,30.33,3]];
   function seeded(n){return function(){n=(n*16807)%2147483647;return (n-1)/2147483646}}
   function init(hero){
     var cv=document.createElement('canvas'); cv.className='hero-canvas'; cv.setAttribute('aria-hidden','true');
@@ -9,7 +9,7 @@
     var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
     var visible=true, raf=0, last=0, nextPulse=0;
     function proj(lon,lat){
-      var wide=W>800, span=wide?72:26, cLon=wide?-90:-79.5, cLat=wide?47.5:45;
+      var wide=W>800, span=wide?62:24, cLon=wide?-96:-82, cLat=wide?38:30;
       var s=W/span, k=Math.cos(47*Math.PI/180);
       return [W/2+(lon-cLon)*s*k*1.25, H/2-(lat-cLat)*s*1.25*1.0];
     }

@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const val = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const BASE = (val('--base', 'https://lawdb.ca')).replace(/\/+$/, '');
+const BASE = (val('--base', 'https://lawdb.ai')).replace(/\/+$/, '');
 const ALL = flag('--all');
 const SAMPLE = Number(val('--sample', 100));
 const named = args.filter((a, i) => /\.xml$/.test(a) && args[i - 1] !== '--base');
@@ -40,7 +40,7 @@ for (const file of FILES) {
   if (urls.length > MAX_URLS) hard.push(`${file}: ${urls.length} addresses, more than the ${MAX_URLS} one file may hold`);
   if (bytes > MAX_BYTES) hard.push(`${file}: ${bytes} bytes, more than the 50 MB one file may be`);
   const dup = urls.length - new Set(urls).size; if (dup) hard.push(`${file}: ${dup} repeated addresses`);
-  const foreign = urls.filter((u) => !/^https:\/\/lawdb\.ca(\/|$)/.test(u)); if (foreign.length) hard.push(`${file}: ${foreign.length} addresses not on https://lawdb.ca, e.g. ${foreign[0]}`);
+  const foreign = urls.filter((u) => !/^https:\/\/lawdb\.ca(\/|$)/.test(u)); if (foreign.length) hard.push(`${file}: ${foreign.length} addresses not on https://lawdb.ai, e.g. ${foreign[0]}`);
   const lastmods = [...text.matchAll(/<lastmod>([^<]*)<\/lastmod>/g)].map((m) => m[1]);
   const badLm = lastmods.filter((d) => !/^\d{4}-\d{2}-\d{2}(T[\d:.+Z-]+)?$/.test(d)); if (badLm.length) hard.push(`${file}: ${badLm.length} lastmod values in the wrong format, e.g. ${badLm[0]}`);
   const distinct = new Set(lastmods).size;
@@ -86,7 +86,7 @@ for (const file of FILES) {
 const robots = await (await get(`${BASE}/robots.txt`)).text().catch(() => '');
 const listed = [...robots.matchAll(/^Sitemap:\s*(\S+)/gim)].map((m) => m[1]);
 console.log(`\nrobots.txt announces: ${listed.join(', ') || 'nothing'}`);
-for (const f of FILES) if (!listed.includes(`https://lawdb.ca/${f}`) && f !== 'sitemap-index.xml') soft.push(`robots.txt does not announce ${f}`);
+for (const f of FILES) if (!listed.includes(`https://lawdb.ai/${f}`) && f !== 'sitemap-index.xml') soft.push(`robots.txt does not announce ${f}`);
 if (/^Disallow:\s*\/\s*$/im.test(robots)) hard.push('robots.txt blocks the whole site');
 
 console.log(soft.length ? `\nnotes (do not fail): ${soft.length}\n  - ${soft.join('\n  - ')}` : '\nno notes');

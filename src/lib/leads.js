@@ -1,4 +1,4 @@
-// The enquiries dashboard: who may read enquiries (Featured firms), the numbers on top, the spreadsheet export and the weekly summary email.
+// The inquiries dashboard: who may read inquiries (Featured firms), the numbers on top, the spreadsheet export and the weekly summary email.
 import { sendMail, leadDigestEmail } from './email.js';
 import { audit } from './audit.js';
 
@@ -33,10 +33,10 @@ export function leadsCsv(rows) {
   return '﻿' + [head.map(cell).join(','), ...lines].join('\r\n') + '\r\n';
 }
 
-// Mondays (every night when running locally for tests): each owner whose firm got enquiries in the last week gets one summary.
+// Mondays (every night when running locally for tests): each owner whose firm got inquiries in the last week gets one summary.
 export async function sendLeadDigests(env) {
   if (new Date().getUTCDay() !== 1 && env.DEV_ECHO_LINK !== '1') return { skipped: 'not Monday' };
-  const origin = env.SITE_ORIGIN || 'https://lawdb.ca';
+  const origin = env.SITE_ORIGIN || 'https://lawdb.ai';
   const { results } = await env.DB.prepare(
     `SELECT m.id, m.firm_slug AS slug, u.email, f.name, f.featured AS featured,
             (SELECT COUNT(*) FROM leads l WHERE l.firm_slug = m.firm_slug AND l.status != 'spam' AND l.created_at > datetime('now','-7 days')) AS week,

@@ -13,7 +13,7 @@ import { audit } from './audit.js';
 import { sendMail, trialStartedEmail, trialEndingEmail, trialEndedEmail } from './email.js';
 import { setFeatured, ownerEmails, FEATURED_PRICE_LABEL } from './stripe.js';
 import { mainOf } from './locations.js';
-import { torontoDay } from './stats.js';
+import { easternDay } from './stats.js';
 
 export const TRIAL_DAYS = 30;
 export const WARN_DAYS = 5;
@@ -24,16 +24,16 @@ const parse = (t) => new Date(String(t).replace(' ', 'T') + 'Z');
 export const daysLeft = (endsAt, now = new Date()) => Math.max(0, Math.ceil((parse(endsAt).getTime() - now.getTime()) / 86400000));
 
 export async function getTrial(env, slug) {
-  return (await env.DB.prepare('SELECT firm_slug AS slug, started_by AS startedBy, source, started_at AS startedAt, ends_at AS endsAt, status, ended_at AS endedAt, views, actions, enquiries FROM firm_trials WHERE firm_slug = ?').bind(slug).first()) || null;
+  return (await env.DB.prepare('SELECT firm_slug AS slug, started_by AS startedBy, source, started_at AS startedAt, ends_at AS endsAt, status, ended_at AS endedAt, views, actions, inquiries FROM firm_trials WHERE firm_slug = ?').bind(slug).first()) || null;
 }
 
 // What the firm's page got between two moments (for the emails and for the record when a trial ends).
 export async function usageSince(env, slug, startedAt) {
-  const day = torontoDay(parse(startedAt));
+  const day = easternDay(parse(startedAt));
   const rows = (await env.DB.prepare("SELECT metric, SUM(n) AS n FROM firm_stats_daily WHERE firm_slug = ? AND day >= ? AND metric IN ('pv', 'ev') GROUP BY metric").bind(slug, day).all()).results;
   const leads = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE firm_slug = ? AND status != 'spam' AND created_at >= ?").bind(slug, startedAt).first();
   const get = (m) => rows.find((r) => r.metric === m)?.n || 0;
-  return { views: get('pv'), clicks: get('ev'), enquiries: leads?.n || 0 };
+  return { views: get('pv'), clicks: get('ev'), inquiries: leads?.n || 0 };
 }
 
 const firmRow = (env, slug) => env.DB.prepare('SELECT slug, name, featured, status FROM firms WHERE slug = ?').bind(slug).first();
@@ -66,11 +66,11 @@ export async function startTrial(env, { slug, actor = null, source = 'owner', da
     `INSERT INTO firm_trials (firm_slug, started_by, source, started_at, ends_at, status, warned_at)
      VALUES (?, ?, ?, ?, ?, 'active', ?)
      ON CONFLICT (firm_slug) DO UPDATE SET started_by = excluded.started_by, source = excluded.source, started_at = excluded.started_at, ends_at = excluded.ends_at,
-       status = 'active', warned_at = excluded.warned_at, ended_at = NULL, views = NULL, actions = NULL, enquiries = NULL`
+       status = 'active', warned_at = excluded.warned_at, ended_at = NULL, views = NULL, actions = NULL, inquiries = NULL`
   ).bind(slug, actor?.id ?? null, source, sqlTime(now), endsAt, noWarning).run();
   await setFeatured(env, slug, true, actor, 'free trial');
   await audit(env, actor, 'trial.start', 'firm', slug, { source, days: length, endsAt });
-  await mailOwners(env, exec, slug, trialStartedEmail(origin || env.SITE_ORIGIN || 'https://lawdb.ca', { firmName: firm.name, slug, endsAt }));
+  await mailOwners(env, exec, slug, trialStartedEmail(origin || env.SITE_ORIGIN || 'https://lawdb.ai', { firmName: firm.name, slug, endsAt }));
   return getTrial(env, slug);
 }
 
@@ -82,10 +82,10 @@ export async function endTrial(env, { slug, actor = null, why = 'ended', origin,
   const numbers = await usageSince(env, slug, t.startedAt);
   const paying = !!(await env.DB.prepare("SELECT 1 FROM firm_subscriptions WHERE firm_slug = ? AND status IN ('active','past_due')").bind(slug).first());
   const status = paying ? 'subscribed' : 'ended';
-  await env.DB.prepare("UPDATE firm_trials SET status = ?, ended_at = datetime('now'), views = ?, actions = ?, enquiries = ? WHERE firm_slug = ? AND status = 'active'").bind(status, numbers.views, numbers.clicks, numbers.enquiries, slug).run();
+  await env.DB.prepare("UPDATE firm_trials SET status = ?, ended_at = datetime('now'), views = ?, actions = ?, inquiries = ? WHERE firm_slug = ? AND status = 'active'").bind(status, numbers.views, numbers.clicks, numbers.inquiries, slug).run();
   if (!paying) await setFeatured(env, slug, false, actor, 'free trial ended');
   await audit(env, actor, 'trial.end', 'firm', slug, { why, status, ...numbers });
-  if (!paying && firm) await mailOwners(env, exec, slug, trialEndedEmail(origin || env.SITE_ORIGIN || 'https://lawdb.ca', { firmName: firm.name, slug, price: FEATURED_PRICE_LABEL, numbers }));
+  if (!paying && firm) await mailOwners(env, exec, slug, trialEndedEmail(origin || env.SITE_ORIGIN || 'https://lawdb.ai', { firmName: firm.name, slug, price: FEATURED_PRICE_LABEL, numbers }));
   return getTrial(env, slug);
 }
 
@@ -102,7 +102,7 @@ export async function trialAdminChanged(env, slug, nowFeatured) {
 
 // Hourly: end what has run out, warn what is about to.
 export async function processTrials(env) {
-  const origin = env.SITE_ORIGIN || 'https://lawdb.ca';
+  const origin = env.SITE_ORIGIN || 'https://lawdb.ai';
   const out = { ended: 0, warned: 0, failed: 0 };
   const due = (await env.DB.prepare("SELECT firm_slug AS slug FROM firm_trials WHERE status = 'active' AND ends_at <= datetime('now') ORDER BY ends_at LIMIT ?").bind(BATCH).all()).results;
   for (const { slug } of due) {

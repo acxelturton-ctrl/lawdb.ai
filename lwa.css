@@ -59,7 +59,7 @@
 .lwa--search .lwa-note{position:absolute;right:4cqw;bottom:1.6cqw;background:var(--c);color:var(--cr);font:600 2.2cqw 'Inter',sans-serif;padding:1.2cqw 2.6cqw;border-radius:999px;opacity:0;transform:translateY(3cqw);transition:.5s 1s;z-index:5}
 .lwa--search [data-s="4"] .lwa-note{opacity:1;transform:none}
 
-/* 2. enquiries reach you (dark spotlight) */
+/* 2. inquiries reach you (dark spotlight) */
 .lwa--enq .lwa-spot{position:absolute;inset:0;background:radial-gradient(ellipse 36% 60% at 34% 48%,rgba(201,160,80,0.3),transparent 70%)}
 .lwa--enq .lwa-diag{position:absolute;top:-40%;height:190%;background:var(--g);transform:rotate(28deg);opacity:.4}
 .lwa--enq .lwa-d1{right:14%;width:.4cqw}.lwa--enq .lwa-d2{right:19%;width:.15cqw}

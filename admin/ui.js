@@ -42,7 +42,7 @@ export const CASE_LABELS = {
   employment: 'Employment Dispute', immigration: 'Immigration', litigation: 'Civil Lawsuit / Litigation',
 };
 export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-export const PROVINCES = { AB: 'Alberta', BC: 'British Columbia', MB: 'Manitoba', NB: 'New Brunswick', NL: 'Newfoundland and Labrador', NS: 'Nova Scotia', NT: 'Northwest Territories', NU: 'Nunavut', ON: 'Ontario', PE: 'Prince Edward Island', QC: 'Quebec', SK: 'Saskatchewan', YT: 'Yukon' };
+export const STATES = {AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'};
 
 // Opening hours editor. Days that already have split hours (two ranges) are kept as they are.
 export function hoursEditor(hours) {
@@ -211,9 +211,9 @@ export function feedPanel(base) {
 
 // ---------------------------------------------------------------- plan and billing (owner)
 // Shows Basic or Featured, and the right button: upgrade (opens the Stripe checkout with the firm and email attached)
-// or manage billing (Stripe's own page, where the card can be changed or the subscription cancelled).
+// or manage billing (Stripe's own page, where the card can be changed or the subscription canceled).
 // What Featured really changes on LawDB: every line is something the site does today. A Basic listing keeps its facts up to date
-// (name, phone, address, website, hours, practice areas), writes its own description and tagline, gets every enquiry by email, and has its blog posts shown as cards.
+// (name, phone, address, website, hours, practice areas), writes its own description and tagline, gets every inquiry by email, and has its blog posts shown as cards.
 export const FEATURED_PERKS = [
   ['A page that is yours to customize.', 'Add a book-a-call button with your own booking link, and your logo, cover and photos.'],
   ['Listed above Basic firms.', 'In search results for your city and case type, with a large Featured Partner card at the top of the Find results.'],
@@ -222,7 +222,7 @@ export const FEATURED_PERKS = [
   ['Listed first among nearby firms.', 'On other firms\' profiles and story pages, your firm comes first in the nearby firms row.'],
   ['A page for every office.', 'A firm with offices in several cities gets a page for each, in its own city and on the map. One Featured plan covers every page.'],
   ['An analytics dashboard.', 'Page views, visitors, every button clicked, where visitors came from, their devices and regions, with trends and a spreadsheet export.'],
-  ['An enquiries dashboard.', 'Read, filter, add private notes, reply with one tap and export your enquiries to a spreadsheet.'],
+  ['An inquiries dashboard.', 'Read, filter, add private notes, reply with one tap and export your inquiries to a spreadsheet.'],
   ['Articles that work harder.', 'A Featured badge on each story on LawDB News, a LawDB page for every article that search engines can find, and higher placement in the home page news strip.'],
 ];
 
@@ -272,7 +272,7 @@ export function planPanel(base) {
         perks()),
       !featured && h('div', null,
         h('p', null, h('b', null, `Why get Featured, ${p.price}`)),
-        h('p', { class: 'muted' }, 'Your Basic listing keeps your facts up to date (name, phone, address, website, hours and practice areas), has every enquiry emailed to you, and shows your blog posts as cards. Featured adds:'),
+        h('p', { class: 'muted' }, 'Your Basic listing keeps your facts up to date (name, phone, address, website, hours and practice areas), has every inquiry emailed to you, and shows your blog posts as cards. Featured adds:'),
         perks(),
         h('p', { class: 'muted' }, 'Featured changes where and how your firm is shown on LawDB. It does not guarantee calls, clients or search-engine rankings, and you can cancel any time.'),
         p.trialAvailable && h('div', { class: 'fa-offer' },

@@ -8,8 +8,8 @@ import { profilesBox, hasLinkedIn } from './profiles.js';
 import { CITY_HUBS } from './city-hubs.generated.js';
 import { PRACTICE } from '../lib/practice.js';
 
-export const PROVINCES = { ON: 'Ontario', QC: 'Quebec', BC: 'British Columbia', AB: 'Alberta', MB: 'Manitoba' };
-const TZ = { ON: 'America/Toronto', QC: 'America/Toronto', BC: 'America/Vancouver', AB: 'America/Edmonton', MB: 'America/Winnipeg' };
+import { STATES, STATE_SLUG, STATE_TZ as TZ } from '../lib/us.js';
+export { STATES };
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export const esc = (s) =>
@@ -34,7 +34,7 @@ function t12(hhmm) {
   return m ? `${hh}:${String(m).padStart(2, '0')} ${ap}` : `${hh} ${ap}`;
 }
 
-export function hoursCard(hours, province) {
+export function hoursCard(hours, state) {
   if (!hours || typeof hours !== 'object') return '';
   const rows = DAYS.map((name, i) => {
     const ivs = Array.isArray(hours[String(i + 1)]) ? hours[String(i + 1)] : [];
@@ -44,12 +44,12 @@ export function hoursCard(hours, province) {
     return `<li data-d="${i + 1}" data-iv="${iv}"><span class="hd">${name}</span><span class="ht">${label}</span></li>`;
   });
   if (!hours || !Object.values(hours).some((v) => Array.isArray(v) && v.length)) return '';
-  return fill(C.HOURS_HEAD, { TZ: TZ[province] || 'America/Toronto' }) + '<ul class="hc-list">' + rows.join('') + '</ul>' + C.HOURS_TAIL.replace('Hours as shown on the firm&rsquo;s Google listing.', 'Hours as provided by the firm.');
+  return fill(C.HOURS_HEAD, { TZ: TZ[state] || 'America/New_York' }) + '<ul class="hc-list">' + rows.join('') + '</ul>' + C.HOURS_TAIL.replace('Hours as shown on the firm&rsquo;s Google listing.', 'Hours as provided by the firm.');
 }
 
 function monogram(f) {
   const ini = esc((f.initials || f.name || '?').slice(0, 3).toUpperCase());
-  const col = '#2b3a4c'; // one navy for every monogram (a firm's own colour is not used)
+  const col = '#2b3a4c'; // one navy for every monogram (a firm's own color is not used)
   return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${ini}"><rect width="60" height="60" rx="10.8" fill="${col}"/><text x="50%" y="50%" dy="0.35em" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="24.0" fill="#ffffff" letter-spacing="0.02em">${ini}</text></svg>`;
 }
 
@@ -57,7 +57,7 @@ function monogram(f) {
 export const safeUrl = (u) => (typeof u === 'string' && (/^https:\/\/[^\s"'<>]+$/.test(u) || /^\/?[A-Za-z0-9_\-./]+$/.test(u)) ? u : '');
 const localImg = (u) => (/^https:/.test(u) || u.startsWith('/') ? u : `../${u}`);
 
-// A logo that is drawn on its own colour (a white wordmark on black, say) says so with `logoBg` (#rrggbb): it then fills the whole badge, with no white padding around it.
+// A logo that is drawn on its own color (a white wordmark on black, say) says so with `logoBg` (#rrggbb): it then fills the whole badge, with no white padding around it.
 const logoBgOf = (f) => (/^#[0-9a-fA-F]{6}$/.test(f?.logoBg || '') ? f.logoBg : '');
 
 function logoSpan(f) {
@@ -75,7 +75,7 @@ const coverPos = (p) => (/^(?:center|\d{1,3}%)(?: (?:center|top|bottom|\d{1,3}%)
 function coverDiv(f) {
   const hero = safeUrl(f.heroImage);
   if (hero) return `<div class="li-cover"><img src="${esc(localImg(hero))}" alt="${esc(f.name)}" style="object-position:${coverPos(f.heroPos)};"></div>`;
-  return `<div class="li-cover gen"><span class="li-cover-city">${esc(f.city)}, ${esc(f.province)}</span></div>`;
+  return `<div class="li-cover gen"><span class="li-cover-city">${esc(f.city)}, ${esc(f.state)}</span></div>`;
 }
 
 function carouselCard(n) {
@@ -105,7 +105,7 @@ function carousel(f, nearby) {
 }
 
 function tagline(f) {
-  const prov = PROVINCES[f.province] || f.province;
+  const prov = STATES[f.state] || f.state;
   const tags = (f.tags || []).filter(Boolean).slice(0, 2);
   if (!tags.length) return `Law firm serving ${esc(f.city)}, ${esc(prov)}.`;
   return `${esc(tags.join(' and '))} lawyers serving ${esc(f.city)}, ${esc(prov)}.`;
@@ -120,7 +120,7 @@ export function metaFromAbout(about) {
 }
 
 function description(f) {
-  const prov = PROVINCES[f.province] || f.province;
+  const prov = STATES[f.state] || f.state;
   const lead = `${f.name} is a law firm in ${f.city}, ${prov}`;
   const rated = num(f.rating) > 0 && num(f.count) > 0;
   return rated
@@ -146,12 +146,12 @@ function blockHtml(b) {
 const PRACTICE_CSS = '<style>.pa-wrap{margin-bottom:20px}.pa-wrap h2{font-family:\'Source Serif 4\',serif;font-size:16px;margin:0 0 10px}.pa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.pa-card{display:block;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:14px 16px;text-decoration:none;color:var(--ink)}.pa-card:hover{border-color:var(--brass);box-shadow:0 2px 10px rgba(20,36,52,0.08)}.pa-card b{display:block;font-size:15px;margin-bottom:4px}.pa-card span{display:block;font-size:12.5px;color:var(--ink-soft);line-height:1.45}.pa-card em{display:block;font-style:normal;font-size:12.5px;font-weight:700;color:var(--brass-deep);margin-top:8px}.pa-tags{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:8px}.pa-tags li{background:#f4ecd8;border:1px solid #e6d4a4;border-radius:999px;padding:6px 14px;font:600 13.5px Inter,system-ui,sans-serif;color:#142434}</style>';
 
 // The "Practice areas" block, right under the description: the areas the firm practises as pills (its own list, or the categories it is filed under when it
-// has none), then cards to the province practice pages for its case types (only pages that exist), with how many firms each page compares.
+// has none), then cards to the state practice pages for its case types (only pages that exist), with how many firms each page compares.
 function practiceHtml(f, cards) {
   const tags = (f.tags || []).filter(Boolean);
   const areas = tags.length ? tags : (f.caseTypes || []).map((t) => (PRACTICE[t] ? PRACTICE[t][1] : '')).filter(Boolean);
   if (!areas.length && !cards.length) return '';
-  const prov = PROVINCES[f.province] || f.province;
+  const prov = STATES[f.state] || f.state;
   const list = areas.length ? `<ul class="pa-tags">${areas.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : '';
   const grid = cards.length ? `<div class="pa-grid">${cards.map((c) => `<a class="pa-card" href="${esc(c.href)}"><b>${esc(c.label)}</b><span>${c.count} ${c.count === 1 ? 'firm' : 'firms'} listed across ${esc(prov)}, compared by real Google ratings.</span><em>Compare all &rarr;</em></a>`).join('')}</div>` : '';
   return `\n    <div class="pa-wrap"><h2>Practice areas</h2>${list}${grid}</div>`;
@@ -168,13 +168,13 @@ function chipsHtml(f, v) {
   return chips.length ? `        <ul class="pf-chips" aria-label="Good to know">${chips.join('')}</ul>\n` : '';
 }
 
-// "Verified by LawDB": what the admin checked, when, and a link to the law society's own directory. It never shows the name or number the firm gave us,
+// "Verified by LawDB": what the admin checked, when, and a link to the state bar's own directory. It never shows the name or number the firm gave us,
 // and says plainly that it is a check made on a date, not an endorsement (see src/lib/verification.js).
 const VERIFIED_CSS = '<style>.pf-chip.is-verified{background:#142434;border-color:#142434;color:#f5f3ec}.pf-chip.is-verified svg{width:14px;height:14px;flex:none;color:#e2bd6a}.pf-chip a{color:inherit;text-decoration:none}.verified{margin:22px 0;padding:16px 18px;border:1px solid #e6d4a4;border-radius:12px;background:#f4ecd8;color:#142434}.verified h2{display:flex;align-items:center;gap:8px;font-size:18px;margin:0 0 6px}.verified h2 svg{width:20px;height:20px;flex:none}.verified p{margin:6px 0 0;font-size:14.5px;line-height:1.55}.verified ul{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:4px;font-size:14.5px;line-height:1.5}.verified li:before{content:"\\2713";margin-right:8px;font-weight:700}.verified .vf-note{font-size:13px;color:#586170}.verified a{color:#142434;font-weight:600}</style>';
 function verifiedHtml(v) {
   if (!v) return '';
   let when = v.at;
-  try { const d = new Date(`${v.at}T12:00:00Z`); if (!Number.isNaN(d.getTime())) when = d.toLocaleDateString('en-CA', { month: 'long', year: 'numeric', timeZone: 'UTC' }); } catch { /* keep the plain date */ }
+  try { const d = new Date(`${v.at}T12:00:00Z`); if (!Number.isNaN(d.getTime())) when = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }); } catch { /* keep the plain date */ }
   const items = [
     v.checked.identity && 'The person who manages this profile is who they say they are',
     v.checked.registration && `The lawyer is listed in the ${v.society.name}\u2019s public directory`,
@@ -219,16 +219,16 @@ function officesHtml(f) {
 function locationsHtml(f, locations) {
   const list = (Array.isArray(locations) ? locations : []).filter((l) => l && l.slug && l.slug !== f.slug).slice(0, 12);
   if (!list.length) return '';
-  const items = list.map((l) => `<li><a href="/firms/${esc(l.slug)}" class="office-name">${esc(l.name)}</a><span>${esc([l.city, PROVINCES[l.province] ? l.province : ''].filter(Boolean).join(', '))}</span></li>`).join('');
+  const items = list.map((l) => `<li><a href="/firms/${esc(l.slug)}" class="office-name">${esc(l.name)}</a><span>${esc([l.city, STATES[l.state] ? l.state : ''].filter(Boolean).join(', '))}</span></li>`).join('');
   return `\n    <section class="offices other-locations" aria-label="Other ${esc(f.name)} locations"><h2>Other locations</h2><ul>${items}</ul></section>`;
 }
 
-// "199 Bay St #5300, Toronto, ON M5L 1B9" -> street, and postal code, the way schema.org wants them.
+// "123 Main St, Miami, FL 33131" -> street and ZIP code, the way schema.org wants them.
 function postal(f) {
   const a = String(f.address || '');
-  const m = a.match(/^(.*?),\s*([^,]+?),\s*([A-Z]{2})\s+([A-Z]\d[A-Z][ -]?\d[A-Z]\d)\s*$/i);
-  const street = m && m[3].toUpperCase() === f.province ? m[1] : a;
-  return { '@type': 'PostalAddress', streetAddress: street, addressLocality: f.city, addressRegion: f.province, ...(m && m[3].toUpperCase() === f.province ? { postalCode: m[4].toUpperCase().replace(/^(\w{3})-?(\w{3})$/, '$1 $2') } : {}), addressCountry: 'CA' };
+  const m = a.match(/^(.*?),\s*([^,]+?),\s*([A-Z]{2})\s+(\d{5})(?:-\d{4})?\s*$/i);
+  const ok = m && m[3].toUpperCase() === f.state;
+  return { '@type': 'PostalAddress', streetAddress: ok ? m[1] : a, addressLocality: f.city, addressRegion: f.state, ...(ok ? { postalCode: m[4] } : {}), addressCountry: 'US' };
 }
 
 // The Location card on a profile, right under the contact card ("Contact <firm>" / Send message): the map (MapLibre, the same map as the Find page) with a "Maps" chip that
@@ -258,7 +258,6 @@ function locationHtml(f, { mapsSearch, dir, withMap }) {
 }
 
 // ---- the page frame, as on MSPdatabase: a breadcrumb above the card, and a "firms you may like" column beside the page on a wide screen ----
-const PROV_SLUG = { ON: 'ontario', QC: 'quebec', BC: 'british-columbia', AB: 'alberta', MB: 'manitoba' };
 const citySlug = (c) => String(c).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 // +14168268610 -> (416) 826-8610 for display; the tel: link keeps the stored number. Anything that is not a plain North American number is shown as stored.
 const showPhone = (p) => { const d = String(p || '').replace(/\D/g, ''); const m = d.length === 11 && d[0] === '1' ? d.slice(1) : d; return m.length === 10 ? `(${m.slice(0, 3)}) ${m.slice(3, 6)}-${m.slice(6)}` : String(p || ''); };
@@ -272,12 +271,12 @@ const IC = {
 };
 
 function breadcrumb(f, prov) {
-  const ps = PROV_SLUG[f.province];
+  const ps = STATE_SLUG[f.state];
   const cs = citySlug(f.city);
   const sep = '<span class="sep" aria-hidden="true">&rsaquo;</span>';
   return '<nav class="pf-crumb" aria-label="Breadcrumb">' +
     `<a class="pf-crumb-home" href="/" aria-label="LawDB home"><img src="/images/logo-icon.png" alt="" width="20" height="20"></a>${sep}` +
-    `<a href="/find-lawyers">Canada</a>${sep}` +
+    `<a href="/find-lawyers">United States</a>${sep}` +
     (ps ? `<a href="/${ps}/">${esc(prov)}</a>` : `<span>${esc(prov)}</span>`) + sep +
     (ps && CITY_HUBS.has(`${ps}/${cs}`) ? `<a href="/${ps}/${cs}/">${esc(f.city)}</a>` : `<span>${esc(f.city)}</span>`) +
     '</nav>';
@@ -297,24 +296,24 @@ function likeAside(nearby) {
 // The Message button opens the contact form it scrolls to.
 const CONTACT_JS = "<script>(function(){var b=document.querySelector('[data-open-contact]'),s=document.querySelector('.lead-slim');if(b&&s)b.addEventListener('click',function(){s.classList.add('open');});})();</script>";
 
-export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ca', stats = null, verified = null }) {
-  const prov = PROVINCES[f.province] || f.province;
+export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null }) {
+  const prov = STATES[f.state] || f.state;
   const customCover = /^img\/[0-9a-f]{24}$/.test(f.heroImage || '');
   const ogImage = customCover ? `${origin}/${f.heroImage}` : `${origin}/images/og-default.jpg`;
   const url = `${origin}/firms/${f.slug}`;
   const about = typeof f.about === 'string' ? f.about.trim() : '';
   const desc = metaFromAbout(about) || description(f);
   const rated = num(f.rating) > 0 && num(f.count) > 0;
-  const title = `${esc(f.name)} | ${esc(f.city)}, ${esc(f.province)} Lawyers | LawDB`;
+  const title = `${esc(f.name)} | ${esc(f.city)}, ${esc(f.state)} Lawyers | LawDB`;
   const website = /^https?:\/\/[^\s"'<>]+$/i.test(f.website || '') ? f.website : '';
   const q = encodeURIComponent(`${f.name} ${f.city} ${prov}`).replace(/%20/g, '+');
   const mapsSearch = `https://www.google.com/maps/search/${q}`;
   const dir = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(f.address || `${f.name} ${f.city}`).replace(/%20/g, '+')}`;
 
   const glance = cleanDetails(f.details);
-  // The same trail as the visible breadcrumb (Canada, province, city when it has a page, the firm), so search engines can show it under the result.
-  const ps = PROV_SLUG[f.province], cs = citySlug(f.city);
-  const trail = [['LawDB', `${origin}/`], ['Canada', `${origin}/find-lawyers`], ...(ps ? [[prov, `${origin}/${ps}/`]] : []), ...(ps && CITY_HUBS.has(`${ps}/${cs}`) ? [[f.city, `${origin}/${ps}/${cs}/`]] : []), [f.name, url]];
+  // The same trail as the visible breadcrumb (United States, state, city when it has a page, the firm), so search engines can show it under the result.
+  const ps = STATE_SLUG[f.state], cs = citySlug(f.city);
+  const trail = [['LawDB', `${origin}/`], ['United States', `${origin}/find-lawyers`], ...(ps ? [[prov, `${origin}/${ps}/`]] : []), ...(ps && CITY_HUBS.has(`${ps}/${cs}`) ? [[f.city, `${origin}/${ps}/${cs}/`]] : []), [f.name, url]];
   const crumbLd = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: trail.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) };
   // No aggregateRating here on purpose: the rating on the page is Google's, collected on Google, and Google's structured data rules say ratings that are
   // marked up must come from the site itself (a business's own reviews of itself are not eligible either). The visible Google rating stays, named as Google's.
@@ -348,7 +347,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
 
   // The icon row: where the firm is, its website, its Google rating, and how many members follow it.
   const meta =
-    `<div class="pf-meta"><span class="pf-mi">${C.ICONS.pin}${esc(f.city)}, ${esc(prov)}, Canada</span>` +
+    `<div class="pf-meta"><span class="pf-mi">${C.ICONS.pin}${esc(f.city)}, ${esc(prov)}</span>` +
     (website ? `<a class="pf-mi" href="${esc(website)}" target="_blank" rel="${f.featured ? 'noopener sponsored' : 'noopener nofollow'}">${IC.link}${esc(hostOf(website))}</a>` : '') +
     (rated ? `<a class="pf-mi" href="${esc(mapsSearch)}" target="_blank" rel="noopener">${C.ICONS.star}<b>${num(f.rating).toFixed(1)}</b> from ${num(f.count)} Google reviews</a>` : '') +
     // The LawDB member rating, apart from the Google one: the Worker's script (follow.js) fills in the average and count, or invites the first rating.
@@ -369,12 +368,12 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
   const photoTags = images.filter((i) => IMG_ID.test(i.id)).map((i) => `<img src="/img/${i.id}" alt="${esc(i.alt || `${f.name} photo`)}" loading="lazy" width="320" height="240">`);
   const photosHtml = photoTags.length ? `\n    <div class="photos"><h2>Photos</h2><div class="photo-grid">${photoTags.join('')}</div></div>` : '';
   const cards = stats?.practice || [];
-  const hoursHtml = hoursCard(hours, f.province);
+  const hoursHtml = hoursCard(hours, f.state);
   // Same text on every firm of a case type, so only Featured firms show it (see also the Worker, which does the same for hand-built pages).
   const guide = f.featured ? (C.GUIDES[(f.caseTypes || [])[0]] || '') : '';
 
   const socials =
-    `<div class="socials">\n      <a href="${esc(mapsSearch)}" target="_blank" rel="noopener">${C.ICONS.star}<span>Read Google Reviews</span></a>\n` +
+    `<div class="socials">\n` +
     // the Profiles box in the header card has the firm's real LinkedIn page; this search link is only for firms without one
     (hasLinkedIn(f.social) ? '' : `      <a href="https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(f.name)}" target="_blank" rel="noopener">${C.ICONS.linkedin}<span>Find on LinkedIn</span></a>\n`) +
     `      <a href="${esc(mapsSearch)}" target="_blank" rel="noopener">${C.ICONS.pin2}<span>View on Google Maps</span></a>\n    </div>`;
@@ -391,14 +390,14 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     `<title>${title}</title>`,
     `<meta name="description" content="${esc(desc)}">`,
-    `<meta property="og:title" content="${esc(f.name)}, ${esc(f.city)}, ${esc(f.province)}">`,
+    `<meta property="og:title" content="${esc(f.name)}, ${esc(f.city)}, ${esc(f.state)}">`,
     `<meta property="og:description" content="${esc(desc)}">`,
     '<meta property="og:type" content="business.business">',
     `<link rel="canonical" href="${esc(url)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
-    '<meta property="og:site_name" content="LawDB.ca">\n<meta property="og:locale" content="en_CA">',
+    '<meta property="og:site_name" content="LawDB.ai">\n<meta property="og:locale" content="en_US">',
     `<meta property="og:image" content="${ogImage}">${customCover ? '' : '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}`,
-    `<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(f.name)}, ${esc(f.city)}, ${esc(f.province)}">`,
+    `<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${esc(f.name)}, ${esc(f.city)}, ${esc(f.state)}">`,
     `<meta name="twitter:description" content="${esc(desc)}">\n<meta name="twitter:image" content="${ogImage}">`,
     `<script type="application/ld+json">\n${jsonForHtml(ld)}\n</script>`,
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,

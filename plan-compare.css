@@ -1,5 +1,5 @@
 /* The "Free or Featured" comparison table (see scripts/apply-plan-table.mjs, which writes the markup into For Law Firms and List Your Firm).
-   It is a self-contained white card, so it reads the same on the dark For Law Firms band and the light List Your Firm page. Palette colours only.
+   It is a self-contained white card, so it reads the same on the dark For Law Firms band and the light List Your Firm page. Palette colors only.
    Reading order: a plan header, a "Free on every listing" band (a tick for Basic and Featured), then a navy "Featured adds" band and the Featured-only
    groups (a lock for Basic, a gold tick for Featured). Every plan cell is one icon in a fixed-size circle, so the two plan columns always line up. */
 .pc{ position:relative; max-width:940px; margin:0 auto; background:#fff; color:#142434; border:1px solid #e3dfd3; border-radius:16px; overflow:hidden; text-align:left; box-shadow:0 18px 40px -22px rgba(20,36,52,.45); font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; }

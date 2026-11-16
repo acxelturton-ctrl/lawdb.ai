@@ -1,18 +1,18 @@
-// The weekly "your week on LawDB" email for every firm owner: page views, visitors, button clicks and enquiries of the last 7 days.
+// The weekly "your week on LawDB" email for every firm owner: page views, visitors, button clicks and inquiries of the last 7 days.
 //
-// It goes out on Monday from 9 am Toronto time and carries on hourly, 90 owners a time, until everyone has had theirs (firm_members.report_at
+// It goes out on Monday from 9 am Eastern time and carries on hourly, 90 owners a time, until everyone has had theirs (firm_members.report_at
 // remembers who has). Each batch reads all its firms' numbers in three queries, so a thousand owners cost a few dozen queries, not thousands.
 // Owners can switch it off on the Analytics page (firm_members.reports_off); a firm nobody looked at gets no email.
 import { sendMail, weeklyReportEmail } from './email.js';
 import { audit } from './audit.js';
-import { torontoDay } from './stats.js';
+import { easternDay } from './stats.js';
 import { ACTION_LABELS } from './firm-analytics.js';
 import { daysLeft } from './trial.js';
 import { FEATURED_PRICE_LABEL } from './stripe.js';
 
 const BATCH = 90; // also stays under the 100 values a statement may bind
 
-// The most recent Monday, 13:00 UTC (9 am in Toronto in summer, 8 am in winter), at or before `now`.
+// The most recent Monday, 13:00 UTC (9 am in New York in summer, 8 am in winter), at or before `now`.
 export function weekStart(now = new Date()) {
   const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 13, 0, 0));
   d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
@@ -35,12 +35,12 @@ export async function sendWeeklyReports(env, now = new Date()) {
   ).bind(mark, local ? 1000 : BATCH).all()).results;
   if (!members.length) return { sent: 0, failed: 0, remaining: 0 };
 
-  const today = torontoDay(now);
-  const day = (n) => torontoDay(new Date(now.getTime() - n * 86400000));
+  const today = easternDay(now);
+  const day = (n) => easternDay(new Date(now.getTime() - n * 86400000));
   const curFrom = day(7), curTo = local ? today : day(1), prevFrom = day(14); // the last 7 complete days (locally, today too, so a test can see its own numbers)
   const slugs = [...new Set(members.map((m) => m.slug))];
-  const stats = new Map(); // slug -> { views, previousViews, visitors, clicks, enquiries, actions: Map }
-  const get = (slug) => { if (!stats.has(slug)) stats.set(slug, { views: 0, previousViews: 0, visitors: 0, clicks: 0, enquiries: 0, actions: new Map() }); return stats.get(slug); };
+  const stats = new Map(); // slug -> { views, previousViews, visitors, clicks, inquiries, actions: Map }
+  const get = (slug) => { if (!stats.has(slug)) stats.set(slug, { views: 0, previousViews: 0, visitors: 0, clicks: 0, inquiries: 0, actions: new Map() }); return stats.get(slug); };
   for (let i = 0; i < slugs.length; i += BATCH) {
     const part = slugs.slice(i, i + BATCH);
     const marks = part.map(() => '?').join(',');
@@ -56,11 +56,11 @@ export async function sendWeeklyReports(env, now = new Date()) {
         else { s.clicks += r.n; s.actions.set(r.k, (s.actions.get(r.k) || 0) + r.n); }
       } else if (r.day >= prevFrom && r.day < curFrom && r.metric === 'pv') s.previousViews += r.n;
     }
-    for (const l of leads.results) get(l.slug).enquiries = l.n;
+    for (const l of leads.results) get(l.slug).inquiries = l.n;
   }
 
   let sent = 0, failed = 0;
-  const origin = env.SITE_ORIGIN || 'https://lawdb.ca';
+  const origin = env.SITE_ORIGIN || 'https://lawdb.ai';
   for (const m of members) {
     const s = get(m.slug);
     if (!s.views) continue; // nothing to report
@@ -69,7 +69,7 @@ export async function sendWeeklyReports(env, now = new Date()) {
       await sendMail(env, { to: m.email, ...weeklyReportEmail(origin, {
         firmName: m.name, slug: m.slug, featured: !!m.featured, price: FEATURED_PRICE_LABEL,
         trialDaysLeft: m.trialEnds ? daysLeft(m.trialEnds, now) : null,
-        n: { views: s.views, previousViews: s.previousViews, visitors: s.visitors, clicks: s.clicks, enquiries: s.enquiries },
+        n: { views: s.views, previousViews: s.previousViews, visitors: s.visitors, clicks: s.clicks, inquiries: s.inquiries },
         top: best ? { label: ACTION_LABELS[best[0]] || best[0], n: best[1] } : null,
       }) });
       sent++;

@@ -14,7 +14,7 @@ export function cleanBookingUrl(raw) {
   try { u = new URL(s); } catch { return ''; }
   if (u.protocol !== 'https:' || u.username || u.password) return '';
   const host = u.hostname.toLowerCase();
-  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host) || /^\d+(\.\d+){3}$/.test(host) || host === 'lawdb.ca' || host.endsWith('.lawdb.ca')) return '';
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host) || /^\d+(\.\d+){3}$/.test(host) || host === 'lawdb.ai' || host.endsWith('.lawdb.ai')) return '';
   if (TRACKING_HOST.test(host)) return '';
   u.hash = '';
   for (const k of [...u.searchParams.keys()]) if (DROP_PARAMS.test(k)) u.searchParams.delete(k);

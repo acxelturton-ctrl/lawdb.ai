@@ -1,5 +1,5 @@
 // The Outreach desk's rules (admin only): the stages and channels, how a day is added to, and the LinkedIn "now live" post for a firm that is listed.
-import { PROVINCES } from '../render/firm-page.js';
+import { STATES } from '../render/firm-page.js';
 import { cleanBookingUrl } from './booking.js';
 
 export const STAGES = [['connected', 'Connected'], ['messaged', 'Messaged'], ['replied', 'Replied'], ['call', 'Call'], ['agreed', 'Said yes'], ['not-now', 'Not now']];
@@ -21,9 +21,9 @@ export function addDays(day, n) {
 export const cleanLink = (v) => cleanBookingUrl(typeof v === 'string' ? v : '');
 
 // The LinkedIn post that goes with the "now live on LawDB" card. Only what the directory itself knows: the firm's name, its practice areas as listed and where it is.
-export function welcomePost({ name, city, province, tags, slug, origin }) {
+export function welcomePost({ name, city, state, tags, slug, origin }) {
   const kinds = (Array.isArray(tags) ? tags : []).filter(Boolean).slice(0, 2).join(' and ');
-  const where = [city, PROVINCES[province] || province].filter(Boolean).join(', ');
+  const where = [city, STATES[state] || state].filter(Boolean).join(', ');
   const what = kinds ? `${kinds}${where ? ` in ${where}` : ''}` : where ? `law firm in ${where}` : 'law firm';
-  return `Welcome to LawDB, ${name}! \u{1F389}\n\nTheir profile is now live on Canada's legal directory: ${what}.\n\nSee their profile: ${origin}/firms/${slug}`;
+  return `Welcome to LawDB, ${name}! \u{1F389}\n\nTheir profile is now live on the LawDB legal directory: ${what}.\n\nSee their profile: ${origin}/firms/${slug}`;
 }

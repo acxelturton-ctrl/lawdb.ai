@@ -5,6 +5,6 @@ Disallow: /account/
 Disallow: /api/
 Disallow: /email-previews/
 
-Sitemap: https://lawdb.ca/sitemap.xml
-Sitemap: https://lawdb.ca/sitemap-news.xml
-Sitemap: https://lawdb.ca/sitemap-firms.xml
+Sitemap: https://lawdb.ai/sitemap.xml
+Sitemap: https://lawdb.ai/sitemap-news.xml
+Sitemap: https://lawdb.ai/sitemap-firms.xml

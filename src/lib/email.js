@@ -2,7 +2,7 @@ import { audit } from './audit.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-// Transactional email through Brevo (sender info@lawdb.ca is verified there).
+// Transactional email through Brevo (sender info@lawdb.ai is verified there).
 export async function sendMail(env, { to, subject, text, html }) {
   const recipients = [].concat(to).filter(Boolean);
   if (!recipients.length) return;
@@ -14,7 +14,7 @@ export async function sendMail(env, { to, subject, text, html }) {
     method: 'POST',
     headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
-      sender: { name: env.MAIL_FROM_NAME || 'LawDB', email: env.MAIL_FROM_EMAIL || 'info@lawdb.ca' },
+      sender: { name: env.MAIL_FROM_NAME || 'LawDB', email: env.MAIL_FROM_EMAIL || 'info@lawdb.ai' },
       to: recipients.map((email) => ({ email })),
       subject,
       htmlContent: html,
@@ -58,8 +58,8 @@ export const sendLoginEmail = (env, to, link) => sendMail(env, { to, ...loginEma
 export function inviteEmail(link, { firmName, days }) {
   return {
     subject: `Your ${firmName} profile on LawDB is ready`,
-    text: `Hello,\n\nAs we discussed, your firm's profile on LawDB.ca is ready for you to manage. Use this link to sign in and edit ${firmName}: your description, practice areas, hours, photos and more.\n\n${link}\n\nThe link works once and expires in ${days} days. After the first time you can sign in with Google or LinkedIn using this same email address.\n\nIf you were not expecting this, you can ignore this email.`,
-    html: `<p>As we discussed, your firm's profile on LawDB.ca is ready for you to manage. Use the button below to sign in and edit <b>${esc(firmName)}</b>: your description, practice areas, hours, photos and more.</p>${button(link, 'Open my profile')}${small(`The link works once and expires in ${days} days. After the first time you can sign in with Google or LinkedIn using this same email address. If you were not expecting this, you can ignore this email.`)}`,
+    text: `Hello,\n\nAs we discussed, your firm's profile on LawDB.ai is ready for you to manage. Use this link to sign in and edit ${firmName}: your description, practice areas, hours, photos and more.\n\n${link}\n\nThe link works once and expires in ${days} days. After the first time you can sign in with Google or LinkedIn using this same email address.\n\nIf you were not expecting this, you can ignore this email.`,
+    html: `<p>As we discussed, your firm's profile on LawDB.ai is ready for you to manage. Use the button below to sign in and edit <b>${esc(firmName)}</b>: your description, practice areas, hours, photos and more.</p>${button(link, 'Open my profile')}${small(`The link works once and expires in ${days} days. After the first time you can sign in with Google or LinkedIn using this same email address. If you were not expecting this, you can ignore this email.`)}`,
   };
 }
 
@@ -79,13 +79,13 @@ export function decisionEmail(origin, { firmName, approved }) {
   return approved
     ? {
         subject: `You can now manage ${firmName} on LawDB`,
-        text: `Your request was approved. You can now edit ${firmName} and see its enquiries here:\n\n${link}`,
-        html: `<p>Your request was approved. You can now edit <b>${esc(firmName)}</b> and see its enquiries.</p>${button(link, 'Open my dashboard')}`,
+        text: `Your request was approved. You can now edit ${firmName} and see its inquiries here:\n\n${link}`,
+        html: `<p>Your request was approved. You can now edit <b>${esc(firmName)}</b> and see its inquiries.</p>${button(link, 'Open my dashboard')}`,
       }
     : {
         subject: `About your request for ${firmName} on LawDB`,
-        text: `We could not approve your request for ${firmName}. If you think this is a mistake, reply to this email or write to info@lawdb.ca.`,
-        html: `<p>We could not approve your request for <b>${esc(firmName)}</b>. If you think this is a mistake, reply to this email or write to info@lawdb.ca.</p>`,
+        text: `We could not approve your request for ${firmName}. If you think this is a mistake, reply to this email or write to info@lawdb.ai.`,
+        html: `<p>We could not approve your request for <b>${esc(firmName)}</b>. If you think this is a mistake, reply to this email or write to info@lawdb.ai.</p>`,
       };
 }
 
@@ -103,7 +103,7 @@ export function welcomeEmail(origin, { name }) {
     subject: 'Welcome to LawDB: your member account is active',
     text: `${hi}\n\nYour LawDB member account is active. Continue setting up your profile here:\n${link}\n\nWhat you can do with LawDB:\n${things.map((t) => '- ' + t).join('\n')}\n\nHave questions? Just reply to this email.\n\nThe LawDB team`,
     html: `<p>${esc(hi)}</p><p>Your LawDB member account is active, and you can now use LawDB to follow law firms, save stories and build your profile.</p>` +
-      `<div style="border-left:4px solid #c9a050;background:#f4ecd8;padding:12px 16px;margin:16px 0"><b>Continue setting up your profile</b><br>Add your name and tell us who you are, so firms and other members recognise you.</div>` +
+      `<div style="border-left:4px solid #c9a050;background:#f4ecd8;padding:12px 16px;margin:16px 0"><b>Continue setting up your profile</b><br>Add your name and tell us who you are, so firms and other members recognize you.</div>` +
       `${button(link, 'Continue setting up your profile')}<p style="margin-top:24px"><b>What you can do with LawDB</b></p><ul>${things.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` +
       `<p style="color:#586170">Have questions? Just reply to this email.</p>`,
   };
@@ -115,11 +115,11 @@ export function leadEmail(origin, firmName, lead) {
     ['Name', lead.name], ['Email', lead.email], ['Phone', lead.phone], ['Message', lead.message],
   ].filter(([, v]) => v);
   return {
-    subject: `New enquiry for ${firmName}`,
-    text: `Someone contacted ${firmName} through LawDB.\n\n${lines.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nAll enquiries: ${link}`,
+    subject: `New inquiry for ${firmName}`,
+    text: `Someone contacted ${firmName} through LawDB.\n\n${lines.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nAll inquiries: ${link}`,
     html: `<p>Someone contacted <b>${esc(firmName)}</b> through LawDB.</p><table cellpadding="4" style="border-collapse:collapse">${lines
       .map(([k, v]) => `<tr><td style="color:#586170;vertical-align:top">${esc(k)}</td><td>${esc(v).replace(/\n/g, '<br>')}</td></tr>`)
-      .join('')}</table>${button(link, 'Open my enquiries')}`,
+      .join('')}</table>${button(link, 'Open my inquiries')}`,
   };
 }
 
@@ -128,11 +128,11 @@ export function leadDigestEmail(origin, { firmName, week, fresh, featured }) {
   const n = (c, w) => `${c} ${c === 1 ? w : w + 's'}`;
   const pitch = featured
     ? `${fresh} ${fresh === 1 ? 'is' : 'are'} still marked new. Open your dashboard to reply, add notes or export them.`
-    : `Featured firms are listed above Basic firms in their city and case type, and read and manage enquiries in a dashboard, with notes, filters and a spreadsheet export. Your enquiry emails keep coming either way.`;
+    : `Featured firms are listed above Basic firms in their city and case type, and read and manage inquiries in a dashboard, with notes, filters and a spreadsheet export. Your inquiry emails keep coming either way.`;
   return {
-    subject: `${firmName}: ${n(week, 'enquiry').replace('enquirys', 'enquiries')} on LawDB this week`,
-    text: `${firmName} received ${n(week, 'enquiry').replace('enquirys', 'enquiries')} through LawDB in the last 7 days.\n\n${pitch}\n\n${featured ? 'Open your enquiries' : 'See your plan'}: ${link}`,
-    html: `<p><b>${esc(firmName)}</b> received <b>${esc(n(week, 'enquiry').replace('enquirys', 'enquiries'))}</b> through LawDB in the last 7 days.</p><p>${esc(pitch)}</p>${button(link, featured ? 'Open my enquiries' : 'See my plan')}`,
+    subject: `${firmName}: ${n(week, 'inquiry').replace('inquirys', 'inquiries')} on LawDB this week`,
+    text: `${firmName} received ${n(week, 'inquiry').replace('inquirys', 'inquiries')} through LawDB in the last 7 days.\n\n${pitch}\n\n${featured ? 'Open your inquiries' : 'See your plan'}: ${link}`,
+    html: `<p><b>${esc(firmName)}</b> received <b>${esc(n(week, 'inquiry').replace('inquirys', 'inquiries'))}</b> through LawDB in the last 7 days.</p><p>${esc(pitch)}</p>${button(link, featured ? 'Open my inquiries' : 'See my plan')}`,
   };
 }
 
@@ -166,7 +166,7 @@ const FEATURED_GETS = [
   'Listed first among nearby firms on other firms\' profiles and story pages',
   'A page for every office: each office gets its own page, in its own city and on the map, and the one plan covers them all',
   'An analytics dashboard: page views, visitors, which buttons were clicked, where visitors came from, their devices and regions, with trends and a spreadsheet export',
-  'An enquiries dashboard with filters, private notes, one-tap reply and a spreadsheet export',
+  'An inquiries dashboard with filters, private notes, one-tap reply and a spreadsheet export',
   'A Featured badge on your stories in LawDB News, a LawDB page search engines can find for each article, and higher placement in the home page news strip',
 ];
 
@@ -185,8 +185,8 @@ export function verifiedEmail(origin, { firmName, slug }) {
   const link = `${origin}/firms/${slug}`;
   return {
     subject: `${firmName} is now Verified by LawDB`,
-    text: `We checked ${firmName} and it is now Verified by LawDB. Your page shows a Verified badge, the date, what we checked and a link to the law society's own directory. It is not an endorsement, and it does not say anything about your work.\n\nSee your page (it can take a few hours to update): ${link}`,
-    html: `<p>We checked <b>${esc(firmName)}</b> and it is now <b>Verified by LawDB</b>. Your page shows a Verified badge, the date, what we checked and a link to the law society's own directory. It is not an endorsement, and it does not say anything about your work.</p>${button(link, 'See my page')}${small('It can take a few hours for the badge to appear on your page.')}`,
+    text: `We checked ${firmName} and it is now Verified by LawDB. Your page shows a Verified badge, the date, what we checked and a link to the state bar's own directory. It is not an endorsement, and it does not say anything about your work.\n\nSee your page (it can take a few hours to update): ${link}`,
+    html: `<p>We checked <b>${esc(firmName)}</b> and it is now <b>Verified by LawDB</b>. Your page shows a Verified badge, the date, what we checked and a link to the state bar's own directory. It is not an endorsement, and it does not say anything about your work.</p>${button(link, 'See my page')}${small('It can take a few hours for the badge to appear on your page.')}`,
   };
 }
 
@@ -209,7 +209,7 @@ export function featuredOffEmail(origin, { firmName }) {
 }
 
 // ---- the free month and the weekly report
-const longDate = (d) => new Date(String(d).replace(' ', 'T') + 'Z').toLocaleDateString('en-CA', { dateStyle: 'long', timeZone: 'America/Toronto' });
+const longDate = (d) => new Date(String(d).replace(' ', 'T') + 'Z').toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'America/New_York' });
 const times = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 export function trialStartedEmail(origin, { firmName, slug, endsAt }) {
@@ -221,10 +221,10 @@ export function trialStartedEmail(origin, { firmName, slug, endsAt }) {
   };
 }
 
-// numbers: { views, clicks, enquiries } during the trial so far; price: "$89 / month"
+// numbers: { views, clicks, inquiries } during the trial so far; price: "$89 / month"
 export function trialEndingEmail(origin, { firmName, slug, endsAt, daysLeft, price, numbers }) {
   const link = `${origin}/account/#edit/${slug}`;
-  const line = `So far: ${times(numbers.views, 'page view', 'page views')}, ${times(numbers.clicks, 'button click', 'button clicks')} and ${times(numbers.enquiries, 'enquiry', 'enquiries')}.`;
+  const line = `So far: ${times(numbers.views, 'page view', 'page views')}, ${times(numbers.clicks, 'button click', 'button clicks')} and ${times(numbers.inquiries, 'inquiry', 'inquiries')}.`;
   return {
     subject: `${firmName}: your free month ends in ${times(daysLeft, 'day', 'days')}`,
     text: `Your free month of Featured for ${firmName} ends on ${longDate(endsAt)}.\n\n${line}\n\nTo keep the Featured listing and your analytics, subscribe from your dashboard (${price}, cancel any time). If you do nothing, the listing simply goes back to Basic. Nothing is charged.\n\nKeep Featured: ${link}`,
@@ -234,15 +234,15 @@ export function trialEndingEmail(origin, { firmName, slug, endsAt, daysLeft, pri
 
 export function trialEndedEmail(origin, { firmName, slug, price, numbers }) {
   const link = `${origin}/account/#edit/${slug}`;
-  const line = `During your free month: ${times(numbers.views, 'page view', 'page views')}, ${times(numbers.clicks, 'button click', 'button clicks')} and ${times(numbers.enquiries, 'enquiry', 'enquiries')}.`;
+  const line = `During your free month: ${times(numbers.views, 'page view', 'page views')}, ${times(numbers.clicks, 'button click', 'button clicks')} and ${times(numbers.inquiries, 'inquiry', 'inquiries')}.`;
   return {
     subject: `${firmName}: your free month has ended`,
-    text: `Your free month of Featured for ${firmName} has ended, so the listing is back to Basic. Your page and your enquiry emails carry on as before.\n\n${line}\n\nYou can come back to Featured, with the full analytics and enquiries dashboard, any time (${price}, cancel any time): ${link}`,
-    html: `<p>Your free month of Featured for <b>${esc(firmName)}</b> has ended, so the listing is back to Basic. Your page and your enquiry emails carry on as before.</p><p>${esc(line)}</p><p>You can come back to Featured, with the full analytics and enquiries dashboard, any time (${esc(price)}, cancel any time).</p>${button(link, 'See my plan')}`,
+    text: `Your free month of Featured for ${firmName} has ended, so the listing is back to Basic. Your page and your inquiry emails carry on as before.\n\n${line}\n\nYou can come back to Featured, with the full analytics and inquiries dashboard, any time (${price}, cancel any time): ${link}`,
+    html: `<p>Your free month of Featured for <b>${esc(firmName)}</b> has ended, so the listing is back to Basic. Your page and your inquiry emails carry on as before.</p><p>${esc(line)}</p><p>You can come back to Featured, with the full analytics and inquiries dashboard, any time (${esc(price)}, cancel any time).</p>${button(link, 'See my plan')}`,
   };
 }
 
-// The weekly "your week on LawDB". n: { views, previousViews, visitors, clicks, enquiries }; top: the most used button, or null.
+// The weekly "your week on LawDB". n: { views, previousViews, visitors, clicks, inquiries }; top: the most used button, or null.
 export function weeklyReportEmail(origin, { firmName, slug, n, top, featured, trialDaysLeft, price }) {
   const link = `${origin}/account/#stats/${slug}`;
   const change = n.previousViews > 0 ? Math.round(((n.views - n.previousViews) / n.previousViews) * 100) : null;
@@ -251,7 +251,7 @@ export function weeklyReportEmail(origin, { firmName, slug, n, top, featured, tr
     `${times(n.views, 'page view', 'page views')}${trend}`,
     `${times(n.visitors, 'visitor', 'visitors')}`,
     `${times(n.clicks, 'button click', 'button clicks')}${top ? `, most often: ${top.label.toLowerCase()} (${top.n})` : ''}`,
-    `${times(n.enquiries, 'enquiry', 'enquiries')} through your page`,
+    `${times(n.inquiries, 'inquiry', 'inquiries')} through your page`,
   ];
   const pitch = featured
     ? (trialDaysLeft != null ? `Your free month of Featured has ${times(trialDaysLeft, 'day', 'days')} left. Subscribe from your dashboard (${price}) to keep the analytics and the Featured listing.` : '')

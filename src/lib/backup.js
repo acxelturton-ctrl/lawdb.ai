@@ -76,7 +76,7 @@ export async function housekeeping(env) {
     run("DELETE FROM login_tokens WHERE expires_at < datetime('now', '-1 day')"),
     run(`UPDATE login_tokens SET ip_hash = NULL WHERE ip_hash IS NOT NULL AND created_at < datetime('now', '-${RETENTION.ipHashDays} days')`),
     run(`UPDATE leads SET ip_hash = NULL WHERE ip_hash IS NOT NULL AND created_at < datetime('now', '-${RETENTION.ipHashDays} days')`),
-    // Enquiries keep only "which firm, when, what status" once they are old, so reports still add up.
+    // Inquiries keep only "which firm, when, what status" once they are old, so reports still add up.
     run(`UPDATE leads SET name = NULL, email = NULL, phone = NULL, message = NULL, note = NULL, payload = '{}', page = NULL
          WHERE created_at < datetime('now', '-${RETENTION.leadMonths} months') AND (email IS NOT NULL OR name IS NOT NULL OR message IS NOT NULL OR phone IS NOT NULL)`),
     run(`DELETE FROM audit_log WHERE at < datetime('now', '-${RETENTION.auditMonths} months')`),

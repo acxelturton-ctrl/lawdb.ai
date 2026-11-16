@@ -1,12 +1,13 @@
-// Firm-owner area: claim or create a listing, then (once an admin approves) edit it and see its enquiries.
+// Firm-owner area: claim or create a listing, then (once an admin approves) edit it and see its inquiries.
 // Every route needs a signed-in user; firm routes additionally need an APPROVED membership of that exact firm.
 
+import { isState } from '../lib/us.js';
 import { json, readJson, clampInt, NO_STORE, HttpError } from '../lib/http.js';
 import { requireUser } from '../lib/auth.js';
 import { audit } from '../lib/audit.js';
 import { applyFirmEdit, prepareNewFirm, insertFirm, str } from '../lib/firm-edit.js';
 import { profileStrength } from '../lib/profile-strength.js';
-import { getVerification, fullView, requestVerification, verifiedSlugs, LAW_SOCIETIES } from '../lib/verification.js';
+import { getVerification, fullView, requestVerification, verifiedSlugs, STATE_BARS } from '../lib/verification.js';
 import { geocode } from '../lib/geocode.js';
 import { mailInBackground, newClaimEmail, verificationRequestEmail } from '../lib/email.js';
 import { adminEmails } from '../lib/auth.js';
@@ -38,7 +39,7 @@ function notifyAdmins(env, exec, origin, details) {
 export async function me({ request, env }) {
   const user = await requireUser(env, request);
   const { results } = await env.DB.prepare(
-    `SELECT m.id, m.firm_slug AS slug, m.status, m.created_at AS requestedAt, f.name, f.city, f.province, f.status AS firmStatus, f.featured AS featured,
+    `SELECT m.id, m.firm_slug AS slug, m.status, m.created_at AS requestedAt, f.name, f.city, f.state, f.status AS firmStatus, f.featured AS featured,
        CASE WHEN m.status = 'approved' THEN (SELECT COUNT(*) FROM leads l WHERE l.firm_slug = m.firm_slug AND l.status = 'new' AND l.seen_at IS NULL) ELSE 0 END AS newLeads,
        t.ends_at AS trialEnds,
        (SELECT l.main_slug FROM firm_locations l WHERE l.location_slug = m.firm_slug) AS mainSlug,
@@ -58,14 +59,13 @@ export async function me({ request, env }) {
   return reply({ user: { email: user.email, role: user.role, ...prof }, memberships: results.map((m) => ({ ...m, featured: !!m.featured, ...(strength.has(m.slug) ? { strength: strength.get(m.slug) } : {}) })) });
 }
 
-// Your profile: shown to nobody else for now; it personalises your dashboard and emails.
+// Your profile: shown to nobody else for now; it personalizes your dashboard and emails.
 export const KINDS = ['lawyer', 'staff', 'public', 'other'];
 export const GOALS = ['find', 'clients', 'staff', 'follow', 'study', 'other'];
-const PROVINCES = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
 const KIND_OF_GOAL = { find: 'public', clients: 'lawyer', staff: 'staff', follow: 'lawyer', study: 'other', other: 'other' };
 const profileOf = async (env, id) => {
-  const p = await env.DB.prepare('SELECT name, kind, city, province, job_title AS jobTitle, employer, goal, onboarded_at, avatar_at, cover_at, photo_offer_url AS offerUrl, photo_offer_provider AS offerProvider FROM users WHERE id = ?').bind(id).first();
-  return { name: p?.name || '', kind: p?.kind || '', city: p?.city || '', province: p?.province || '', jobTitle: p?.jobTitle || '', employer: p?.employer || '', goal: p?.goal || '', onboarded: !!p?.onboarded_at, avatar: p?.avatar_at ? `/api/account/avatar?v=${p.avatar_at.replace(/\D/g, '')}` : '', cover: p?.cover_at ? `/api/account/cover?v=${p.cover_at.replace(/\D/g, '')}` : '',
+  const p = await env.DB.prepare('SELECT name, kind, city, state, job_title AS jobTitle, employer, goal, onboarded_at, avatar_at, cover_at, photo_offer_url AS offerUrl, photo_offer_provider AS offerProvider FROM users WHERE id = ?').bind(id).first();
+  return { name: p?.name || '', kind: p?.kind || '', city: p?.city || '', state: p?.state || '', jobTitle: p?.jobTitle || '', employer: p?.employer || '', goal: p?.goal || '', onboarded: !!p?.onboarded_at, avatar: p?.avatar_at ? `/api/account/avatar?v=${p.avatar_at.replace(/\D/g, '')}` : '', cover: p?.cover_at ? `/api/account/cover?v=${p.cover_at.replace(/\D/g, '')}` : '',
     // a picture LinkedIn or Google sent at sign-in that the person has not answered yet
     photoOffer: p?.offerUrl && !p?.avatar_at ? { provider: p.offerProvider, name: p.offerProvider === 'linkedin' ? 'LinkedIn' : 'Google', url: p.offerUrl } : null };
 };
@@ -82,9 +82,9 @@ export async function updateProfile({ request, env }) {
   const put = (col, val) => { sets.push(`${col} = ?`); args.push(val); };
   if ('name' in body) put('name', plain(body.name, 'Name', 80));
   if ('city' in body) put('city', plain(body.city, 'Location', 80));
-  if ('province' in body) {
-    if (body.province !== '' && !PROVINCES.includes(body.province)) throw new HttpError(422, 'Choose a province or territory from the list.');
-    put('province', body.province || null);
+  if ('state' in body) {
+    if (body.state !== '' && !isState(body.state)) throw new HttpError(422, 'Choose a state from the list.');
+    put('state', body.state || null);
   }
   if ('jobTitle' in body) put('job_title', plain(body.jobTitle, 'Job title', 80));
   if ('employer' in body) put('employer', plain(body.employer, 'Law firm or employer', 100));
@@ -105,25 +105,25 @@ export async function updateProfile({ request, env }) {
 
 // Places people can pick in the welcome steps: the cities LawDB lists, with how many firms each has.
 export async function cities({ env }) {
-  const { results } = await env.DB.prepare("SELECT city, province, COUNT(*) AS firms FROM firms WHERE status = 'live' GROUP BY city, province ORDER BY firms DESC, city").all();
+  const { results } = await env.DB.prepare("SELECT city, state, COUNT(*) AS firms FROM firms WHERE status = 'live' GROUP BY city, state ORDER BY firms DESC, city").all();
   return json({ cities: results }, 200, { 'cache-control': 'public, max-age=3600' });
 }
 
-// Find a listing to claim. Only live listings, and only the fields a stranger needs to recognise their firm.
+// Find a listing to claim. Only live listings, and only the fields a stranger needs to recognize their firm.
 export async function search({ request, env, url }) {
   await requireUser(env, request);
   const q = (url.searchParams.get('q') || '').trim();
   const bySlug = (url.searchParams.get('slug') || '').trim();
   if (bySlug) { // a "Claim this listing" button on a firm page opens that exact firm
     const row = await env.DB.prepare(
-      `SELECT f.slug, f.name, f.city, f.province, EXISTS (SELECT 1 FROM firm_members m WHERE m.firm_slug = f.slug AND m.status = 'approved') AS managed FROM firms f WHERE f.status = 'live' AND f.slug = ?`
+      `SELECT f.slug, f.name, f.city, f.state, EXISTS (SELECT 1 FROM firm_members m WHERE m.firm_slug = f.slug AND m.status = 'approved') AS managed FROM firms f WHERE f.status = 'live' AND f.slug = ?`
     ).bind(bySlug).first();
     return reply({ firms: row ? [{ ...row, managed: !!row.managed }] : [] });
   }
   if (q.length < 2) return reply({ firms: [] });
   const like = `%${q.replace(/[\\%_]/g, '\\$&')}%`;
   const { results } = await env.DB.prepare(
-    `SELECT f.slug, f.name, f.city, f.province,
+    `SELECT f.slug, f.name, f.city, f.state,
        EXISTS (SELECT 1 FROM firm_members m WHERE m.firm_slug = f.slug AND m.status = 'approved') AS managed
      FROM firms f WHERE f.status = 'live' AND (f.name LIKE ? ESCAPE '\\' OR f.city LIKE ? ESCAPE '\\') ORDER BY f.name LIMIT 10`
   ).bind(like, like).all();
@@ -131,8 +131,8 @@ export async function search({ request, env, url }) {
 }
 
 function contactFrom(body) {
-  // Everyone who manages a firm confirms they are authorised and accept the firm terms; the time is recorded.
-  if (body.acceptTerms !== true) throw new HttpError(422, 'Please confirm that you are authorised to manage this firm and accept the Terms for firms.');
+  // Everyone who manages a firm confirms they are authorized and accept the firm terms; the time is recorded.
+  if (body.acceptTerms !== true) throw new HttpError(422, 'Please confirm that you are authorized to manage this firm and accept the Terms for firms.');
   return {
     contactName: str(body.contactName, 2, 100),
     jobTitle: 'jobTitle' in body ? str(body.jobTitle, 0, 100) : '',
@@ -143,7 +143,7 @@ function contactFrom(body) {
 async function assertRoomForRequest(env, user) {
   const c = await env.DB.prepare("SELECT COUNT(*) AS total, SUM(status = 'pending') AS pending FROM firm_members WHERE user_id = ?").bind(user.id).first();
   if ((c.pending || 0) >= MAX_PENDING) throw new HttpError(429, `You already have ${MAX_PENDING} requests waiting for approval. Please wait for those first.`);
-  if (c.total >= MAX_MEMBERSHIPS) throw new HttpError(429, 'You have reached the limit of firms per account. Contact info@lawdb.ca.');
+  if (c.total >= MAX_MEMBERSHIPS) throw new HttpError(429, 'You have reached the limit of firms per account. Contact info@lawdb.ai.');
 }
 
 export async function claim({ request, env, url, exec }) {
@@ -154,7 +154,7 @@ export async function claim({ request, env, url, exec }) {
   if (!firm) throw new HttpError(404, 'Firm not found');
   const existing = await env.DB.prepare('SELECT status FROM firm_members WHERE user_id = ? AND firm_slug = ?').bind(user.id, firm.slug).first();
   if (existing) {
-    throw new HttpError(409, existing.status === 'approved' ? 'You already manage this firm.' : existing.status === 'pending' ? 'Your request is already waiting for approval.' : 'Your earlier request was declined. Contact info@lawdb.ca if that was a mistake.');
+    throw new HttpError(409, existing.status === 'approved' ? 'You already manage this firm.' : existing.status === 'pending' ? 'Your request is already waiting for approval.' : 'Your earlier request was declined. Contact info@lawdb.ai if that was a mistake.');
   }
   await assertRoomForRequest(env, user);
   await env.DB.prepare("INSERT INTO firm_members (user_id, firm_slug, contact_name, job_title, message, terms_accepted_at) VALUES (?,?,?,?,?,datetime('now'))")
@@ -177,7 +177,7 @@ export async function createListing({ request, env, url, exec }) {
   if (dupe) return reply({ error: 'This firm is already listed. Search for it and claim it instead.', slug: dupe.slug }, 409);
 
   const probe = await prepareNewFirm(env, body, { checkText: true }); // validates everything first
-  const coords = await geocode(env, { address: probe.firm.address, city: probe.firm.city, province: probe.firm.province });
+  const coords = await geocode(env, { address: probe.firm.address, city: probe.firm.city, state: probe.firm.state });
   const built = coords ? { ...probe, firm: { ...probe.firm, lat: coords.lat, lng: coords.lng } } : probe;
   await insertFirm(env, built, { status: 'pending', createdBy: user.id });
   await env.DB.prepare("INSERT INTO firm_members (user_id, firm_slug, contact_name, job_title, message, terms_accepted_at) VALUES (?,?,?,?,?,datetime('now'))")
@@ -190,11 +190,11 @@ export async function createListing({ request, env, url, exec }) {
 export async function getFirm({ request, env, params }) {
   const user = await requireUser(env, request);
   await requireOwner(env, user, params.slug);
-  const row = await env.DB.prepare('SELECT rowid AS id, data, hours, about, status, updated_at, enquiry_email FROM firms WHERE slug = ?').bind(params.slug).first();
+  const row = await env.DB.prepare('SELECT rowid AS id, data, hours, about, status, updated_at, inquiry_email FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!row) throw new HttpError(404, 'Firm not found');
   const firm = { ...JSON.parse(row.data), about: row.about || '' };
   const verified = (await getVerification(env, params.slug))?.status === 'verified';
-  return reply({ id: row.id, slug: params.slug, status: row.status, firm, hours: row.hours ? JSON.parse(row.hours) : null, updatedAt: row.updated_at, enquiryEmail: row.enquiry_email || '', strength: profileStrength(firm, { about: row.about, hours: row.hours, verified }) });
+  return reply({ id: row.id, slug: params.slug, status: row.status, firm, hours: row.hours ? JSON.parse(row.hours) : null, updatedAt: row.updated_at, inquiryEmail: row.inquiry_email || '', strength: profileStrength(firm, { about: row.about, hours: row.hours, verified }) });
 }
 
 export async function updateFirm({ request, env, params }) {
@@ -210,7 +210,7 @@ export async function listLeads({ request, env, params, url }) {
   await requireOwner(env, user, params.slug);
   const summary = await leadSummary(env, params.slug);
   if (!(await isFeatured(env, params.slug))) {
-    // Basic firms still get every enquiry by email; reading and managing them here is a Featured benefit.
+    // Basic firms still get every inquiry by email; reading and managing them here is a Featured benefit.
     const plan = await planInfo(env, user, params.slug);
     return reply({ locked: true, summary: { total: summary.total, new: summary.new, week: summary.week, month: summary.month }, upgradeUrl: plan.upgradeUrl, price: plan.price, leads: [], next: null });
   }
@@ -236,10 +236,10 @@ export async function listLeads({ request, env, params, url }) {
 export async function exportLeads({ request, env, params }) {
   const user = await requireUser(env, request);
   await requireOwner(env, user, params.slug);
-  if (!(await isFeatured(env, params.slug))) throw new HttpError(403, 'Exporting enquiries is a Featured benefit.');
+  if (!(await isFeatured(env, params.slug))) throw new HttpError(403, 'Exporting inquiries is a Featured benefit.');
   const { results } = await env.DB.prepare("SELECT created_at, name, email, phone, message, status, note FROM leads WHERE firm_slug = ? AND status != 'spam' ORDER BY id DESC LIMIT 5000").bind(params.slug).all();
   await audit(env, user, 'lead.export', 'firm', params.slug, { rows: results.length });
-  return new Response(leadsCsv(results), { headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="lawdb-enquiries-${params.slug}.csv"`, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } });
+  return new Response(leadsCsv(results), { headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="lawdb-inquiries-${params.slug}.csv"`, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } });
 }
 
 export async function updateLead({ request, env, params }) {
@@ -258,7 +258,7 @@ export async function updateLead({ request, env, params }) {
   const lead = await env.DB.prepare('SELECT firm_slug, status FROM leads WHERE id = ?').bind(id).first();
   if (!lead || !lead.firm_slug) throw new HttpError(404, 'Lead not found');
   await requireOwner(env, user, lead.firm_slug);
-  if (!(await isFeatured(env, lead.firm_slug))) throw new HttpError(403, 'Managing enquiries here is a Featured benefit.');
+  if (!(await isFeatured(env, lead.firm_slug))) throw new HttpError(403, 'Managing inquiries here is a Featured benefit.');
   if (hasStatus) await env.DB.prepare('UPDATE leads SET status = ? WHERE id = ?').bind(body.status, id).run();
   if (hasNote) await env.DB.prepare('UPDATE leads SET note = ? WHERE id = ?').bind(note, id).run();
   await audit(env, user, hasStatus ? 'lead.status' : 'lead.note', 'lead', id, hasStatus ? { from: lead.status, to: body.status } : {});
@@ -426,7 +426,7 @@ export async function photoOffer({ request, env }) {
   if (!url) return failed('the address is not valid');
   let bytes;
   try {
-    const res = await fetch(url, { redirect: 'follow', headers: { accept: 'image/*', 'user-agent': 'LawDB/1.0 (+https://lawdb.ca)' }, signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { redirect: 'follow', headers: { accept: 'image/*', 'user-agent': 'LawDB/1.0 (+https://lawdb.ai)' }, signal: AbortSignal.timeout(8000) });
     if (!res.ok) return failed(`it answered ${res.status}`);
     if (!providerPicture(row.provider, res.url, env)) return failed('it moved somewhere else');
     if (Number(res.headers.get('content-length') || 0) > PICTURE_MAX_BYTES) return failed('it is too big');
@@ -473,21 +473,21 @@ export const coverRemove = (ctx) => mediaRemove('cover', ctx);
 export async function verificationGet({ request, env, params }) {
   const user = await requireUser(env, request);
   await requireOwner(env, user, params.slug);
-  const firm = await env.DB.prepare('SELECT province FROM firms WHERE slug = ?').bind(params.slug).first();
+  const firm = await env.DB.prepare('SELECT state FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!firm) throw new HttpError(404, 'Firm not found');
-  return reply(fullView(await getVerification(env, params.slug), firm.province));
+  return reply(fullView(await getVerification(env, params.slug), firm.state));
 }
 
 export async function verificationRequest({ request, env, params, url, exec }) {
   const user = await requireUser(env, request);
   await requireOwner(env, user, params.slug);
   const body = await readJson(request, 1000);
-  const firm = await env.DB.prepare('SELECT name, province, featured FROM firms WHERE slug = ?').bind(params.slug).first();
+  const firm = await env.DB.prepare('SELECT name, state, featured FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!firm) throw new HttpError(404, 'Firm not found');
-  const v = await requestVerification(env, user, params.slug, body, { province: firm.province, featured: !!firm.featured });
+  const v = await requestVerification(env, user, params.slug, body, { state: firm.state, featured: !!firm.featured });
   const to = [...adminEmails(env)];
-  if (to.length) mailInBackground(env, exec, { to, ...verificationRequestEmail(env.SITE_ORIGIN || url.origin, { firmName: firm.name, slug: params.slug, society: LAW_SOCIETIES[v.lawSociety].name, registrant: v.registrant, email: user.email }) });
-  return reply(fullView(await getVerification(env, params.slug), firm.province), 201);
+  if (to.length) mailInBackground(env, exec, { to, ...verificationRequestEmail(env.SITE_ORIGIN || url.origin, { firmName: firm.name, slug: params.slug, society: STATE_BARS[v.lawSociety].name, registrant: v.registrant, email: user.email }) });
+  return reply(fullView(await getVerification(env, params.slug), firm.state), 201);
 }
 
 // ---------------------------------------------------------------- office pages (one Featured plan, a page for every office)
@@ -501,7 +501,7 @@ async function locationsState(env, slug) {
   let reason = null;
   if (firm.status !== 'live') reason = 'Office pages can be added once this listing is live.';
   else if (!firm.featured) reason = 'A page for every office is included with Featured.';
-  else if (items.length >= MAX_LOCATIONS) reason = `A firm can have up to ${MAX_LOCATIONS} office pages here. Write to info@lawdb.ca if you need more.`;
+  else if (items.length >= MAX_LOCATIONS) reason = `A firm can have up to ${MAX_LOCATIONS} office pages here. Write to info@lawdb.ai if you need more.`;
   return { isLocation: false, items, max: MAX_LOCATIONS, canAdd: !reason, reason, featured: !!firm.featured };
 }
 
@@ -526,7 +526,7 @@ export async function locationAdd({ request, env, params, url, exec }) {
   const mainFirm = JSON.parse(main.data);
   const input = {
     name: typeof body.name === 'string' && body.name.trim() ? str(body.name, 2, 200) : main.name,
-    city: body.city, province: body.province, address: body.address, phone: body.phone || '',
+    city: body.city, state: body.state, address: body.address, phone: body.phone || '',
     website: body.website || mainFirm.website || '',
     tags: mainFirm.tags || [], caseTypes: mainFirm.caseTypes || [],
   };
@@ -534,7 +534,7 @@ export async function locationAdd({ request, env, params, url, exec }) {
   const dupe = await env.DB.prepare("SELECT slug FROM firms WHERE name = ? COLLATE NOCASE AND city = ? COLLATE NOCASE").bind(String(input.name).trim(), String(input.city || '').trim()).first();
   if (dupe) throw new HttpError(409, 'A page for this firm in that city already exists.');
   const probe = await prepareNewFirm(env, input, { checkText: true });
-  const coords = await geocode(env, { address: probe.firm.address, city: probe.firm.city, province: probe.firm.province });
+  const coords = await geocode(env, { address: probe.firm.address, city: probe.firm.city, state: probe.firm.state });
   const built = coords ? { ...probe, firm: { ...probe.firm, lat: coords.lat, lng: coords.lng } } : probe;
   await insertFirm(env, built, { status: 'pending', createdBy: user.id });
   const slug = built.firm.slug;

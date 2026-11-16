@@ -4,6 +4,7 @@
 // "add one to this counter" lines for today, and forgotten. Nothing about the sender is stored: no IP address, no browser details, no cookie, no
 // visitor id. Robots are ignored, and so is anyone whose browser says Do Not Track (the page does not send anything for them).
 
+import { STATE_CODES } from './us.js';
 import { forecast, growthTips } from './forecast.js';
 
 export const CASE_IDS = new Set(['injury', 'traffic', 'criminal', 'family', 'realestate', 'wills', 'business', 'employment', 'immigration', 'litigation']);
@@ -13,8 +14,8 @@ export const FIRM_ACTIONS = ['call', 'message', 'email', 'website', 'directions'
 export const EVENTS = new Set([...FIRM_ACTIONS, 'claim', 'cta-featured', 'cta-list']);
 export const RETENTION_DAYS = { counts: 400, searchText: 90 };
 
-// "Today" for the owner is a Toronto day, so a day's numbers match the day they lived through.
-export const torontoDay = (date = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+// "Today" for the owner is a Eastern day, so a day's numbers match the day they lived through.
+export const easternDay = (date = new Date()) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 
 const BOT = /bot|crawl|spider|slurp|facebookexternalhit|preview|headless|lighthouse|pagespeed|gtmetrix|monitor|uptime|pingdom|curl\/|wget|python|java\/|go-http|node-fetch|axios|okhttp|scrapy|phantom|httpclient|libwww/i;
 export const isBot = (ua) => !ua || BOT.test(ua);
@@ -33,7 +34,7 @@ const SEARCH_ENGINE = [[/(^|\.)google\.[a-z.]+$/, 'google'], [/(^|\.)bing\.com$/
 export function cleanRef(host) {
   if (typeof host !== 'string') return '';
   const h = host.toLowerCase().replace(/^www\./, '');
-  if (!/^[a-z0-9.-]{3,60}$/.test(h) || h === 'lawdb.ca' || h.endsWith('.lawdb.ca')) return '';
+  if (!/^[a-z0-9.-]{3,60}$/.test(h) || h === 'lawdb.ai' || h.endsWith('.lawdb.ai')) return '';
   for (const [re, name] of SEARCH_ENGINE) if (re.test(h)) return name;
   return h;
 }
@@ -47,8 +48,9 @@ export function cleanWords(s) {
   return /^[\p{L}][\p{L}\s'’,.-]*$/u.test(t) ? t : '';
 }
 
-const cleanCity = (c) => (typeof c === 'string' && /^[\p{L}][\p{L} .'’-]{0,48}\|(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT)$/u.test(c) ? c : '');
-const cleanProv = (c) => (typeof c === 'string' && /^(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT)$/.test(c) ? c : '');
+const CODES = STATE_CODES.join('|');
+const cleanCity = (c) => (typeof c === 'string' && new RegExp(String.raw`^[\p{L}][\p{L} .'’-]{0,48}\|(${CODES})$`, 'u').test(c) ? c : '');
+const cleanProv = (c) => (typeof c === 'string' && STATE_CODES.includes(c) ? c : '');
 const cleanUtm = (u) => (typeof u === 'string' && /^[a-z0-9_.-]{1,30}$/.test(u.toLowerCase()) ? u.toLowerCase() : '');
 
 // One incoming message -> the counters to add one to ([kind, label, second label]), or null when it is not one of ours.
@@ -140,8 +142,8 @@ export async function prune(env) {
 const top = (rows, key = 'k1') => rows.map((r) => ({ label: r[key], n: r.n }));
 
 export async function trafficReport(env, days) {
-  const to = torontoDay();
-  const from = torontoDay(new Date(Date.now() - (days - 1) * 86400000));
+  const to = easternDay();
+  const from = easternDay(new Date(Date.now() - (days - 1) * 86400000));
   const sum = (kind, limit, extra = '') => env.DB.prepare(`SELECT k1, k2, SUM(n) AS n FROM stats_daily WHERE kind = ? AND day >= ? ${extra} GROUP BY k1, k2 ORDER BY n DESC, k1 LIMIT ${limit}`).bind(kind, from);
   const [series, totals, pages, entries, refs, devices, geo, utm, events, eventFirms, searches, towns, noparse, firmPages, first, visits60, coverage] = await env.DB.batch([
     env.DB.prepare("SELECT day, kind, SUM(n) AS n FROM stats_daily WHERE kind IN ('pv', 'visit') AND day >= ? GROUP BY day, kind ORDER BY day").bind(from),
@@ -152,15 +154,15 @@ export async function trafficReport(env, days) {
     sum('search', 20), sum('town', 20), sum('noparse', 20),
     env.DB.prepare("SELECT k1, SUM(n) AS n FROM stats_daily WHERE kind = 'pv' AND k1 LIKE '/firms/%' AND day >= ? GROUP BY k1 ORDER BY n DESC LIMIT 15").bind(from),
     env.DB.prepare('SELECT MIN(day) AS d FROM stats_daily'),
-    env.DB.prepare("SELECT day, SUM(n) AS n FROM stats_daily WHERE kind = 'visit' AND day >= ? GROUP BY day ORDER BY day").bind(torontoDay(new Date(Date.now() - 59 * 86400000))),
-    env.DB.prepare("SELECT province, COUNT(*) AS firms FROM firms WHERE status = 'live' GROUP BY province ORDER BY firms DESC"),
+    env.DB.prepare("SELECT day, SUM(n) AS n FROM stats_daily WHERE kind = 'visit' AND day >= ? GROUP BY day ORDER BY day").bind(easternDay(new Date(Date.now() - 59 * 86400000))),
+    env.DB.prepare("SELECT state, COUNT(*) AS firms FROM firms WHERE status = 'live' GROUP BY state ORDER BY firms DESC"),
   ]);
 
   const byDay = new Map();
   for (const r of series.results) byDay.set(r.day, { ...(byDay.get(r.day) || {}), [r.kind]: r.n });
   const days_ = [];
   for (let i = days - 1; i >= 0; i--) {
-    const d = torontoDay(new Date(Date.now() - i * 86400000));
+    const d = easternDay(new Date(Date.now() - i * 86400000));
     days_.push({ day: d, visits: byDay.get(d)?.visit || 0, pageViews: byDay.get(d)?.pv || 0 });
   }
   const total = Object.fromEntries(totals.results.map((r) => [r.kind, r.n]));
@@ -184,13 +186,13 @@ export async function trafficReport(env, days) {
     searches: searches.results.map((r) => ({ kase: r.k1, place: r.k2, n: r.n })),
     towns: towns.results.map((r) => ({ label: r.k1, kase: r.k2, n: r.n })),
     noparse: top(noparse.results),
-    coverage: coverage.results.map((r) => ({ province: r.province, firms: r.firms })),
+    coverage: coverage.results.map((r) => ({ state: r.state, firms: r.firms })),
   };
 
   // The projection is fitted on up to 60 days whatever range is on screen (a 7-day view would be too short to say anything).
   const by60 = new Map(visits60.results.map((r) => [r.day, r.n]));
   const series60 = [];
-  for (let i = 59; i >= 0; i--) { const d = torontoDay(new Date(Date.now() - i * 86400000)); series60.push({ day: d, visits: by60.get(d) || 0 }); }
+  for (let i = 59; i >= 0; i--) { const d = easternDay(new Date(Date.now() - i * 86400000)); series60.push({ day: d, visits: by60.get(d) || 0 }); }
   report.forecast = forecast(series60);
   report.tips = growthTips(report, report.coverage);
   return report;

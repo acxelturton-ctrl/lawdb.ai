@@ -24,8 +24,8 @@
 (function(){
   var c=document.querySelector('.hours-card'); if(!c) return;
   try{
-    var tz=c.getAttribute('data-tz')||'America/Toronto';
-    var parts=new Intl.DateTimeFormat('en-CA',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
+    var tz=c.getAttribute('data-tz')||'America/New_York';
+    var parts=new Intl.DateTimeFormat('sv-SE',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
     var o={}; parts.forEach(function(p){o[p.type]=p.value;});
     var map={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:7};
     var d=map[o.weekday], mins=(parseInt(o.hour,10)%24)*60+parseInt(o.minute,10);
@@ -80,7 +80,7 @@
    Sends nothing for anyone whose browser says Do Not Track / Global Privacy Control, nothing from the member and admin areas, and nothing from a browser the site owner has marked as theirs (lawdb_skip).
    Pages that run before this file loads queue their messages on window.lwq; they are sent from here. */
 (function(){
-  var queued = window.lwq || [];
+  var queued = Array.isArray(window.lwq) ? window.lwq : [];
   var path = location.pathname.replace(/\/+$/,'') || '/';
   var mine = false; /* the site owner's own devices: a note in this browser, set when the admin area is opened on it (Traffic tab turns it off) */
   try{ mine = localStorage.getItem('lawdb_skip') === '1'; }catch(e){}

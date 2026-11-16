@@ -45,7 +45,7 @@ export async function updateProject({ request, env, params }) {
     if (b.status === 'done' && row.status !== 'done') sets.push("done_at = datetime('now')");
     if (b.status !== 'done') sets.push('done_at = NULL');
   }
-  if (b.move === 'up' || b.move === 'down') { // swap places with the neighbour above or below
+  if (b.move === 'up' || b.move === 'down') { // swap places with the neighbor above or below
     const nb = await env.DB.prepare(`SELECT id, sort FROM projects WHERE ${b.move === 'up' ? 'sort < (SELECT sort FROM projects WHERE id = ?) ORDER BY sort DESC' : 'sort > (SELECT sort FROM projects WHERE id = ?) ORDER BY sort ASC'} LIMIT 1`).bind(id).first();
     if (nb) {
       const mine = await env.DB.prepare('SELECT sort FROM projects WHERE id = ?').bind(id).first();

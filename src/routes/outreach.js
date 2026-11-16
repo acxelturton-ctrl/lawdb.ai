@@ -3,7 +3,7 @@
 import { json, readJson, NO_STORE, HttpError } from '../lib/http.js';
 import { requireAdmin } from '../lib/auth.js';
 import { audit } from '../lib/audit.js';
-import { torontoDay } from '../lib/stats.js';
+import { easternDay } from '../lib/stats.js';
 import { STAGE_KEYS, CHANNEL_KEYS, isDay, cleanLink, welcomePost } from '../lib/outreach.js';
 
 const reply = (body, status = 200) => json(body, status, NO_STORE);
@@ -11,15 +11,15 @@ const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const MAX_ROWS = 5000;
 
 async function view(env) {
-  const today = torontoDay();
+  const today = easternDay();
   const { results } = await env.DB.prepare(
     `SELECT o.id, o.person, o.firm_slug AS firmSlug, o.firm_name AS firmName, o.channel, o.link, o.stage, o.note, o.follow_up AS followUp, o.last_contact AS lastContact,
-            f.name AS listedName, f.city, f.province, f.featured, f.status AS firmStatus, json_extract(f.data, '$.tags') AS tags,
+            f.name AS listedName, f.city, f.state, f.featured, f.status AS firmStatus, json_extract(f.data, '$.tags') AS tags,
             EXISTS (SELECT 1 FROM firm_members m WHERE m.firm_slug = o.firm_slug AND m.status = 'approved') AS managed
      FROM outreach o LEFT JOIN firms f ON f.slug = o.firm_slug
      ORDER BY (o.follow_up IS NOT NULL AND o.follow_up <= ?) DESC, o.follow_up IS NULL, o.follow_up, COALESCE(o.updated_at, o.created_at) DESC, o.id DESC`
   ).bind(today).all();
-  const origin = env.SITE_ORIGIN || 'https://lawdb.ca';
+  const origin = env.SITE_ORIGIN || 'https://lawdb.ai';
   const rows = results.map((r) => {
     let tags = [];
     try { tags = JSON.parse(r.tags || '[]'); } catch { /* none */ }
@@ -28,7 +28,7 @@ async function view(env) {
       id: r.id, person: r.person, firmSlug: r.firmSlug, firmName: r.listedName || r.firmName, channel: r.channel, link: r.link, stage: r.stage, note: r.note,
       followUp: r.followUp, lastContact: r.lastContact, due: !!r.followUp && r.followUp <= today && r.stage !== 'not-now',
       firmState: !r.firmSlug ? '' : !listed ? 'unlisted' : r.featured ? 'featured' : r.managed ? 'claimed' : 'listed',
-      post: listed ? welcomePost({ name: r.listedName, city: r.city, province: r.province, tags, slug: r.firmSlug, origin }) : '',
+      post: listed ? welcomePost({ name: r.listedName, city: r.city, state: r.state, tags, slug: r.firmSlug, origin }) : '',
     };
   });
   const counts = Object.fromEntries(STAGE_KEYS.map((k) => [k, rows.filter((r) => r.stage === k).length]));
@@ -76,7 +76,7 @@ export async function createOutreach({ request, env }) {
   const firm = await firmFor(env, b.firmSlug);
   const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM outreach').first();
   if (n.n >= MAX_ROWS) throw new HttpError(429, 'The desk is full; delete finished conversations first');
-  const cols = { channel: 'linkedin', stage: 'connected', link: '', note: '', firm_name: '', follow_up: null, ...f, firm_slug: firm ? firm.slug : null, last_contact: torontoDay() };
+  const cols = { channel: 'linkedin', stage: 'connected', link: '', note: '', firm_name: '', follow_up: null, ...f, firm_slug: firm ? firm.slug : null, last_contact: easternDay() };
   const r = await env.DB.prepare('INSERT INTO outreach (person, firm_slug, firm_name, channel, link, stage, note, follow_up, last_contact) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id')
     .bind(cols.person, cols.firm_slug, firm ? '' : cols.firm_name, cols.channel, cols.link, cols.stage, cols.note, cols.follow_up, cols.last_contact).first();
   await audit(env, admin, 'outreach.add', 'outreach', String(r.id), { stage: cols.stage, firm: cols.firm_slug });
@@ -97,7 +97,7 @@ export async function updateOutreach({ request, env, params }) {
     sets.push('firm_slug = ?'); args.push(firm ? firm.slug : null);
     if (firm) { sets.push("firm_name = ''"); }
   }
-  if (b.touched === true || (f.stage && f.stage !== row.stage)) { sets.push('last_contact = ?'); args.push(torontoDay()); } // a stage change or "contacted today" counts as contact
+  if (b.touched === true || (f.stage && f.stage !== row.stage)) { sets.push('last_contact = ?'); args.push(easternDay()); } // a stage change or "contacted today" counts as contact
   if (sets.length) await env.DB.prepare(`UPDATE outreach SET ${sets.join(', ')}, updated_at = datetime('now') WHERE id = ?`).bind(...args, id).run();
   if (f.stage && f.stage !== row.stage) await audit(env, admin, 'outreach.stage', 'outreach', String(id), { from: row.stage, to: f.stage });
   return reply(await view(env));

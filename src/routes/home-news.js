@@ -37,7 +37,7 @@ export async function homeSliderApi({ request, env, exec }) {
   const seen = new Set();
   const posts = ranked.filter((p) => safePostUrl(p.image) && !seen.has(p.firmSlug) && seen.add(p.firmSlug)).slice(0, SLIDER_POSTS).map((p) => ({
     t: String(p.title || '').slice(0, 160), x: String(p.excerpt || '').replace(/\s+/g, ' ').slice(0, 170), i: p.image, d: p.publishedAt,
-    f: p.firmName, c: p.city || '', s: p.province || '', u: storyPath(p.firmSlug, p.id, p.title),
+    f: p.firmName, c: p.city || '', s: p.state || '', u: storyPath(p.firmSlug, p.id, p.title),
   }));
   const res = new Response(JSON.stringify({ posts }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': ttl > 0 ? `public, max-age=${ttl}` : 'no-cache', 'x-content-type-options': 'nosniff' } });
   if (ttl > 0) exec(caches.default.put(key, res.clone()));
@@ -75,15 +75,15 @@ export async function withHomeNews(html, env) {
     .transform(new Response(html)).text();
 }
 
-// Articles from the firms in one city, for the Find page (under the results for a city search): GET /api/news?province=ON&city=Toronto.
+// Articles from the firms in one city, for the Find page (under the results for a city search): GET /api/news?state=FL&city=Miami.
 const dayOf = (d) => {
   const t = d ? new Date(String(d).replace(' ', 'T') + 'Z') : null;
-  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '';
+  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '';
 };
 export async function newsNearApi({ url, env }) {
-  const province = (url.searchParams.get('province') || '').toUpperCase().slice(0, 3);
+  const state = (url.searchParams.get('state') || '').toUpperCase().slice(0, 3);
   const city = (url.searchParams.get('city') || '').toLowerCase().slice(0, 80);
-  if (!province || !city) return cached([], 300);
-  const posts = (await loadCandidates(env)).filter((r) => r.province === province && String(r.city || '').toLowerCase() === city).slice(0, 6);
+  if (!state || !city) return cached([], 300);
+  const posts = (await loadCandidates(env)).filter((r) => r.state === state && String(r.city || '').toLowerCase() === city).slice(0, 6);
   return cached(posts.map((r) => ({ title: r.title, firm: r.firmName, date: dayOf(r.publishedAt), href: storyPath(r.firmSlug, r.id, r.title) })), 300);
 }

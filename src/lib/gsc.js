@@ -1,4 +1,4 @@
-// Talks to the Google Search Console API for lawdb.ca, so nobody has to click through it by hand.
+// Talks to the Google Search Console API for lawdb.ai, so nobody has to click through it by hand.
 //
 // What the API allows (and what it does not):
 //  - submit the sitemap, read its status and errors                         -> done here, every night and on demand
@@ -92,7 +92,7 @@ export async function findSite(env) {
   if (siteCache.site && siteCache.key === email) return siteCache.site;
   const data = await gsc(env, 'GET', `${apiBase(env)}/webmasters/v3/sites`);
   const entries = (data.siteEntry || []).filter((s) => s.permissionLevel !== 'siteUnverifiedUser');
-  const host = new URL(env.SITE_ORIGIN || 'https://lawdb.ca').hostname.replace(/^www\./, '');
+  const host = new URL(env.SITE_ORIGIN || 'https://lawdb.ai').hostname.replace(/^www\./, '');
   const wanted = [`sc-domain:${host}`, `https://${host}/`, `https://www.${host}/`, `http://${host}/`];
   const hit = wanted.find((w) => entries.some((s) => s.siteUrl === w));
   if (!hit) throw new GscError(`The service account cannot see a property for ${host}. Add its email as a user in Search Console (Settings, Users and permissions).`, 403);
@@ -100,7 +100,7 @@ export async function findSite(env) {
   return hit;
 }
 
-const origin = (env) => (env.SITE_ORIGIN || 'https://lawdb.ca').replace(/\/+$/, '');
+const origin = (env) => (env.SITE_ORIGIN || 'https://lawdb.ai').replace(/\/+$/, '');
 const sitemapUrl = (env) => `${origin(env)}/sitemap.xml`;
 
 const stamp = (v) => { const d = new Date(v); return v && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 19).replace('T', ' ') : null; }; // the format the admin screens read

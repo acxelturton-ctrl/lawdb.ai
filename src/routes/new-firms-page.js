@@ -12,7 +12,7 @@ const ttlOf = (env) => {
 };
 
 // Live firms with a logo (uploaded or remote) and a cover picture, newest first.
-const WITH_PICTURES = "SELECT slug, province, city, featured, data FROM firms WHERE status = 'live'" +
+const WITH_PICTURES = "SELECT slug, state, city, featured, data FROM firms WHERE status = 'live'" +
   " AND json_extract(data, '$.heroImage') IS NOT NULL AND json_extract(data, '$.heroImage') != ''" +
   " AND ((json_extract(data, '$.src') IS NOT NULL AND json_extract(data, '$.src') != '') OR (json_extract(data, '$.logoUrl') IS NOT NULL AND json_extract(data, '$.logoUrl') != ''))" +
   ' ORDER BY rowid DESC LIMIT ?';
@@ -34,7 +34,7 @@ export async function newFirmsPage({ request, env, ctx }) {
       const logo = safeUrl(d.src) || safeUrl(d.logoUrl);
       if (!cover || !logo) continue; // only firms that have both
       firms.push({
-        slug: r.slug, name: d.name || r.slug, city: r.city, province: r.province, featured: !!r.featured, coverPos: d.heroPos,
+        slug: r.slug, name: d.name || r.slug, city: r.city, state: r.state, featured: !!r.featured, coverPos: d.heroPos,
         tags: (Array.isArray(d.tags) ? d.tags : []).filter((t) => typeof t === 'string' && t),
         cover, logo,
       });
@@ -46,7 +46,7 @@ export async function newFirmsPage({ request, env, ctx }) {
     return res;
   } catch (err) {
     console.error('new firms page failed', err);
-    return new Response('<!DOCTYPE html><meta charset="UTF-8"><title>New listed firms | LawDB.ca</title><p>New listed firms are unavailable right now. Please try again shortly.</p>', {
+    return new Response('<!DOCTYPE html><meta charset="UTF-8"><title>New listed firms | LawDB.ai</title><p>New listed firms are unavailable right now. Please try again shortly.</p>', {
       status: 503,
       headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
     });

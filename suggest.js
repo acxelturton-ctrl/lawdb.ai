@@ -1,30 +1,30 @@
 /* LawDB smart search, shared by the homepage hero and the Find Your Lawyer page.
    LawdbSuggest(input, box, { root, onPick(query), near, max })
-   - reads "family lawyer in Ottawa" style queries (practice area + city or province)
-   - suggests practice areas x cities, cities, provinces, "near me" and firm names
+   - reads "car accident lawyer in Miami" style queries (practice area + city or state)
+   - suggests practice areas x cities, cities, states, "near me" and firm names
    - onPick(query) runs a full search; default sends people to find-lawyers?q=
-   - a town with no firm of its own (Keswick) is answered with the firms nearest to it: onPlace(label, caseId) runs that search, default sends people
-     to find-lawyers?near=Keswick, ON; "near me" asks the browser for the location: onNear({lat,lng}, caseId), default goes to find-lawyers?near=me
+   - a town with no firm of its own (Naples) is answered with the firms nearest to it: onPlace(label, caseId) runs that search, default sends people
+     to find-lawyers?near=Naples, FL; "near me" asks the browser for the location: onNear({lat,lng}, caseId), default goes to find-lawyers?near=me
    Look and feel lives in lawdb-search.css (class names ls-*). */
 (function(){
   var CASES=[
     {id:'injury',label:'Personal Injury',plural:'Personal injury lawyers',say:'personal injury lawyer',words:['personal injury','injury','injured','car accident','accident','slip and fall','whiplash','collision','wrongful death','insurance claim']},
     {id:'family',label:'Family Law',plural:'Family lawyers',say:'family lawyer',words:['family law','family','divorce','separation','separated','custody','child support','spousal support','spousal']},
-    {id:'criminal',label:'Criminal Defence',plural:'Criminal defence lawyers',say:'criminal defence lawyer',words:['criminal defence','criminal defense','criminal','dui','impaired driving','impaired','assault','drug charge','charged','charges','charge','defence','defense','bail']},
+    {id:'criminal',label:'Criminal Defense',plural:'Criminal defense lawyers',say:'criminal defense lawyer',words:['criminal defense','criminal defense','criminal','dui','impaired driving','impaired','assault','drug charge','charged','charges','charge','defense','defense','bail']},
     {id:'realestate',label:'Real Estate',plural:'Real estate lawyers',say:'real estate lawyer',words:['real estate','property','buying a home','selling a home','buy a house','sell a house','buy a home','sell a home','house','home','condo','closing','mortgage']},
     {id:'wills',label:'Wills & Estates',plural:'Wills & estates lawyers',say:'wills and estates lawyer',words:['wills and estates','wills','will','estate','estates','power of attorney','probate','poa','executor','inheritance']},
     {id:'business',label:'Business Law',plural:'Business lawyers',say:'business lawyer',words:['business','corporate','commercial','incorporation','contract','contracts','startup','shareholder']},
     {id:'immigration',label:'Immigration',plural:'Immigration lawyers',say:'immigration lawyer',words:['immigration','visa','permanent resident','citizenship','refugee','work permit','sponsorship']},
-    {id:'employment',label:'Employment Law',plural:'Employment lawyers',say:'employment lawyer',words:['employment','wrongful dismissal','dismissal','fired','terminated','severance','workplace','harassment','labour','labor']},
+    {id:'employment',label:'Employment Law',plural:'Employment lawyers',say:'employment lawyer',words:['employment','wrongful dismissal','dismissal','fired','terminated','severance','workplace','harassment','labor','labor']},
     {id:'traffic',label:'Traffic Tickets',plural:'Traffic ticket lawyers',say:'traffic ticket lawyer',words:['traffic ticket','traffic','speeding','ticket','demerit points','demerit','careless driving','stunt driving']},
     {id:'litigation',label:'Civil Litigation',plural:'Civil litigation lawyers',say:'civil litigation lawyer',words:['civil litigation','litigation','lawsuit','sue','suing','civil','dispute','small claims']}
   ];
   var BYID={}; CASES.forEach(function(c){ BYID[c.id]=c; });
-  var PROV_NAME={ON:'Ontario',QC:'Quebec',BC:'British Columbia',AB:'Alberta',MB:'Manitoba'};
-  var PROV_WORDS={'ontario':'ON','british columbia':'BC','bc':'BC','alberta':'AB','manitoba':'MB','quebec province':'QC'};
-  var CITY_ALIASES={'sudbury':'Greater Sudbury|ON','quebec':'Quebec City|QC'};
-  var FILLER={};'lawyer lawyers attorney attorneys a an the i need needs find finding looking look for to hire firm firms near me in of my get want help with and at around within on qc ab mb'.split(' ').forEach(function(w){ FILLER[w]=1; });
-  var POPULAR=[['family','Ottawa','ON'],['immigration','Vancouver','BC'],['realestate','Toronto','ON'],['business','Calgary','AB']];
+  var PROV_NAME={"AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming"};
+  var PROV_WORDS={"alabama": "AL", "al": "AL", "alaska": "AK", "ak": "AK", "arizona": "AZ", "az": "AZ", "arkansas": "AR", "ar": "AR", "california": "CA", "ca": "CA", "colorado": "CO", "co": "CO", "connecticut": "CT", "ct": "CT", "delaware": "DE", "de": "DE", "district of columbia": "DC", "dc": "DC", "florida": "FL", "fl": "FL", "georgia": "GA", "ga": "GA", "hawaii": "HI", "hi": "HI", "idaho": "ID", "id": "ID", "illinois": "IL", "il": "IL", "indiana": "IN", "in": "IN", "iowa": "IA", "ia": "IA", "kansas": "KS", "ks": "KS", "kentucky": "KY", "ky": "KY", "louisiana": "LA", "la": "LA", "maine": "ME", "me": "ME", "maryland": "MD", "md": "MD", "massachusetts": "MA", "ma": "MA", "michigan": "MI", "mi": "MI", "minnesota": "MN", "mn": "MN", "mississippi": "MS", "ms": "MS", "missouri": "MO", "mo": "MO", "montana": "MT", "mt": "MT", "nebraska": "NE", "ne": "NE", "nevada": "NV", "nv": "NV", "new hampshire": "NH", "nh": "NH", "new jersey": "NJ", "nj": "NJ", "new mexico": "NM", "nm": "NM", "new york": "NY", "ny": "NY", "north carolina": "NC", "nc": "NC", "north dakota": "ND", "nd": "ND", "ohio": "OH", "oh": "OH", "oklahoma": "OK", "ok": "OK", "oregon": "OR", "or": "OR", "pennsylvania": "PA", "pa": "PA", "rhode island": "RI", "ri": "RI", "south carolina": "SC", "sc": "SC", "south dakota": "SD", "sd": "SD", "tennessee": "TN", "tn": "TN", "texas": "TX", "tx": "TX", "utah": "UT", "ut": "UT", "vermont": "VT", "vt": "VT", "virginia": "VA", "va": "VA", "washington": "WA", "wa": "WA", "west virginia": "WV", "wv": "WV", "wisconsin": "WI", "wi": "WI", "wyoming": "WY", "wy": "WY", "washington dc": "DC", "d c": "DC", "washington d c": "DC"};
+  var CITY_ALIASES={};
+  var FILLER={};'lawyer lawyers attorney attorneys a an the i need needs find finding looking look for to hire firm firms near me in of my get want help with and at around within on '.split(' ').forEach(function(w){ FILLER[w]=1; });
+  var POPULAR=[['injury','Miami','FL'],['family','Tampa','FL'],['criminal','Orlando','FL'],['business','Jacksonville','FL']];
   var ICON={
     search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
     pin:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
@@ -49,7 +49,7 @@
       if(pending) return pending;
       pending=(typeof opt.firms==='function'?Promise.resolve(opt.firms()):opt.firms?Promise.resolve(opt.firms):fetch(root+'firms_data.json').then(function(r){return r.json();})).then(function(d){
         firms=d; var seen={}; cities=[];
-        d.forEach(function(f){ var k=f.city+'|'+f.province; if(!seen[k]){ seen[k]=1; cities.push({c:f.city,p:f.province,n:norm(f.city)}); } });
+        d.forEach(function(f){ var k=f.city+'|'+f.state; if(!seen[k]){ seen[k]=1; cities.push({c:f.city,p:f.state,n:norm(f.city)}); } });
         cities.sort(function(a,b){ return b.n.length-a.n.length; });
         return d;
       });
@@ -92,7 +92,7 @@
       return r;
     }
     function rank(a,b){ return ((b.featured?1:0)-(a.featured?1:0)) || (b.rating-a.rating) || (b.count-a.count); }
-    function inCity(f,c){ return f.city===c.c&&f.province===c.p; }
+    function inCity(f,c){ return f.city===c.c&&f.state===c.p; }
     function cnt(pred){ var n=0; firms.forEach(function(f){ if(pred(f)) n++; }); return n; }
     function hasCase(f,id){ return (f.caseTypes||[]).indexOf(id)!==-1; }
     function plural(n){ return n+' firm'+(n===1?'':'s'); }
@@ -117,11 +117,11 @@
     }
     function head(t){ return '<div class="ls-h">'+t+'</div>'; }
     function allRow(label,query){ return '<div class="ls-i ls-all" role="option" data-k="pick" data-q="'+esc(query)+'"><span class="ls-t"><b>'+esc(label)+'</b></span><span class="ls-r">Enter &#8629;</span></div>'; }
-    function hint(){ return '<div class="ls-empty">No match yet. Try a city or a practice area, like <b>family lawyer in Ottawa</b>.</div>'; }
+    function hint(){ return '<div class="ls-empty">No match yet. Try a city or a practice area, like <b>car accident lawyer in Miami</b>.</div>'; }
 
     function build(raw){
       var p=parse(raw), html='', n, list, i, k;
-      var provCount=function(prov,id){ return cnt(function(f){ return f.province===prov&&(!id||hasCase(f,id)); }); };
+      var provCount=function(prov,id){ return cnt(function(f){ return f.state===prov&&(!id||hasCase(f,id)); }); };
       var cityCount=function(c,id){ return cnt(function(f){ return inCity(f,c)&&(!id||hasCase(f,id)); }); };
       if(!p.q){
         html+=head('Try');
@@ -146,7 +146,7 @@
       if(p.kase&&p.prov){
         var cs=cities.filter(function(c){ return c.p===p.prov; }).map(function(c){ return {c:c,n:cityCount(c,p.kase)}; }).filter(function(x){ return x.n>0; }).sort(function(a,b){ return b.n-a.n; }).slice(0,6);
         html+=head(esc(BYID[p.kase].label)+' in '+esc(PROV_NAME[p.prov])+' &middot; pick a city');
-        html+=rowCombo('pin',BYID[p.kase].plural+' in all of '+PROV_NAME[p.prov],'Province',BYID[p.kase].say+' in '+PROV_NAME[p.prov],provCount(p.prov,p.kase));
+        html+=rowCombo('pin',BYID[p.kase].plural+' in all of '+PROV_NAME[p.prov],'State',BYID[p.kase].say+' in '+PROV_NAME[p.prov],provCount(p.prov,p.kase));
         html+=cs.map(function(x){ return rowCombo('pin',x.c.c+', '+x.c.p,BYID[p.kase].plural+' in '+x.c.c,BYID[p.kase].say+' in '+x.c.c,x.n); }).join('');
         return html;
       }
@@ -159,11 +159,11 @@
         var pr=placeRows(frag,p.kase);
         html+=pr.map(function(pl){ return rowPlace(pl,p.kase); }).join('');
         if(frag&&frag.length>=3&&!placesOK&&!cc.length) html+='<div class="ls-empty">Looking for &ldquo;'+esc(frag)+'&rdquo;&hellip;</div>';
-        else if(frag&&!cc.length&&!pr.length&&html.indexOf('data-k="pick"')===-1) html+='<div class="ls-empty">We could not find a place called &ldquo;'+esc(frag)+'&rdquo;. Try the nearest bigger town, or <b>'+esc(BYID[p.kase].say)+' in Toronto</b>.</div>';
+        else if(frag&&!cc.length&&!pr.length&&html.indexOf('data-k="pick"')===-1) html+='<div class="ls-empty">We could not find a place called &ldquo;'+esc(frag)+'&rdquo;. Try the nearest bigger town, or <b>'+esc(BYID[p.kase].say)+' in New York</b>.</div>';
         return html;
       }
       if(p.city||p.prov){
-        var scope=p.city?function(f){ return inCity(f,p.city); }:function(f){ return f.province===p.prov; };
+        var scope=p.city?function(f){ return inCity(f,p.city); }:function(f){ return f.state===p.prov; };
         var nm=p.city?p.city.c:PROV_NAME[p.prov];
         var rows=CASES.map(function(c){ return {c:c,n:cnt(function(f){ return scope(f)&&hasCase(f,c.id); })}; }).filter(function(x){ return x.n>0; }).sort(function(a,b){ return b.n-a.n; }).slice(0,6);
         html+=head(esc(nm)+' &middot; what do you need?');
@@ -171,7 +171,7 @@
         if(p.city) html+=rowCombo('pin','All lawyers in '+p.city.c+', '+p.city.p,'Browse every practice area',p.city.c,cityCount(p.city));
         return html;
       }
-      /* nothing recognised yet: partial words, firm names */
+      /* nothing recognized yet: partial words, firm names */
       n=p.q;
       var cl=n.length>=2?CASES.filter(function(c){ return c.words.some(function(w){ return norm(w).indexOf(n)===0; })||norm(c.label).indexOf(n)===0; }).slice(0,3):[];
       var ct=n.length>=2?cities.filter(function(c){ return c.n.indexOf(n)===0||c.n.indexOf(' '+n)!==-1; }).slice(0,4):[];
@@ -181,7 +181,7 @@
       if(cl.length||ct.length||pv.length||pls.length) html+=head('Suggestions');
       html+=cl.map(function(c){ return rowCombo('search',c.plural,'Practice area · add a city',c.say+' in ',cnt(function(f){ return hasCase(f,c.id); }),true); }).join('');
       html+=ct.map(function(c){ return rowCombo('pin',c.c+', '+c.p,'City · all practice areas',c.c,cityCount(c)); }).join('');
-      html+=pv.map(function(v){ return rowCombo('pin',PROV_NAME[v],'Province · pick a practice area',PROV_NAME[v]+' ',provCount(v),true); }).join('');
+      html+=pv.map(function(v){ return rowCombo('pin',PROV_NAME[v],'State · pick a practice area',PROV_NAME[v]+' ',provCount(v),true); }).join('');
       html+=pls.map(function(pl){ return rowPlace(pl,null); }).join('');
       if(fm.length) html+=head('Law firms')+fm.map(function(f){ return rowFirm(f,null); }).join('');
       if(!html&&n.length>=3&&!placesOK) html='<div class="ls-empty">Looking for &ldquo;'+esc(n)+'&rdquo;&hellip;</div>';

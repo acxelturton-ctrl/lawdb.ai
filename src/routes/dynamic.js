@@ -1,10 +1,11 @@
 // Public pages and data files that are rendered from the database at the edge.
 //
 // The static site ships firms_data.json, blog_data.json, firms_hours.json, and 64 pages (the city hubs and
-// two province hubs) with the firm list baked into an inline <script>. /find-lawyers no longer has one: it fetches /firms_data.json on demand. Those
+// two state hubs) with the firm list baked into an inline <script>. /find-lawyers no longer has one: it fetches /firms_data.json on demand. Those
 // static files are now only the FALLBACK: when the database answers, visitors get live data, so admin
 // edits show up everywhere within the cache window. If the database fails for any reason, the static
 // file is served unchanged, so these pages can never go down because of the database.
+import { SLUG_STATE } from '../lib/us.js';
 import { withHomeNews } from './home-news.js';
 import { withDailyFirms } from './home-firms.js';
 
@@ -23,16 +24,16 @@ const slimRow = (json) => {
   return JSON.stringify(o);
 };
 
-// The firm list as JSON. With a province, only that province's firms (a city page lists one province; lawdb-map.js fetches the rest
+// The firm list as JSON. With a state, only that state's firms (a city page lists one state; lawdb-map.js fetches the rest
 // the first time someone uses the search box).
-async function firmsBody(env, province = null) {
-  const st = env.DB.prepare("SELECT data FROM firms WHERE status = 'live'" + (province ? ' AND province = ?' : '') + ' ORDER BY rowid');
-  const { results } = await (province ? st.bind(province) : st).all();
+async function firmsBody(env, state = null) {
+  const st = env.DB.prepare("SELECT data FROM firms WHERE status = 'live'" + (state ? ' AND state = ?' : '') + ' ORDER BY rowid');
+  const { results } = await (state ? st.bind(state) : st).all();
   return '[' + results.map((r) => slimRow(r.data)).join(',') + ']';
 }
 
-// A city page or province hub lists one province; anything else gets everything.
-const SCOPES = { ontario: 'ON', quebec: 'QC', 'british-columbia': 'BC', alberta: 'AB', manitoba: 'MB' };
+// A city page or state hub lists one state; anything else gets everything.
+const SCOPES = SLUG_STATE;
 export const scopeOf = (pathname) => SCOPES[pathname.split('/')[1]] || null;
 
 // Runs right after the list: the Directions link is rebuilt from the address.
@@ -59,16 +60,16 @@ const INLINE_FIRMS = /^const firms = \[.*\];$/gm;
 // The numbers in the file are the fallback; when the database answers, the page shows today's count, so a firm that lists itself or a batch
 // that is released never leaves a stale number behind.
 async function liveStats(env) {
-  const total = await env.DB.prepare("SELECT COUNT(*) AS firms, COUNT(DISTINCT province || '|' || city) AS cities, COUNT(DISTINCT province) AS provinces FROM firms WHERE status = 'live'").first();
-  const { results } = await env.DB.prepare("SELECT province || '|' || city AS k, COUNT(*) AS n FROM firms WHERE status = 'live' GROUP BY 1").all();
-  return { firms: total.firms, cities: total.cities, provinces: total.provinces, byCity: Object.fromEntries(results.map((r) => [r.k, r.n])) };
+  const total = await env.DB.prepare("SELECT COUNT(*) AS firms, COUNT(DISTINCT state || '|' || city) AS cities, COUNT(DISTINCT state) AS states FROM firms WHERE status = 'live'").first();
+  const { results } = await env.DB.prepare("SELECT state || '|' || city AS k, COUNT(*) AS n FROM firms WHERE status = 'live' GROUP BY 1").all();
+  return { firms: total.firms, cities: total.cities, states: total.states, byCity: Object.fromEntries(results.map((r) => [r.k, r.n])) };
 }
 const withLiveStats = async (html, stats) => {
-  const num = (n) => Number(n).toLocaleString('en-CA');
+  const num = (n) => Number(n).toLocaleString('en-US');
   return new HTMLRewriter().on('[data-live]', {
     element(el) {
       const k = el.getAttribute('data-live');
-      const v = k === 'firms' ? stats.firms : k === 'cities' ? stats.cities : k === 'provinces' ? stats.provinces : k.startsWith('city:') ? stats.byCity[k.slice(5)] : undefined;
+      const v = k === 'firms' ? stats.firms : k === 'cities' ? stats.cities : k === 'states' ? stats.states : k.startsWith('city:') ? stats.byCity[k.slice(5)] : undefined;
       if (v !== undefined) el.setInnerContent(num(v));
     },
   }).transform(new Response(html)).text();

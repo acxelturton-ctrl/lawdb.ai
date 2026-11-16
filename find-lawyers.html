@@ -4,34 +4,34 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="./images/favicon-192.png"><link rel="icon" href="./favicon.ico" sizes="any"><link rel="apple-touch-icon" href="./images/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Search Lawyers by City and Practice Area | LawDB.ca</title>
-<meta name="description" content="Search Canadian law firms by city and practice area. Compare public Google ratings and see firms on a map in Ontario, Quebec, BC, Alberta and Manitoba.">
-<link rel="canonical" href="https://lawdb.ca/find-lawyers">
+<title>Search Lawyers by City and Practice Area | LawDB.ai</title>
+<meta name="description" content="Search law firms by city and practice area and see them on a map. Starting with Florida.">
+<link rel="canonical" href="https://lawdb.ai/find-lawyers">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://lawdb.ca/find-lawyers">
-<meta property="og:site_name" content="LawDB.ca">
-<meta property="og:locale" content="en_CA">
-<meta property="og:image" content="https://lawdb.ca/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://lawdb.ai/find-lawyers">
+<meta property="og:site_name" content="LawDB.ai">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://lawdb.ai/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Search Lawyers by City and Practice Area | LawDB.ca">
-<meta name="twitter:description" content="Search Canadian law firms by city and practice area. Compare public Google ratings and see firms on a map in Ontario, Quebec, BC, Alberta and Manitoba.">
-<meta name="twitter:image" content="https://lawdb.ca/images/og-default.jpg">
+<meta name="twitter:title" content="Search Lawyers by City and Practice Area | LawDB.ai">
+<meta name="twitter:description" content="Search law firms by city and practice area and see them on a map. Starting with Florida.">
+<meta name="twitter:image" content="https://lawdb.ai/images/og-default.jpg">
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
  "@type": "WebPage",
- "name": "Search Lawyers by City and Practice Area | LawDB.ca",
- "url": "https://lawdb.ca/find-lawyers",
- "description": "Search Canadian law firms by city and practice area. Compare public Google ratings and see firms on a map in Ontario, Quebec, BC, Alberta and Manitoba.",
+ "name": "Search Lawyers by City and Practice Area | LawDB.ai",
+ "url": "https://lawdb.ai/find-lawyers",
+ "description": "Search law firms by city and practice area and see them on a map. Starting with Florida.",
  "isPartOf": {
   "@type": "WebSite",
-  "name": "LawDB.ca",
-  "url": "https://lawdb.ca/"
+  "name": "LawDB.ai",
+  "url": "https://lawdb.ai/"
  }
 }
 </script>
-<meta property="og:title" content="Search Lawyers by City and Practice Area | LawDB.ca">
-<meta property="og:description" content="Search Canada's law firm directory by city and practice area, and browse firms on an interactive map.">
+<meta property="og:title" content="Search Lawyers by City and Practice Area | LawDB.ai">
+<meta property="og:description" content="Search the LawDB law firm directory by city and practice area, and browse law firms on a map.">
 <!-- The map's JS/CSS and vector tiles both come from other origins - starting
      the DNS+TLS handshake now, before the map is even needed, means results
      don't sit waiting on a cold connection once someone reaches this step. -->
@@ -94,7 +94,7 @@
 
   /* ---------------- Wizard ---------------- */
   .wizard{ max-width:680px; margin:0 auto; padding:44px 20px 60px; }
-  /* ---------------- Hero: the Toronto skyline behind everything, the case types as glass tiles on it ---------------- */
+  /* ---------------- Hero: dark navy behind everything, the case types as glass tiles on it ---------------- */
   .fyh-sprite{ position:absolute; width:0; height:0; overflow:hidden; }
   .fyh{ position:relative; z-index:5; isolation:isolate; margin:0 auto; color:#fff; background:#142434; overflow:hidden; padding:0 0 28px; }
   .fyh-bg{ position:absolute; z-index:-2; left:0; right:0; top:0; height:470px; pointer-events:none; }
@@ -169,7 +169,7 @@
   .browse{ max-width:1100px; margin:0 auto; padding:40px 20px 48px; }
   .browse h2{ font-family:'Source Serif 4',serif; font-size:clamp(22px,3vw,28px); line-height:1.15; margin:0 0 6px; text-wrap:balance; }
   .browse-lede{ color:var(--ink-soft); font-size:15px; line-height:1.5; max-width:46em; margin:0 0 22px; }
-  /* one card per province: its cities as small pills, then its case types as a two-column list with arrows */
+  /* one card per state: its cities as small pills, then its case types as a two-column list with arrows */
   .browse-prov{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:20px 20px 12px; margin:0 0 16px; box-shadow:0 10px 22px -18px rgba(20,36,52,0.45); }
   .browse-prov h3{ font-family:'Source Serif 4',serif; font-size:clamp(20px,2.4vw,24px); line-height:1.2; margin:0 0 6px; }
   .browse-prov h3 a{ color:var(--ink); text-decoration:none; }
@@ -236,7 +236,7 @@
   .city-refine-chip:hover{ border-color:var(--brass); }
   .city-refine-chip.active{ background:var(--brass); border-color:var(--brass); color:#142434; }
 
-  .province-note{
+  .state-note{
     background:#f4ecd8; border:1px solid #e6d4a4; border-radius:6px; padding:14px 18px;
     font-size:13.5px; line-height:1.6; color:#2b3a4c; margin-bottom:24px;
   }
@@ -392,7 +392,7 @@
       <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span><b>Ranked above Basic firms</b>First in search for your city and case type, with a Featured Partner card on top.</span></li>
       <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span><span><b>Your page, your way</b>Add your logo, cover and photos, and a Book a call button with your own booking link.</span></li>
       <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span><b>Analytics dashboard</b>See page views, visitors, every button clicked and where visitors come from, with a weekly email.</span></li>
-      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg></span><span><b>Enquiries dashboard</b>Read, filter, add notes, reply and export every enquiry, and send them to a second email address.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg></span><span><b>Inquiries dashboard</b>Read, filter, add notes, reply and export every inquiry, and send them to a second email address.</span></li>
       <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.6 6-11a6 6 0 1 0-12 0c0 5.4 6 11 6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></span><span><b>Gold pin and badge</b>Stand out on the map, in the search box and on your profile.</span></li>
     </ul>
     <a class="mp-cta" href="/list-your-firm?plan=featured">Get Featured</a>
@@ -432,30 +432,30 @@
 </defs></svg>
 <div id="wizard">
 <section class="fyh">
-  <div class="fyh-bg"><img class="fyh-photo" src="images/home-courthouse.webp" alt="" width="1290" height="711" fetchpriority="high" decoding="async"></div>
+  <div class="fyh-bg"></div>
   <div class="fyh-inner">
     <div class="fyh-copy">
-    <p class="fyh-eyebrow">Trusted legal help.<br>Across Canada.</p>
+    <p class="fyh-eyebrow">Trusted legal help.<br>Near you.</p>
     <span class="fyh-rule"></span>
     <h1>Find your <em>lawyer</em></h1>
     <p class="fyh-sub">Type the kind of lawyer you need and the city you&#39;re in, the way you&#39;d say it out loud.</p>
 
     <form class="fyh-search" id="citySearchForm" autocomplete="off" role="search">
       <label class="fyh-sr" for="citySearchInput">What kind of lawyer, and where?</label>
-      <div class="ls-wrap"><div class="ls-field"><svg class="ls-mag" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="citySearchInput" class="ls-in" aria-describedby="fyHelp" placeholder="e.g. personal injury lawyer in Toronto" enterkeyhint="search" autocomplete="off"><button type="button" class="ls-x" aria-label="Clear search" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="ls-wrap"><div class="ls-field"><svg class="ls-mag" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="text" id="citySearchInput" class="ls-in" aria-describedby="fyHelp" placeholder="e.g. personal injury lawyer in New York" enterkeyhint="search" autocomplete="off"><button type="button" class="ls-x" aria-label="Clear search" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
         <div class="ls-sug" id="fySug"></div></div>
       <button type="submit" class="fyh-go">Search <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <datalist id="cityList"></datalist>
-      <div class="fyh-formula" id="fyHelp"><div><b>1</b><span><strong>Kind of lawyer</strong><small>e.g. family lawyer</small></span></div><i>+</i><span class="fyh-sep"></span><div><b>2</b><span><strong>City</strong><small>e.g. Vancouver</small></span></div></div>
+      <div class="fyh-formula" id="fyHelp"><div><b>1</b><span><strong>Kind of lawyer</strong><small>e.g. family lawyer</small></span></div><i>+</i><span class="fyh-sep"></span><div><b>2</b><span><strong>City</strong><small>e.g. Miami</small></span></div></div>
       <div class="fy-live" id="fyLive" aria-live="polite"></div>
 
       <div class="city-search-note" id="citySearchError" style="display:none;color:var(--red-deep);" aria-live="polite"></div>
     </form>
     </div>
-    <!--case-cards--><div class="fyh-cases" id="cases"><p class="fyh-ch"><span>Or browse by case type</span></p><ul class="fyh-grid"><li><a class="fyh-tile" href="/traffic-ticket-lawyers" title="Speeding, careless driving and other tickets, demerit points and licence risks."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-car"/></svg></span><span class="fyh-cl">Traffic Ticket</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/criminal-defence-lawyers" title="Charges, bail, trials and sentencing, and protecting your rights from the first police contact."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-shield"/></svg></span><span class="fyh-cl">Criminal Charges</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/family-lawyers" title="Separation, divorce, parenting time, support and dividing property."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-family"/></svg></span><span class="fyh-cl">Family Law / Divorce</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/personal-injury-lawyers" title="Car accidents, slips and falls and other injuries caused by someone else&#x27;s carelessness."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-cross"/></svg></span><span class="fyh-cl">Personal Injury / Accident</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/real-estate-lawyers" title="Buying, selling or refinancing property, title searches and closings."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-house"/></svg></span><span class="fyh-cl">Buying or Selling a Home</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/wills-estate-lawyers" title="Wills, powers of attorney, probate and helping families settle an estate."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-doc"/></svg></span><span class="fyh-cl">Wills, Estates &amp; Power of Attorney</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/business-lawyers" title="Starting or buying a company, shareholder agreements, leases and contracts."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-briefcase"/></svg></span><span class="fyh-cl">Business / Corporate</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/employment-lawyers" title="Dismissal and severance, contracts, harassment, and pay or leave disputes."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-person"/></svg></span><span class="fyh-cl">Employment Dispute</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/immigration-lawyers" title="Work and study permits, permanent residence, sponsorship, citizenship and refusals."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-globe"/></svg></span><span class="fyh-cl">Immigration</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/litigation-lawyers" title="Contract, debt, property and other disputes, from demand letters to trial."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-gavel"/></svg></span><span class="fyh-cl">Civil Lawsuit / Litigation</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li></ul></div><!--/case-cards-->
+    <!--case-cards--><div class="fyh-cases" id="cases"><p class="fyh-ch"><span>Or browse by case type</span></p><ul class="fyh-grid"><li><a class="fyh-tile" href="/traffic-ticket-lawyers" title="Speeding, reckless driving and license problems."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-car"/></svg></span><span class="fyh-cl">Traffic Ticket</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/criminal-defense-lawyers" title="Arrests, criminal charges and DUI, from the first hours on."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-shield"/></svg></span><span class="fyh-cl">Criminal Charges / DUI</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/family-lawyers" title="Divorce, child custody, support and dividing property."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-family"/></svg></span><span class="fyh-cl">Family Law / Divorce</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/personal-injury-lawyers" title="Car accidents, falls and other injuries caused by someone else."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-cross"/></svg></span><span class="fyh-cl">Personal Injury / Accident</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/real-estate-lawyers" title="Buying and selling property, closings, titles and landlord-tenant issues."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-house"/></svg></span><span class="fyh-cl">Buying or Selling a Home</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/wills-estate-lawyers" title="Wills, trusts, powers of attorney and settling an estate."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-doc"/></svg></span><span class="fyh-cl">Wills, Trusts &amp; Probate</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/business-lawyers" title="Starting, running, buying and selling a business."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-briefcase"/></svg></span><span class="fyh-cl">Business / Corporate</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/employment-lawyers" title="Firing, discrimination, unpaid wages and workplace disputes."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-person"/></svg></span><span class="fyh-cl">Employment Dispute</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/immigration-lawyers" title="Visas, green cards, citizenship and removal defense."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-globe"/></svg></span><span class="fyh-cl">Immigration</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li><li><a class="fyh-tile" href="/litigation-lawyers" title="Lawsuits, contract disputes and getting a fair result in court."><span class="fyh-ic"><svg width="22" height="22" aria-hidden="true"><use href="#i-gavel"/></svg></span><span class="fyh-cl">Civil Lawsuit / Litigation</span><svg class="fyh-chev" width="16" height="16" aria-hidden="true"><use href="#i-chev"/></svg></a></li></ul></div><!--/case-cards-->
   </div>
 </section>
-<div class="fyh-stats"><div class="fyh-stats-in"><div><b data-live="firms">1,092</b><span>Law firms</span></div><div><b data-live="cities">62</b><span>Cities</span></div><div><b>5</b><span>Provinces</span></div><div><b>10</b><span>Practice areas</span></div></div></div>
+<div class="fyh-stats"><div class="fyh-stats-in"><div><b data-live="firms">1,092</b><span>Law firms</span></div><div><b data-live="cities">62</b><span>Cities</span></div><div><b>5</b><span>States</span></div><div><b>10</b><span>Practice areas</span></div></div></div>
 </div>
 
 <div class="wizard" id="cityGate" style="display:none;">
@@ -476,7 +476,7 @@
       <div class="city-refine-label" id="cityRefineLabel">What are you looking for in this location?</div>
       <div class="city-refine-chips" id="cityRefineChips"></div>
     </div>
-    <div class="province-note" id="provinceNote" style="display:none;"></div>
+    <div class="state-note" id="stateNote" style="display:none;"></div>
     <div class="featured-strip" id="featuredStrip" style="display:none;">
       <h2>Featured Partners for this case type</h2>
       <div class="featured-cards" id="featuredCards"></div>
@@ -498,12 +498,12 @@
   </div>
 </div>
 
-<!--browse-links--><section class="browse" id="browse" aria-labelledby="browseH"><h2 id="browseH">Browse Canadian lawyers by province, city and case type</h2><p class="browse-lede">Each city page lists every law firm LawDB has there, A to Z, with its public Google rating. Each case-type page lists the firms that take that kind of case.</p><div class="browse-prov"><h3><a href="/ontario/">Lawyers in Ontario</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/ontario/aurora/">Aurora</a> <a href="/ontario/barrie/">Barrie</a> <a href="/ontario/brampton/">Brampton</a> <a href="/ontario/cookstown/">Cookstown</a> <a href="/ontario/etobicoke/">Etobicoke</a> <a href="/ontario/greater-sudbury/">Greater Sudbury</a> <a href="/ontario/guelph/">Guelph</a> <a href="/ontario/hamilton/">Hamilton</a> <a href="/ontario/kingston/">Kingston</a> <a href="/ontario/kitchener/">Kitchener</a> <a href="/ontario/london/">London</a> <a href="/ontario/markham/">Markham</a> <a href="/ontario/mississauga/">Mississauga</a> <a href="/ontario/niagara-falls/">Niagara Falls</a> <a href="/ontario/north-bay/">North Bay</a> <a href="/ontario/north-york/">North York</a> <a href="/ontario/oakville/">Oakville</a> <a href="/ontario/oshawa/">Oshawa</a> <a href="/ontario/ottawa/">Ottawa</a> <a href="/ontario/peterborough/">Peterborough</a> <a href="/ontario/richmond-hill/">Richmond Hill</a> <a href="/ontario/sarnia/">Sarnia</a> <a href="/ontario/sault-ste-marie/">Sault Ste. Marie</a> <a href="/ontario/st-catharines/">St. Catharines</a> <a href="/ontario/sudbury/">Sudbury</a> <a href="/ontario/thunder-bay/">Thunder Bay</a> <a href="/ontario/timmins/">Timmins</a> <a href="/ontario/toronto/">Toronto</a> <a href="/ontario/waterloo/">Waterloo</a> <a href="/ontario/windsor/">Windsor</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/ontario/business-lawyers">Business &amp; Corporate Lawyers in Ontario</a></li><li><a href="/ontario/criminal-defence-lawyers">Criminal Defence Lawyers in Ontario</a></li><li><a href="/ontario/employment-lawyers">Employment Lawyers in Ontario</a></li><li><a href="/ontario/family-lawyers">Family Law &amp; Divorce Lawyers in Ontario</a></li><li><a href="/ontario/immigration-lawyers">Immigration Lawyers in Ontario</a></li><li><a href="/ontario/litigation-lawyers">Civil Litigation Lawyers in Ontario</a></li><li><a href="/ontario/personal-injury-lawyers">Personal Injury Lawyers in Ontario</a></li><li><a href="/ontario/real-estate-lawyers">Real Estate Lawyers in Ontario (Buying or Selling a Home)</a></li><li><a href="/ontario/traffic-ticket-lawyers">Traffic Ticket Lawyers in Ontario</a></li><li><a href="/ontario/wills-estate-lawyers">Wills, Estates &amp; Power of Attorney Lawyers in Ontario</a></li></ul></div><div class="browse-prov"><h3><a href="/quebec/">Lawyers in Quebec</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/quebec/brossard/">Brossard</a> <a href="/quebec/drummondville/">Drummondville</a> <a href="/quebec/gatineau/">Gatineau</a> <a href="/quebec/granby/">Granby</a> <a href="/quebec/laval/">Laval</a> <a href="/quebec/levis/">Levis</a> <a href="/quebec/longueuil/">Longueuil</a> <a href="/quebec/montreal/">Montreal</a> <a href="/quebec/quebec-city/">Quebec City</a> <a href="/quebec/repentigny/">Repentigny</a> <a href="/quebec/rimouski/">Rimouski</a> <a href="/quebec/rosemere/">Rosemere</a> <a href="/quebec/rouyn-noranda/">Rouyn-Noranda</a> <a href="/quebec/saguenay/">Saguenay</a> <a href="/quebec/saint-jerome/">Saint-Jerome</a> <a href="/quebec/sherbrooke/">Sherbrooke</a> <a href="/quebec/terrebonne/">Terrebonne</a> <a href="/quebec/trois-rivieres/">Trois-Rivieres</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/quebec/business-lawyers">Business &amp; Corporate Lawyers in Quebec</a></li><li><a href="/quebec/criminal-defence-lawyers">Criminal Defence Lawyers in Quebec</a></li><li><a href="/quebec/employment-lawyers">Employment Lawyers in Quebec</a></li><li><a href="/quebec/family-lawyers">Family Law &amp; Divorce Lawyers in Quebec</a></li><li><a href="/quebec/immigration-lawyers">Immigration Lawyers in Quebec</a></li><li><a href="/quebec/litigation-lawyers">Civil Litigation Lawyers in Quebec</a></li><li><a href="/quebec/personal-injury-lawyers">Personal Injury Lawyers in Quebec</a></li><li><a href="/quebec/real-estate-lawyers">Property Disputes in Quebec</a></li><li><a href="/quebec/traffic-ticket-lawyers">Traffic Ticket Lawyers in Quebec</a></li><li><a href="/quebec/wills-estate-lawyers">Estate Disputes in Quebec</a></li></ul></div><div class="browse-prov"><h3><a href="/british-columbia/">Lawyers in British Columbia</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/british-columbia/abbotsford/">Abbotsford</a> <a href="/british-columbia/burnaby/">Burnaby</a> <a href="/british-columbia/kamloops/">Kamloops</a> <a href="/british-columbia/kelowna/">Kelowna</a> <a href="/british-columbia/nanaimo/">Nanaimo</a> <a href="/british-columbia/prince-george/">Prince George</a> <a href="/british-columbia/richmond/">Richmond</a> <a href="/british-columbia/surrey/">Surrey</a> <a href="/british-columbia/vancouver/">Vancouver</a> <a href="/british-columbia/victoria/">Victoria</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/british-columbia/business-lawyers">Business &amp; Corporate Lawyers in British Columbia</a></li><li><a href="/british-columbia/criminal-defence-lawyers">Criminal Defence Lawyers in British Columbia</a></li><li><a href="/british-columbia/employment-lawyers">Employment Lawyers in British Columbia</a></li><li><a href="/british-columbia/family-lawyers">Family Law &amp; Divorce Lawyers in British Columbia</a></li><li><a href="/british-columbia/immigration-lawyers">Immigration Lawyers in British Columbia</a></li><li><a href="/british-columbia/litigation-lawyers">Civil Litigation Lawyers in British Columbia</a></li><li><a href="/british-columbia/personal-injury-lawyers">Personal Injury Lawyers in British Columbia</a></li><li><a href="/british-columbia/real-estate-lawyers">Real Estate Lawyers in British Columbia</a></li><li><a href="/british-columbia/traffic-ticket-lawyers">Traffic Ticket Lawyers in British Columbia</a></li><li><a href="/british-columbia/wills-estate-lawyers">Wills &amp; Estates Lawyers in British Columbia</a></li></ul></div><div class="browse-prov"><h3><a href="/alberta/">Lawyers in Alberta</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/alberta/calgary/">Calgary</a> <a href="/alberta/edmonton/">Edmonton</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/alberta/business-lawyers">Business Lawyers in Alberta</a></li><li><a href="/alberta/employment-lawyers">Employment Lawyers in Alberta</a></li><li><a href="/alberta/family-lawyers">Family Lawyers in Alberta</a></li><li><a href="/alberta/litigation-lawyers">Litigation Lawyers in Alberta</a></li><li><a href="/alberta/real-estate-lawyers">Real Estate Lawyers in Alberta</a></li><li><a href="/alberta/wills-estate-lawyers">Wills &amp; Estates Lawyers in Alberta</a></li></ul></div><div class="browse-prov"><h3><a href="/manitoba/">Lawyers in Manitoba</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/manitoba/brandon/">Brandon</a> <a href="/manitoba/winnipeg/">Winnipeg</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/manitoba/business-lawyers">Business Lawyers in Manitoba</a></li><li><a href="/manitoba/criminal-defence-lawyers">Criminal Defence Lawyers in Manitoba</a></li><li><a href="/manitoba/employment-lawyers">Employment Lawyers in Manitoba</a></li><li><a href="/manitoba/family-lawyers">Family Lawyers in Manitoba</a></li><li><a href="/manitoba/immigration-lawyers">Immigration Lawyers in Manitoba</a></li><li><a href="/manitoba/litigation-lawyers">Litigation Lawyers in Manitoba</a></li><li><a href="/manitoba/real-estate-lawyers">Real Estate Lawyers in Manitoba</a></li><li><a href="/manitoba/wills-estate-lawyers">Wills &amp; Estates Lawyers in Manitoba</a></li></ul></div></section><!--/browse-links-->
+<!--browse-links--><section class="browse" id="browse" aria-labelledby="browseH"><h2 id="browseH">Browse lawyers by state, city and case type</h2><p class="browse-lede">Pick a city to search the law firms LawDB lists there, or read a guide to a kind of case before you choose.</p><div class="browse-prov"><h3><a href="/find-lawyers?q=lawyer+in+Florida">Lawyers in Florida</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/find-lawyers?q=lawyer+in+Altamonte+Springs%2C+FL">Altamonte Springs</a> <a href="/find-lawyers?q=lawyer+in+Aventura%2C+FL">Aventura</a> <a href="/find-lawyers?q=lawyer+in+Boca+Raton%2C+FL">Boca Raton</a> <a href="/find-lawyers?q=lawyer+in+Boynton+Beach%2C+FL">Boynton Beach</a> <a href="/find-lawyers?q=lawyer+in+Bradenton%2C+FL">Bradenton</a> <a href="/find-lawyers?q=lawyer+in+Brandon%2C+FL">Brandon</a> <a href="/find-lawyers?q=lawyer+in+Clearwater%2C+FL">Clearwater</a> <a href="/find-lawyers?q=lawyer+in+Coral+Gables%2C+FL">Coral Gables</a> <a href="/find-lawyers?q=lawyer+in+Coral+Springs%2C+FL">Coral Springs</a> <a href="/find-lawyers?q=lawyer+in+Davie%2C+FL">Davie</a> <a href="/find-lawyers?q=lawyer+in+Daytona+Beach%2C+FL">Daytona Beach</a> <a href="/find-lawyers?q=lawyer+in+Delray+Beach%2C+FL">Delray Beach</a> <a href="/find-lawyers?q=lawyer+in+Doral%2C+FL">Doral</a> <a href="/find-lawyers?q=lawyer+in+Fort+Lauderdale%2C+FL">Fort Lauderdale</a> <a href="/find-lawyers?q=lawyer+in+Fort+Myers%2C+FL">Fort Myers</a> <a href="/find-lawyers?q=lawyer+in+Fort+Pierce%2C+FL">Fort Pierce</a> <a href="/find-lawyers?q=lawyer+in+Gainesville%2C+FL">Gainesville</a> <a href="/find-lawyers?q=lawyer+in+Hollywood%2C+FL">Hollywood</a> <a href="/find-lawyers?q=lawyer+in+Jacksonville%2C+FL">Jacksonville</a> <a href="/find-lawyers?q=lawyer+in+Jupiter%2C+FL">Jupiter</a> <a href="/find-lawyers?q=lawyer+in+Kissimmee%2C+FL">Kissimmee</a> <a href="/find-lawyers?q=lawyer+in+Lake+Mary%2C+FL">Lake Mary</a> <a href="/find-lawyers?q=lawyer+in+Lakeland%2C+FL">Lakeland</a> <a href="/find-lawyers?q=lawyer+in+Maitland%2C+FL">Maitland</a> <a href="/find-lawyers?q=lawyer+in+Melbourne%2C+FL">Melbourne</a> <a href="/find-lawyers?q=lawyer+in+Miami%2C+FL">Miami</a> <a href="/find-lawyers?q=lawyer+in+Miami+Beach%2C+FL">Miami Beach</a> <a href="/find-lawyers?q=lawyer+in+Miami+Lakes%2C+FL">Miami Lakes</a> <a href="/find-lawyers?q=lawyer+in+Naples%2C+FL">Naples</a> <a href="/find-lawyers?q=lawyer+in+New+Port+Richey%2C+FL">New Port Richey</a> <a href="/find-lawyers?q=lawyer+in+North+Miami%2C+FL">North Miami</a> <a href="/find-lawyers?q=lawyer+in+Ocala%2C+FL">Ocala</a> <a href="/find-lawyers?q=lawyer+in+Orlando%2C+FL">Orlando</a> <a href="/find-lawyers?q=lawyer+in+Palm+Beach+Gardens%2C+FL">Palm Beach Gardens</a> <a href="/find-lawyers?q=lawyer+in+Panama+City%2C+FL">Panama City</a> <a href="/find-lawyers?q=lawyer+in+Pembroke+Pines%2C+FL">Pembroke Pines</a> <a href="/find-lawyers?q=lawyer+in+Pensacola%2C+FL">Pensacola</a> <a href="/find-lawyers?q=lawyer+in+Plantation%2C+FL">Plantation</a> <a href="/find-lawyers?q=lawyer+in+Pompano+Beach%2C+FL">Pompano Beach</a> <a href="/find-lawyers?q=lawyer+in+Sarasota%2C+FL">Sarasota</a> <a href="/find-lawyers?q=lawyer+in+St+Augustine%2C+FL">St Augustine</a> <a href="/find-lawyers?q=lawyer+in+St+Petersburg%2C+FL">St Petersburg</a> <a href="/find-lawyers?q=lawyer+in+Stuart%2C+FL">Stuart</a> <a href="/find-lawyers?q=lawyer+in+Tallahassee%2C+FL">Tallahassee</a> <a href="/find-lawyers?q=lawyer+in+Tampa%2C+FL">Tampa</a> <a href="/find-lawyers?q=lawyer+in+West+Palm+Beach%2C+FL">West Palm Beach</a> <a href="/find-lawyers?q=lawyer+in+Weston%2C+FL">Weston</a> <a href="/find-lawyers?q=lawyer+in+Winter+Park%2C+FL">Winter Park</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/family-lawyers">Family Law & Divorce</a></li><li><a href="/criminal-defense-lawyers">Criminal Defense</a></li><li><a href="/personal-injury-lawyers">Personal Injury</a></li><li><a href="/traffic-ticket-lawyers">Traffic Tickets</a></li><li><a href="/real-estate-lawyers">Real Estate</a></li><li><a href="/wills-estate-lawyers">Wills, Trusts & Probate</a></li><li><a href="/business-lawyers">Business & Corporate</a></li><li><a href="/employment-lawyers">Employment</a></li><li><a href="/immigration-lawyers">Immigration</a></li><li><a href="/litigation-lawyers">Civil Litigation</a></li></ul></div></section><!--/browse-links-->
 
 <footer class="site-footer">
   <div class="foot-grid">
     <div>
-      <span class="fmark"><img src="./images/logo-icon.png" alt="LawDB" style="height:26px;width:auto;display:block;">LawDB.ai<sup style="font-size:.4em;font-weight:600;margin-left:1px;vertical-align:super;line-height:0;">&trade;</sup></span>
+      <span class="fmark"><img src="./images/logo-icon.png" alt="LawDB" style="height:26px;width:auto;display:block;">LawDB.ai</span>
       <p class="fblurb">Find a real law firm near you by the kind of case you have. Florida is live now, with more states coming soon.</p>
       <div class="fsoc" style="display:flex;gap:16px;margin-top:16px"><a href="https://x.com/lawdbca" target="_blank" rel="noopener me" aria-label="LawDB on X" title="X" style="display:block;padding:8px;margin:-8px"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" style="display:block"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a><a href="https://www.facebook.com/profile.php?id=61595212632512" target="_blank" rel="noopener me" aria-label="LawDB on Facebook" title="Facebook" style="display:block;padding:8px;margin:-8px"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" style="display:block"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a><a href="https://www.linkedin.com/in/lawdb" target="_blank" rel="noopener me" aria-label="LawDB on LinkedIn" title="LinkedIn" style="display:block;padding:8px;margin:-8px"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" style="display:block"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a></div>
     </div>
@@ -525,7 +525,6 @@
         <li><a href="/list-your-firm">List Your Firm (Free)</a></li>
         <li><a href="/list-your-firm?plan=featured">Get Featured</a></li>
         <li><a href="/account/">Manage Your Listing</a></li>
-        <li><a href="/grow-your-practice">Grow Your Practice</a></li>
       </ul>
     </div>
     <div>
@@ -536,7 +535,7 @@
     </div>
   </div>
   <div class="foot-bottom">
-    &copy; 2026 LawDB.ca. Listing data sourced from Google's public business listings. LawDB is an independent directory and is not affiliated with, endorsed by, or representing any listed firm. Ratings, review counts, and practice-area tags reflect a snapshot at the time each page was generated and may have changed since.
+    &copy; 2026 LawDB.ai. Listing data from Overture Maps (&copy; Overture Maps Foundation) and each firm's own public website. LawDB is an independent directory and is not affiliated with, endorsed by, or representing any listed firm. Practice-area tags and other details reflect a snapshot at the time each page was generated and may have changed since. Attorney advertising: a listing is not a recommendation.
   </div>
 </footer>
 
@@ -546,26 +545,21 @@
 // The firm list is not in this page (it was over half a megabyte of script in the HTML). loadFirms() below fetches /firms_data.json once, after the page
 // has settled or at the first touch of the search box, and the browser keeps it, so the home page's search box and this page share one download.
 // The cities the search understands are written in here instead (scripts/refresh-find-links.mjs), so the box works before the list arrives.
-/*city-seed*/const CITY_SEED = [{"name":"Abbotsford","province":"BC","region":"bc-fraser","lat":49.0488841,"lng":-122.2921916},{"name":"Aurora","province":"ON","region":"york-durham","lat":43.9944,"lng":-79.4649},{"name":"Barrie","province":"ON","region":"simcoe-central","lat":44.4078815,"lng":-79.6901268},{"name":"Brampton","province":"ON","region":"peel-halton","lat":43.6876457,"lng":-79.758418},{"name":"Brandon","province":"MB","region":"mb-brandon","lat":49.846577599999996,"lng":-99.95106310000001},{"name":"Brossard","province":"QC","region":"qc-monteregie","lat":45.4675731,"lng":-73.4642518},{"name":"Burnaby","province":"BC","region":"bc-burnaby","lat":49.2660467,"lng":-123.0036517},{"name":"Calgary","province":"AB","region":"ab-calgary","lat":51.0480576,"lng":-114.0741195},{"name":"Cookstown","province":"ON","region":"simcoe-central","lat":44.18341,"lng":-79.69964},{"name":"Drummondville","province":"QC","region":"qc-mauricie","lat":45.8971774,"lng":-72.5257346},{"name":"Edmonton","province":"AB","region":"ab-edmonton","lat":53.5425148,"lng":-113.4930191},{"name":"Etobicoke","province":"ON","region":"toronto","lat":43.7168127,"lng":-79.591919},{"name":"Gatineau","province":"QC","region":"qc-outaouais","lat":45.4368823,"lng":-75.7332484},{"name":"Granby","province":"QC","region":"qc-estrie","lat":45.4013879,"lng":-72.7337258},{"name":"Greater Sudbury","province":"ON","region":"northern","lat":46.4915631,"lng":-80.9866053},{"name":"Guelph","province":"ON","region":"waterloo-guelph","lat":43.5487469,"lng":-80.2537604},{"name":"Hamilton","province":"ON","region":"hamilton-niagara","lat":43.256554,"lng":-79.869864},{"name":"Kamloops","province":"BC","region":"bc-thompson","lat":50.676048,"lng":-120.3348624},{"name":"Kelowna","province":"BC","region":"bc-okanagan","lat":49.8842835,"lng":-119.4921031},{"name":"Kingston","province":"ON","region":"eastern","lat":44.2314305,"lng":-76.47976},{"name":"Kitchener","province":"ON","region":"waterloo-guelph","lat":43.457593,"lng":-80.475053},{"name":"Laval","province":"QC","region":"qc-laval-laurentides","lat":45.5554173,"lng":-73.7527441},{"name":"Levis","province":"QC","region":"qc-quebec","lat":46.7920796,"lng":-71.1629261},{"name":"London","province":"ON","region":"southwestern","lat":42.9856076,"lng":-81.2543909},{"name":"Longueuil","province":"QC","region":"qc-monteregie","lat":45.5357423,"lng":-73.5073052},{"name":"Markham","province":"ON","region":"york-durham","lat":43.8539142,"lng":-79.3381945},{"name":"Mississauga","province":"ON","region":"peel-halton","lat":43.62096,"lng":-79.674344},{"name":"Montreal","province":"QC","region":"qc-montreal","lat":45.50428,"lng":-73.557474},{"name":"Nanaimo","province":"BC","region":"bc-island","lat":49.1673542,"lng":-123.9364988},{"name":"Niagara Falls","province":"ON","region":"hamilton-niagara","lat":43.1067923,"lng":-79.0653836},{"name":"North Bay","province":"ON","region":"northern","lat":46.310501,"lng":-79.4644393},{"name":"North York","province":"ON","region":"toronto","lat":43.7596885,"lng":-79.4032555},{"name":"Oakville","province":"ON","region":"peel-halton","lat":43.4444295,"lng":-79.6904771},{"name":"Oshawa","province":"ON","region":"york-durham","lat":43.9014238,"lng":-78.8655752},{"name":"Ottawa","province":"ON","region":"eastern","lat":45.4210539,"lng":-75.6986747},{"name":"Peterborough","province":"ON","region":"simcoe-central","lat":44.3037089,"lng":-78.3228751},{"name":"Prince George","province":"BC","region":"bc-north","lat":53.9171932,"lng":-122.7493098},{"name":"Quebec City","province":"QC","region":"qc-quebec","lat":46.8168837,"lng":-71.216093},{"name":"Repentigny","province":"QC","region":"qc-lanaudiere","lat":45.7413719,"lng":-73.4486272},{"name":"Richmond","province":"BC","region":"bc-richmond","lat":49.1865548,"lng":-123.0799865},{"name":"Richmond Hill","province":"ON","region":"york-durham","lat":43.8839866,"lng":-79.4310988},{"name":"Rimouski","province":"QC","region":"qc-saguenay-bsl","lat":48.4501829,"lng":-68.5255183},{"name":"Rosemere","province":"QC","region":"qc-laval-laurentides","lat":45.6323087,"lng":-73.7950678},{"name":"Rouyn-Noranda","province":"QC","region":"qc-abitibi","lat":48.2470108,"lng":-79.0181296},{"name":"Saguenay","province":"QC","region":"qc-saguenay-bsl","lat":48.4274634,"lng":-71.0573498},{"name":"Saint-Jerome","province":"QC","region":"qc-laval-laurentides","lat":45.7760136,"lng":-74.0043119},{"name":"Sarnia","province":"ON","region":"southwestern","lat":42.9740332,"lng":-82.4072338},{"name":"Sault Ste. Marie","province":"ON","region":"northern","lat":46.5113836,"lng":-84.3345496},{"name":"Sherbrooke","province":"QC","region":"qc-estrie","lat":45.3989405,"lng":-71.8956591},{"name":"St. Catharines","province":"ON","region":"hamilton-niagara","lat":43.1594391,"lng":-79.2481545},{"name":"Sudbury","province":"ON","region":"northern","lat":46.4887978,"lng":-80.9880912},{"name":"Surrey","province":"BC","region":"bc-fraser","lat":49.1232297,"lng":-122.8001969},{"name":"Terrebonne","province":"QC","region":"qc-lanaudiere","lat":45.7131549,"lng":-73.5129381},{"name":"Thunder Bay","province":"ON","region":"northern","lat":48.3840212,"lng":-89.246323},{"name":"Timmins","province":"ON","region":"northern","lat":48.4738998,"lng":-81.3323364},{"name":"Toronto","province":"ON","region":"toronto","lat":43.6481326,"lng":-79.3795089},{"name":"Trois-Rivieres","province":"QC","region":"qc-mauricie","lat":46.3433973,"lng":-72.544114},{"name":"Vancouver","province":"BC","region":"bc-vancouver","lat":49.2810115,"lng":-123.1083576},{"name":"Victoria","province":"BC","region":"bc-victoria","lat":48.4257579,"lng":-123.3667784},{"name":"Waterloo","province":"ON","region":"waterloo-guelph","lat":43.459707,"lng":-80.5140442},{"name":"Windsor","province":"ON","region":"southwestern","lat":42.3152313,"lng":-83.0390396},{"name":"Winnipeg","province":"MB","region":"mb-winnipeg","lat":49.8889053,"lng":-97.143479}];/*/city-seed*/
+/*city-seed*/const CITY_SEED = [{"name": "Alachua", "state": "FL", "region": "fl-north", "lat": 29.79287, "lng": -82.49585}, {"name": "Altamonte Springs", "state": "FL", "region": "fl-central", "lat": 28.66587, "lng": -81.38138}, {"name": "Apollo Beach", "state": "FL", "region": "fl-tampa-bay", "lat": 27.76833, "lng": -82.39566}, {"name": "Apopka", "state": "FL", "region": "fl-central", "lat": 28.67003, "lng": -81.48528}, {"name": "Aventura", "state": "FL", "region": "fl-south", "lat": 25.95732, "lng": -80.14427}, {"name": "Avon Park", "state": "FL", "region": "fl-central", "lat": 27.59563, "lng": -81.50659}, {"name": "Bartow", "state": "FL", "region": "fl-central", "lat": 27.89668, "lng": -81.84273}, {"name": "Bay Harbor Islands", "state": "FL", "region": "fl-south", "lat": 25.8868, "lng": -80.13175}, {"name": "Boca Raton", "state": "FL", "region": "fl-south", "lat": 26.37223, "lng": -80.10877}, {"name": "Bonita Springs", "state": "FL", "region": "fl-southwest", "lat": 26.34077, "lng": -81.79797}, {"name": "Boynton Beach", "state": "FL", "region": "fl-south", "lat": 26.53757, "lng": -80.09164}, {"name": "Bradenton", "state": "FL", "region": "fl-tampa-bay", "lat": 27.48737, "lng": -82.56703}, {"name": "Brandon", "state": "FL", "region": "fl-tampa-bay", "lat": 27.9274, "lng": -82.29159}, {"name": "Brooksville", "state": "FL", "region": "fl-central", "lat": 28.54989, "lng": -82.40819}, {"name": "Cape Coral", "state": "FL", "region": "fl-southwest", "lat": 26.59257, "lng": -81.95314}, {"name": "Casselberry", "state": "FL", "region": "fl-central", "lat": 28.65681, "lng": -81.33309}, {"name": "Chiefland", "state": "FL", "region": "fl-north", "lat": 29.48071, "lng": -82.85832}, {"name": "Chipley", "state": "FL", "region": "fl-panhandle", "lat": 30.77782, "lng": -85.5316}, {"name": "Clearwater", "state": "FL", "region": "fl-tampa-bay", "lat": 27.96618, "lng": -82.74529}, {"name": "Clermont", "state": "FL", "region": "fl-central", "lat": 28.54632, "lng": -81.73735}, {"name": "Clewiston", "state": "FL", "region": "fl-south", "lat": 26.75333, "lng": -80.94569}, {"name": "Cocoa", "state": "FL", "region": "fl-central", "lat": 28.36372, "lng": -80.73211}, {"name": "Cocoa Beach", "state": "FL", "region": "fl-central", "lat": 28.32671, "lng": -80.61026}, {"name": "Coconut Creek", "state": "FL", "region": "fl-south", "lat": 26.30673, "lng": -80.19847}, {"name": "Coconut Grove", "state": "FL", "region": "fl-south", "lat": 25.73281, "lng": -80.23598}, {"name": "Cooper City", "state": "FL", "region": "fl-south", "lat": 26.05713, "lng": -80.28491}, {"name": "Coral Gables", "state": "FL", "region": "fl-south", "lat": 25.74743, "lng": -80.26056}, {"name": "Coral Springs", "state": "FL", "region": "fl-south", "lat": 26.27782, "lng": -80.25209}, {"name": "Crawfordville", "state": "FL", "region": "fl-panhandle", "lat": 30.18658, "lng": -84.37175}, {"name": "Crestview", "state": "FL", "region": "fl-panhandle", "lat": 30.75418, "lng": -86.56634}, {"name": "Crystal River", "state": "FL", "region": "fl-central", "lat": 28.89182, "lng": -82.56005}, {"name": "Dade City", "state": "FL", "region": "fl-central", "lat": 28.36415, "lng": -82.18994}, {"name": "Dania Beach", "state": "FL", "region": "fl-south", "lat": 26.05161, "lng": -80.14433}, {"name": "Davie", "state": "FL", "region": "fl-south", "lat": 26.06705, "lng": -80.26583}, {"name": "Daytona Beach", "state": "FL", "region": "fl-central", "lat": 29.21008, "lng": -81.02837}, {"name": "Deerfield Beach", "state": "FL", "region": "fl-south", "lat": 26.31206, "lng": -80.11118}, {"name": "Deland", "state": "FL", "region": "fl-central", "lat": 29.02632, "lng": -81.30304}, {"name": "Delray Beach", "state": "FL", "region": "fl-south", "lat": 26.45826, "lng": -80.07828}, {"name": "Deltona", "state": "FL", "region": "fl-central", "lat": 28.88532, "lng": -81.26414}, {"name": "Destin", "state": "FL", "region": "fl-panhandle", "lat": 30.39041, "lng": -86.43477}, {"name": "Doral", "state": "FL", "region": "fl-south", "lat": 25.80788, "lng": -80.34199}, {"name": "Dunedin", "state": "FL", "region": "fl-tampa-bay", "lat": 28.02083, "lng": -82.78025}, {"name": "Dunnellon", "state": "FL", "region": "fl-central", "lat": 29.04924, "lng": -82.46258}, {"name": "Englewood", "state": "FL", "region": "fl-southwest", "lat": 26.93987, "lng": -82.33389}, {"name": "Estero", "state": "FL", "region": "fl-southwest", "lat": 26.42248, "lng": -81.787}, {"name": "Eustis", "state": "FL", "region": "fl-central", "lat": 28.85492, "lng": -81.67958}, {"name": "Fernandina Beach", "state": "FL", "region": "fl-north", "lat": 30.65378, "lng": -81.45901}, {"name": "Flagler Beach", "state": "FL", "region": "fl-north", "lat": 29.47696, "lng": -81.12585}, {"name": "Fleming Island", "state": "FL", "region": "fl-north", "lat": 30.11277, "lng": -81.70776}, {"name": "Fort Lauderdale", "state": "FL", "region": "fl-south", "lat": 26.12899, "lng": -80.14129}, {"name": "Fort Myers", "state": "FL", "region": "fl-southwest", "lat": 26.60159, "lng": -81.87009}, {"name": "Fort Pierce", "state": "FL", "region": "fl-treasure", "lat": 27.4445, "lng": -80.32685}, {"name": "Fort Walton Beach", "state": "FL", "region": "fl-panhandle", "lat": 30.42865, "lng": -86.61526}, {"name": "Ft Lauderdale", "state": "FL", "region": "fl-south", "lat": 26.12427, "lng": -80.13279}, {"name": "Gainesville", "state": "FL", "region": "fl-north", "lat": 29.6597, "lng": -82.36998}, {"name": "Green Cove Springs", "state": "FL", "region": "fl-north", "lat": 30.00797, "lng": -81.70079}, {"name": "Greenacres", "state": "FL", "region": "fl-south", "lat": 26.6225, "lng": -80.14137}, {"name": "Gulf Breeze", "state": "FL", "region": "fl-panhandle", "lat": 30.37998, "lng": -87.10308}, {"name": "Haines City", "state": "FL", "region": "fl-central", "lat": 28.10354, "lng": -81.62984}, {"name": "Hallandale Beach", "state": "FL", "region": "fl-south", "lat": 25.98381, "lng": -80.14237}, {"name": "Hialeah", "state": "FL", "region": "fl-south", "lat": 25.8817, "lng": -80.30001}, {"name": "Hobe Sound", "state": "FL", "region": "fl-treasure", "lat": 27.06564, "lng": -80.13546}, {"name": "Holiday", "state": "FL", "region": "fl-tampa-bay", "lat": 28.18518, "lng": -82.73512}, {"name": "Hollywood", "state": "FL", "region": "fl-south", "lat": 26.01664, "lng": -80.17143}, {"name": "Homestead", "state": "FL", "region": "fl-south", "lat": 25.47877, "lng": -80.46738}, {"name": "Indialantic", "state": "FL", "region": "fl-central", "lat": 28.09334, "lng": -80.57003}, {"name": "Indian Harbour Beach", "state": "FL", "region": "fl-central", "lat": 28.14927, "lng": -80.6017}, {"name": "Inverness", "state": "FL", "region": "fl-central", "lat": 28.83821, "lng": -82.33489}, {"name": "Jacksonville", "state": "FL", "region": "fl-north", "lat": 30.28673, "lng": -81.62553}, {"name": "Jacksonville Beach", "state": "FL", "region": "fl-north", "lat": 30.28111, "lng": -81.39817}, {"name": "Juno Beach", "state": "FL", "region": "fl-south", "lat": 26.88525, "lng": -80.05804}, {"name": "Jupiter", "state": "FL", "region": "fl-south", "lat": 26.91548, "lng": -80.10756}, {"name": "Key Biscayne", "state": "FL", "region": "fl-south", "lat": 25.6967, "lng": -80.16369}, {"name": "Key West", "state": "FL", "region": "fl-southwest", "lat": 24.55728, "lng": -81.79482}, {"name": "Kissimmee", "state": "FL", "region": "fl-central", "lat": 28.29649, "lng": -81.44384}, {"name": "Labelle", "state": "FL", "region": "fl-southwest", "lat": 26.76471, "lng": -81.43768}, {"name": "Lake City", "state": "FL", "region": "fl-north", "lat": 30.18766, "lng": -82.63918}, {"name": "Lake Mary", "state": "FL", "region": "fl-central", "lat": 28.77196, "lng": -81.35249}, {"name": "Lake Placid", "state": "FL", "region": "fl-central", "lat": 27.29831, "lng": -81.36352}, {"name": "Lake Wales", "state": "FL", "region": "fl-central", "lat": 27.90088, "lng": -81.58678}, {"name": "Lake Worth", "state": "FL", "region": "fl-south", "lat": 26.62035, "lng": -80.14882}, {"name": "Lake Worth Beach", "state": "FL", "region": "fl-south", "lat": 26.62287, "lng": -80.08222}, {"name": "Lakeland", "state": "FL", "region": "fl-central", "lat": 28.01341, "lng": -81.94915}, {"name": "Lakewood Ranch", "state": "FL", "region": "fl-tampa-bay", "lat": 27.38561, "lng": -82.43697}, {"name": "Land O Lakes", "state": "FL", "region": "fl-central", "lat": 28.20561, "lng": -82.48396}, {"name": "Lantana", "state": "FL", "region": "fl-south", "lat": 26.58621, "lng": -80.05437}, {"name": "Largo", "state": "FL", "region": "fl-tampa-bay", "lat": 27.90205, "lng": -82.77849}, {"name": "Lauderdale Lakes", "state": "FL", "region": "fl-south", "lat": 26.17383, "lng": -80.20409}, {"name": "Lauderhill", "state": "FL", "region": "fl-south", "lat": 26.17424, "lng": -80.23704}, {"name": "Leesburg", "state": "FL", "region": "fl-central", "lat": 28.81149, "lng": -81.87181}, {"name": "Lehigh Acres", "state": "FL", "region": "fl-southwest", "lat": 26.61675, "lng": -81.69991}, {"name": "Lighthouse Point", "state": "FL", "region": "fl-south", "lat": 26.27716, "lng": -80.09526}, {"name": "Lithia", "state": "FL", "region": "fl-tampa-bay", "lat": 27.8632, "lng": -82.20285}, {"name": "Live Oak", "state": "FL", "region": "fl-north", "lat": 30.29534, "lng": -82.98385}, {"name": "Longwood", "state": "FL", "region": "fl-central", "lat": 28.69498, "lng": -81.37942}, {"name": "Lutz", "state": "FL", "region": "fl-tampa-bay", "lat": 28.16361, "lng": -82.4762}, {"name": "Madison", "state": "FL", "region": "fl-panhandle", "lat": 30.46939, "lng": -83.41228}, {"name": "Maitland", "state": "FL", "region": "fl-central", "lat": 28.63282, "lng": -81.37849}, {"name": "Marathon", "state": "FL", "region": "fl-south", "lat": 24.72151, "lng": -81.05736}, {"name": "Marco Island", "state": "FL", "region": "fl-southwest", "lat": 25.94237, "lng": -81.72525}, {"name": "Marianna", "state": "FL", "region": "fl-panhandle", "lat": 30.77569, "lng": -85.22963}, {"name": "Melbourne", "state": "FL", "region": "fl-central", "lat": 28.12406, "lng": -80.64091}, {"name": "Merritt Island", "state": "FL", "region": "fl-central", "lat": 28.35908, "lng": -80.70148}, {"name": "Miami", "state": "FL", "region": "fl-south", "lat": 25.76017, "lng": -80.24869}, {"name": "Miami Beach", "state": "FL", "region": "fl-south", "lat": 25.80319, "lng": -80.13434}, {"name": "Miami Gardens", "state": "FL", "region": "fl-south", "lat": 25.93641, "lng": -80.21605}, {"name": "Miami Lakes", "state": "FL", "region": "fl-south", "lat": 25.90991, "lng": -80.31878}, {"name": "Miami Shores", "state": "FL", "region": "fl-south", "lat": 25.86435, "lng": -80.19333}, {"name": "Miami Springs", "state": "FL", "region": "fl-south", "lat": 25.82253, "lng": -80.28437}, {"name": "Milton", "state": "FL", "region": "fl-panhandle", "lat": 30.61357, "lng": -87.07705}, {"name": "Miramar", "state": "FL", "region": "fl-south", "lat": 25.97773, "lng": -80.31933}, {"name": "Miramar Beach", "state": "FL", "region": "fl-panhandle", "lat": 30.38311, "lng": -86.37097}, {"name": "Mount Dora", "state": "FL", "region": "fl-central", "lat": 28.81105, "lng": -81.64217}, {"name": "Mt Dora", "state": "FL", "region": "fl-central", "lat": 28.80602, "lng": -81.64643}, {"name": "Naples", "state": "FL", "region": "fl-southwest", "lat": 26.20234, "lng": -81.77907}, {"name": "Navarre", "state": "FL", "region": "fl-panhandle", "lat": 30.40653, "lng": -86.85322}, {"name": "Neptune Beach", "state": "FL", "region": "fl-north", "lat": 30.32301, "lng": -81.3979}, {"name": "New Port Richey", "state": "FL", "region": "fl-central", "lat": 28.24061, "lng": -82.70098}, {"name": "New Smyrna Beach", "state": "FL", "region": "fl-central", "lat": 29.03441, "lng": -80.92215}, {"name": "Niceville", "state": "FL", "region": "fl-panhandle", "lat": 30.4967, "lng": -86.4413}, {"name": "North Bay Village", "state": "FL", "region": "fl-south", "lat": 25.84834, "lng": -80.15108}, {"name": "North Miami", "state": "FL", "region": "fl-south", "lat": 25.89089, "lng": -80.16789}, {"name": "North Miami Beach", "state": "FL", "region": "fl-south", "lat": 25.92115, "lng": -80.17314}, {"name": "North Palm Beach", "state": "FL", "region": "fl-south", "lat": 26.82458, "lng": -80.0596}, {"name": "North Port", "state": "FL", "region": "fl-southwest", "lat": 27.04561, "lng": -82.19325}, {"name": "Oakland Park", "state": "FL", "region": "fl-south", "lat": 26.17109, "lng": -80.14397}, {"name": "Ocala", "state": "FL", "region": "fl-central", "lat": 29.17994, "lng": -82.12835}, {"name": "Ocoee", "state": "FL", "region": "fl-central", "lat": 28.54296, "lng": -81.53548}, {"name": "Okeechobee", "state": "FL", "region": "fl-treasure", "lat": 27.24535, "lng": -80.83187}, {"name": "Oldsmar", "state": "FL", "region": "fl-tampa-bay", "lat": 28.04669, "lng": -82.68131}, {"name": "Orange City", "state": "FL", "region": "fl-central", "lat": 28.92672, "lng": -81.29487}, {"name": "Orange Park", "state": "FL", "region": "fl-north", "lat": 30.16583, "lng": -81.72574}, {"name": "Orlando", "state": "FL", "region": "fl-central", "lat": 28.5378, "lng": -81.37465}, {"name": "Ormond Beach", "state": "FL", "region": "fl-central", "lat": 29.28495, "lng": -81.07109}, {"name": "Osprey", "state": "FL", "region": "fl-tampa-bay", "lat": 27.18969, "lng": -82.48785}, {"name": "Oviedo", "state": "FL", "region": "fl-central", "lat": 28.64474, "lng": -81.22808}, {"name": "Palatka", "state": "FL", "region": "fl-north", "lat": 29.64944, "lng": -81.63724}, {"name": "Palm Bay", "state": "FL", "region": "fl-central", "lat": 28.01013, "lng": -80.63214}, {"name": "Palm Beach", "state": "FL", "region": "fl-south", "lat": 26.69179, "lng": -80.03972}, {"name": "Palm Beach Gardens", "state": "FL", "region": "fl-south", "lat": 26.8384, "lng": -80.08945}, {"name": "Palm City", "state": "FL", "region": "fl-treasure", "lat": 27.16925, "lng": -80.27551}, {"name": "Palm Coast", "state": "FL", "region": "fl-north", "lat": 29.56581, "lng": -81.23719}, {"name": "Palm Harbor", "state": "FL", "region": "fl-tampa-bay", "lat": 28.0807, "lng": -82.74949}, {"name": "Palm Springs", "state": "FL", "region": "fl-south", "lat": 26.63747, "lng": -80.08855}, {"name": "Palmetto", "state": "FL", "region": "fl-tampa-bay", "lat": 27.5152, "lng": -82.57385}, {"name": "Palmetto Bay", "state": "FL", "region": "fl-south", "lat": 25.62357, "lng": -80.34172}, {"name": "Panama City", "state": "FL", "region": "fl-panhandle", "lat": 30.16419, "lng": -85.66387}, {"name": "Panama City Beach", "state": "FL", "region": "fl-panhandle", "lat": 30.19407, "lng": -85.81608}, {"name": "Pembroke Pines", "state": "FL", "region": "fl-south", "lat": 26.01877, "lng": -80.30617}, {"name": "Pensacola", "state": "FL", "region": "fl-panhandle", "lat": 30.42589, "lng": -87.21679}, {"name": "Perry", "state": "FL", "region": "fl-panhandle", "lat": 30.11959, "lng": -83.58243}, {"name": "Pinecrest", "state": "FL", "region": "fl-south", "lat": 25.67987, "lng": -80.31408}, {"name": "Pinellas Park", "state": "FL", "region": "fl-tampa-bay", "lat": 27.84768, "lng": -82.69815}, {"name": "Plant City", "state": "FL", "region": "fl-tampa-bay", "lat": 28.00829, "lng": -82.12886}, {"name": "Plantation", "state": "FL", "region": "fl-south", "lat": 26.12108, "lng": -80.25772}, {"name": "Pompano Beach", "state": "FL", "region": "fl-south", "lat": 26.23367, "lng": -80.11659}, {"name": "Ponte Vedra Beach", "state": "FL", "region": "fl-north", "lat": 30.19054, "lng": -81.39578}, {"name": "Port Charlotte", "state": "FL", "region": "fl-southwest", "lat": 27.00529, "lng": -82.12816}, {"name": "Port Orange", "state": "FL", "region": "fl-central", "lat": 29.11843, "lng": -81.01579}, {"name": "Port Richey", "state": "FL", "region": "fl-central", "lat": 28.32244, "lng": -82.69557}, {"name": "Port St Joe", "state": "FL", "region": "fl-panhandle", "lat": 29.81255, "lng": -85.30237}, {"name": "Port St Lucie", "state": "FL", "region": "fl-treasure", "lat": 27.29295, "lng": -80.35912}, {"name": "Port St. Lucie", "state": "FL", "region": "fl-treasure", "lat": 27.27229, "lng": -80.33021}, {"name": "Punta Gorda", "state": "FL", "region": "fl-southwest", "lat": 26.93541, "lng": -82.04785}, {"name": "Riverview", "state": "FL", "region": "fl-tampa-bay", "lat": 27.86242, "lng": -82.32556}, {"name": "Rockledge", "state": "FL", "region": "fl-central", "lat": 28.2933, "lng": -80.72027}, {"name": "Royal Palm Beach", "state": "FL", "region": "fl-south", "lat": 26.697, "lng": -80.21655}, {"name": "Ruskin", "state": "FL", "region": "fl-tampa-bay", "lat": 27.71325, "lng": -82.43294}, {"name": "Safety Harbor", "state": "FL", "region": "fl-tampa-bay", "lat": 27.99419, "lng": -82.69385}, {"name": "Saint Augustine", "state": "FL", "region": "fl-north", "lat": 29.87768, "lng": -81.32102}, {"name": "Saint Petersburg", "state": "FL", "region": "fl-tampa-bay", "lat": 27.78948, "lng": -82.6588}, {"name": "Sanford", "state": "FL", "region": "fl-central", "lat": 28.79679, "lng": -81.29185}, {"name": "Sanibel", "state": "FL", "region": "fl-southwest", "lat": 26.439, "lng": -82.06971}, {"name": "Santa Rosa Beach", "state": "FL", "region": "fl-panhandle", "lat": 30.35191, "lng": -86.17604}, {"name": "Sarasota", "state": "FL", "region": "fl-tampa-bay", "lat": 27.32604, "lng": -82.52388}, {"name": "Satellite Beach", "state": "FL", "region": "fl-central", "lat": 28.18511, "lng": -80.59813}, {"name": "Sebastian", "state": "FL", "region": "fl-central", "lat": 27.8488, "lng": -80.49318}, {"name": "Sebring", "state": "FL", "region": "fl-central", "lat": 27.48941, "lng": -81.43949}, {"name": "Seminole", "state": "FL", "region": "fl-tampa-bay", "lat": 27.85298, "lng": -82.78809}, {"name": "Shalimar", "state": "FL", "region": "fl-panhandle", "lat": 30.44253, "lng": -86.58106}, {"name": "South Daytona", "state": "FL", "region": "fl-central", "lat": 29.17451, "lng": -81.01458}, {"name": "South Miami", "state": "FL", "region": "fl-south", "lat": 25.70321, "lng": -80.28995}, {"name": "South Pasadena", "state": "FL", "region": "fl-tampa-bay", "lat": 27.75908, "lng": -82.73652}, {"name": "Spring Hill", "state": "FL", "region": "fl-central", "lat": 28.47017, "lng": -82.57759}, {"name": "St Augustine", "state": "FL", "region": "fl-north", "lat": 29.90601, "lng": -81.34403}, {"name": "St Johns", "state": "FL", "region": "fl-north", "lat": 30.10708, "lng": -81.5827}, {"name": "St Petersburg", "state": "FL", "region": "fl-tampa-bay", "lat": 27.79132, "lng": -82.65861}, {"name": "St. Augustine", "state": "FL", "region": "fl-north", "lat": 29.9634, "lng": -81.39971}, {"name": "St. Petersburg", "state": "FL", "region": "fl-tampa-bay", "lat": 27.78128, "lng": -82.66189}, {"name": "Starke", "state": "FL", "region": "fl-north", "lat": 29.94574, "lng": -82.10586}, {"name": "Stuart", "state": "FL", "region": "fl-treasure", "lat": 27.19009, "lng": -80.24421}, {"name": "Sun City Center", "state": "FL", "region": "fl-tampa-bay", "lat": 27.71431, "lng": -82.36108}, {"name": "Sunrise", "state": "FL", "region": "fl-south", "lat": 26.14942, "lng": -80.30336}, {"name": "Tallahassee", "state": "FL", "region": "fl-panhandle", "lat": 30.46262, "lng": -84.2605}, {"name": "Tamarac", "state": "FL", "region": "fl-south", "lat": 26.20264, "lng": -80.25563}, {"name": "Tampa", "state": "FL", "region": "fl-tampa-bay", "lat": 27.9732, "lng": -82.48038}, {"name": "Tarpon Springs", "state": "FL", "region": "fl-tampa-bay", "lat": 28.12715, "lng": -82.75413}, {"name": "Tavares", "state": "FL", "region": "fl-central", "lat": 28.80537, "lng": -81.72798}, {"name": "Tavernier", "state": "FL", "region": "fl-south", "lat": 24.99123, "lng": -80.5359}, {"name": "Temple Terrace", "state": "FL", "region": "fl-tampa-bay", "lat": 28.04285, "lng": -82.39003}, {"name": "Tequesta", "state": "FL", "region": "fl-south", "lat": 26.95843, "lng": -80.08774}, {"name": "The Villages", "state": "FL", "region": "fl-central", "lat": 28.92079, "lng": -81.98967}, {"name": "Titusville", "state": "FL", "region": "fl-central", "lat": 28.59948, "lng": -80.8137}, {"name": "Treasure Island", "state": "FL", "region": "fl-tampa-bay", "lat": 27.77353, "lng": -82.77261}, {"name": "Trinity", "state": "FL", "region": "fl-tampa-bay", "lat": 28.19417, "lng": -82.6583}, {"name": "Valrico", "state": "FL", "region": "fl-tampa-bay", "lat": 27.89285, "lng": -82.25246}, {"name": "Venice", "state": "FL", "region": "fl-southwest", "lat": 27.0907, "lng": -82.43158}, {"name": "Vero Beach", "state": "FL", "region": "fl-treasure", "lat": 27.64241, "lng": -80.39948}, {"name": "Wellington", "state": "FL", "region": "fl-south", "lat": 26.64994, "lng": -80.23635}, {"name": "Wesley Chapel", "state": "FL", "region": "fl-tampa-bay", "lat": 28.19575, "lng": -82.36048}, {"name": "West Melbourne", "state": "FL", "region": "fl-central", "lat": 28.07752, "lng": -80.65325}, {"name": "West Palm Beach", "state": "FL", "region": "fl-south", "lat": 26.71518, "lng": -80.07794}, {"name": "Weston", "state": "FL", "region": "fl-south", "lat": 26.09462, "lng": -80.37583}, {"name": "Wildwood", "state": "FL", "region": "fl-central", "lat": 28.84658, "lng": -82.04146}, {"name": "Williston", "state": "FL", "region": "fl-central", "lat": 29.38873, "lng": -82.45021}, {"name": "Wilton Manors", "state": "FL", "region": "fl-south", "lat": 26.15927, "lng": -80.13535}, {"name": "Windermere", "state": "FL", "region": "fl-central", "lat": 28.48915, "lng": -81.52788}, {"name": "Winter Garden", "state": "FL", "region": "fl-central", "lat": 28.55575, "lng": -81.58136}, {"name": "Winter Haven", "state": "FL", "region": "fl-central", "lat": 28.02182, "lng": -81.72947}, {"name": "Winter Park", "state": "FL", "region": "fl-central", "lat": 28.59948, "lng": -81.35806}, {"name": "Winter Springs", "state": "FL", "region": "fl-central", "lat": 28.68115, "lng": -81.25248}, {"name": "Zephyrhills", "state": "FL", "region": "fl-central", "lat": 28.24011, "lng": -82.1828}];/*/city-seed*/
 let firms = [];
-const CASE_TYPES = [{"id": "traffic", "label": "Traffic Ticket"}, {"id": "criminal", "label": "Criminal Charges"}, {"id": "family", "label": "Family Law / Divorce"}, {"id": "injury", "label": "Personal Injury / Accident"}, {"id": "realestate", "label": "Buying or Selling a Home"}, {"id": "wills", "label": "Wills, Estates & Power of Attorney"}, {"id": "business", "label": "Business / Corporate"}, {"id": "employment", "label": "Employment Dispute"}, {"id": "immigration", "label": "Immigration"}, {"id": "litigation", "label": "Civil Lawsuit / Litigation"}];
-const REGIONS_BY_PROVINCE = {"ON": [{"id": "toronto", "label": "Toronto"}, {"id": "peel-halton", "label": "Peel & Halton (Mississauga, Brampton, Oakville)"}, {"id": "york-durham", "label": "York & Durham (Markham, Oshawa, Newmarket area)"}, {"id": "hamilton-niagara", "label": "Hamilton & Niagara"}, {"id": "waterloo-guelph", "label": "Kitchener-Waterloo & Guelph"}, {"id": "southwestern", "label": "Southwestern Ontario (London, Windsor, Sarnia)"}, {"id": "simcoe-central", "label": "Simcoe & Central Ontario (Barrie, Peterborough)"}, {"id": "eastern", "label": "Eastern Ontario (Ottawa, Kingston)"}, {"id": "northern", "label": "Northern Ontario"}], "QC": [{"id": "qc-montreal", "label": "Montreal"}, {"id": "qc-laval-laurentides", "label": "Laval & Laurentides (Laval, Saint-Jerome)"}, {"id": "qc-monteregie", "label": "Monteregie / South Shore (Longueuil, Brossard)"}, {"id": "qc-lanaudiere", "label": "Lanaudiere (Terrebonne, Repentigny)"}, {"id": "qc-quebec", "label": "Quebec City & Levis"}, {"id": "qc-outaouais", "label": "Outaouais (Gatineau)"}, {"id": "qc-estrie", "label": "Estrie (Sherbrooke, Granby)"}, {"id": "qc-mauricie", "label": "Mauricie & Centre-du-Quebec (Trois-Rivieres, Drummondville)"}, {"id": "qc-saguenay-bsl", "label": "Saguenay & Bas-Saint-Laurent"}, {"id": "qc-abitibi", "label": "Abitibi-Temiscamingue"}], "BC": [{"id": "bc-vancouver", "label": "Vancouver"}, {"id": "bc-fraser", "label": "Surrey & Fraser Valley (Surrey, Abbotsford)"}, {"id": "bc-burnaby", "label": "Burnaby & Tri-Cities"}, {"id": "bc-richmond", "label": "Richmond & Delta"}, {"id": "bc-victoria", "label": "Victoria & South Island"}, {"id": "bc-island", "label": "Nanaimo & Central Island"}, {"id": "bc-okanagan", "label": "Okanagan (Kelowna)"}, {"id": "bc-thompson", "label": "Thompson-Cariboo (Kamloops)"}, {"id": "bc-north", "label": "Northern BC (Prince George)"}], "AB": [{"id": "ab-calgary", "label": "Calgary & Area"}, {"id": "ab-edmonton", "label": "Edmonton & Area"}], "MB": [{"id": "mb-winnipeg", "label": "Winnipeg & Area"}, {"id": "mb-brandon", "label": "Brandon & Westman"}]};
-const PROVINCES = [{"code": "ON", "label": "Ontario"}, {"code": "QC", "label": "Quebec"}, {"code": "BC", "label": "British Columbia"}, {"code": "AB", "label": "Alberta"}, {"code": "MB", "label": "Manitoba"}];
-const REGION_CENTERS = {"toronto": {"lat": 43.6523, "lng": -79.3904}, "peel-halton": {"lat": 43.6086, "lng": -79.7165}, "york-durham": {"lat": 43.8756, "lng": -79.0986}, "hamilton-niagara": {"lat": 43.1763, "lng": -79.4391}, "waterloo-guelph": {"lat": 43.4906, "lng": -80.3788}, "southwestern": {"lat": 42.6768, "lng": -82.3742}, "simcoe-central": {"lat": 44.3247, "lng": -78.5962}, "eastern": {"lat": 44.8799, "lng": -76.0848}, "northern": {"lat": 47.2626, "lng": -83.3133}, "qc-montreal": {"lat": 45.5025, "lng": -73.5669}, "qc-laval-laurentides": {"lat": 45.6712, "lng": -73.8723}, "qc-monteregie": {"lat": 45.5166, "lng": -73.4707}, "qc-lanaudiere": {"lat": 45.7314, "lng": -73.5173}, "qc-quebec": {"lat": 46.8124, "lng": -71.2326}, "qc-outaouais": {"lat": 45.4487, "lng": -75.718}, "qc-estrie": {"lat": 45.3988, "lng": -72.2392}, "qc-mauricie": {"lat": 46.0982, "lng": -72.5221}, "qc-saguenay-bsl": {"lat": 48.4363, "lng": -69.9745}, "qc-abitibi": {"lat": 48.242, "lng": -79.0227}, "bc-vancouver": {"lat": 49.282, "lng": -123.1197}, "bc-fraser": {"lat": 49.1208, "lng": -122.62}, "bc-burnaby": {"lat": 49.2517, "lng": -122.9807}, "bc-richmond": {"lat": 49.1752, "lng": -123.116}, "bc-victoria": {"lat": 48.4276, "lng": -123.3719}, "bc-island": {"lat": 49.1726, "lng": -123.9537}, "bc-okanagan": {"lat": 49.8854, "lng": -119.4875}, "bc-thompson": {"lat": 50.6738, "lng": -120.327}, "bc-north": {"lat": 53.9169, "lng": -122.7461}, "ab-calgary": {"lat": 51.0447, "lng": -114.0631}, "ab-edmonton": {"lat": 53.5461, "lng": -113.4938}, "mb-winnipeg": {"lat": 49.8951, "lng": -97.1384}, "mb-brandon": {"lat": 49.8483, "lng": -99.9501}};
+const CASE_TYPES = [{"id": "traffic", "label": "Traffic Ticket"}, {"id": "criminal", "label": "Criminal Charges / DUI"}, {"id": "family", "label": "Family Law / Divorce"}, {"id": "injury", "label": "Personal Injury / Accident"}, {"id": "realestate", "label": "Buying or Selling a Home"}, {"id": "wills", "label": "Wills, Trusts & Probate"}, {"id": "business", "label": "Business / Corporate"}, {"id": "employment", "label": "Employment Dispute"}, {"id": "immigration", "label": "Immigration"}, {"id": "litigation", "label": "Civil Lawsuit / Litigation"}];
+const REGIONS_BY_STATE = {"FL": [{"id": "fl-south", "label": "South Florida (Miami, Fort Lauderdale, Palm Beach)"}, {"id": "fl-treasure", "label": "Treasure Coast (Port St. Lucie, Vero Beach)"}, {"id": "fl-southwest", "label": "Southwest Florida (Naples, Fort Myers, Sarasota)"}, {"id": "fl-tampa-bay", "label": "Tampa Bay (Tampa, St. Petersburg, Clearwater)"}, {"id": "fl-central", "label": "Central Florida (Orlando, Lakeland, Daytona)"}, {"id": "fl-north", "label": "North Florida (Jacksonville, Gainesville)"}, {"id": "fl-panhandle", "label": "Panhandle (Tallahassee, Pensacola, Panama City)"}]};
+const STATES = [{"code": "FL", "label": "Florida"}];
+const REGION_CENTERS = {"fl-north": {"lat": 30.1294, "lng": -81.7465}, "fl-central": {"lat": 28.5589, "lng": -81.4618}, "fl-tampa-bay": {"lat": 27.8464, "lng": -82.5423}, "fl-south": {"lat": 26.0753, "lng": -80.1986}, "fl-southwest": {"lat": 26.4036, "lng": -81.8884}, "fl-panhandle": {"lat": 30.4201, "lng": -85.6247}, "fl-treasure": {"lat": 27.3129, "lng": -80.3085}};
 const CASE_LABEL = Object.fromEntries(CASE_TYPES.map(c=>[c.id, c.label]));
-const CASE_OVERRIDES_QC = {"realestate": "Property Dispute", "wills": "Estate Dispute"};
-// Closings and will drafting are notarial work in Quebec, so these two case
-// types are labelled as the disputes a Quebec lawyer actually handles.
-function caseLabel(id, prov){
-  if(!id) return null;
-  if(prov === 'QC' && CASE_OVERRIDES_QC[id]) return CASE_OVERRIDES_QC[id];
-  return CASE_LABEL[id];
+function caseLabel(id, state){
+  return id ? CASE_LABEL[id] : null;
 }
-const PROVINCE_LABEL = Object.fromEntries(PROVINCES.map(p=>[p.code, p.label]));
+const STATE_LABEL = Object.fromEntries(STATES.map(p=>[p.code, p.label]));
 const REGION_LABEL = {};
-Object.values(REGIONS_BY_PROVINCE).forEach(list => list.forEach(r => { REGION_LABEL[r.id] = r.label; }));
-const REGION_PROVINCE = {};
-Object.entries(REGIONS_BY_PROVINCE).forEach(([prov, list]) => list.forEach(r => { REGION_PROVINCE[r.id] = prov; }));
+Object.values(REGIONS_BY_STATE).forEach(list => list.forEach(r => { REGION_LABEL[r.id] = r.label; }));
+const REGION_STATE = {};
+Object.entries(REGIONS_BY_STATE).forEach(([prov, list]) => list.forEach(r => { REGION_STATE[r.id] = prov; }));
 
 /* ---------------- City search ---------------- */
 // Written from the firm data (CITY_SEED, checked by npm run check) so it cannot drift from what firms exist; a city that only appears
@@ -575,7 +569,7 @@ const CITY_INDEX = CITY_SEED.slice();
 const cityListEl = document.getElementById('cityList');
 function fillCityList(){
   cityListEl.innerHTML = CITY_INDEX.map(c =>
-    `<option value="${c.name}, ${c.province}">`).join('');
+    `<option value="${c.name}, ${c.state}">`).join('');
 }
 fillCityList();
 
@@ -592,11 +586,11 @@ function loadFirms(){
       // the list leaves out the Directions link; it is rebuilt from the address, as the Worker used to do inside the page
       list.forEach(f => { if(!f.dirUrl) f.dirUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(f.address || f.name).replace(/%20/g, '+'); });
       firms = list;
-      const known = new Set(CITY_INDEX.map(c => c.name.toLowerCase() + '|' + c.province));
+      const known = new Set(CITY_INDEX.map(c => c.name.toLowerCase() + '|' + c.state));
       let added = false;
       list.forEach(f => {
-        const key = f.city.toLowerCase() + '|' + f.province;
-        if(!known.has(key)){ known.add(key); CITY_INDEX.push({ name: f.city, province: f.province, region: f.region, lat: f.lat, lng: f.lng }); added = true; }
+        const key = f.city.toLowerCase() + '|' + f.state;
+        if(!known.has(key)){ known.add(key); CITY_INDEX.push({ name: f.city, state: f.state, region: f.region, lat: f.lat, lng: f.lng }); added = true; }
       });
       if(added){ CITY_INDEX.sort((a,b) => a.name.localeCompare(b.name)); fillCityList(); }
       return list;
@@ -616,7 +610,7 @@ let selectedCityName = null;
 function findCity(query){
   const q = query.trim().toLowerCase().replace(/,\s*(on|qc|bc|ab)$/i, '').trim();
   if(!q) return null;
-  // Exact match first, then a starts-with match, so "Toronto" doesn't
+  // Exact match first, then a starts-with match, so "Miami" doesn't
   // accidentally land on some unrelated city that merely contains it.
   return CITY_INDEX.find(c => c.name.toLowerCase() === q)
     || CITY_INDEX.find(c => c.name.toLowerCase().startsWith(q))
@@ -632,7 +626,7 @@ function showCityGate(cityMatch){
   document.getElementById('cityGateSub').textContent = `We already know you're in ${cityMatch.name}. Just tell us what you need and we'll show the map and matching firms.`;
   const grid = document.getElementById('cityGateGrid');
   grid.innerHTML = CASE_TYPES.map(c =>
-    `<div class="case-tile" data-c="${c.id}"><div class="case-label">${caseLabel(c.id, cityMatch.province)}</div></div>`
+    `<div class="case-tile" data-c="${c.id}"><div class="case-label">${caseLabel(c.id, cityMatch.state)}</div></div>`
   ).join('') + `<div class="case-tile" data-c=""><div class="case-label">Show me everything</div></div>`;
   grid.querySelectorAll('.case-tile').forEach(tile => {
     tile.addEventListener('click', () => {
@@ -644,13 +638,13 @@ function showCityGate(cityMatch){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// The 30 busiest cities have a real generated page at /province/city/ -
+// The 30 busiest cities have a real generated page at /state/city/ -
 // send people there directly instead of showing the in-page view, so
 // there's one canonical URL per major city rather than two different
 // experiences for the same place.
-var CITY_PAGE_MAP = {"North York|ON": "ontario/north-york/", "Richmond Hill|ON": "ontario/richmond-hill/", "Toronto|ON": "ontario/toronto/", "Barrie|ON": "ontario/barrie/", "London|ON": "ontario/london/", "Etobicoke|ON": "ontario/etobicoke/", "Ottawa|ON": "ontario/ottawa/", "Hamilton|ON": "ontario/hamilton/", "Kitchener|ON": "ontario/kitchener/", "Waterloo|ON": "ontario/waterloo/", "Windsor|ON": "ontario/windsor/", "Mississauga|ON": "ontario/mississauga/", "Brampton|ON": "ontario/brampton/", "Markham|ON": "ontario/markham/", "Kingston|ON": "ontario/kingston/", "Niagara Falls|ON": "ontario/niagara-falls/", "Guelph|ON": "ontario/guelph/", "Greater Sudbury|ON": "ontario/greater-sudbury/", "Sudbury|ON": "ontario/sudbury/", "Thunder Bay|ON": "ontario/thunder-bay/", "Sault Ste. Marie|ON": "ontario/sault-ste-marie/", "North Bay|ON": "ontario/north-bay/", "Timmins|ON": "ontario/timmins/", "St. Catharines|ON": "ontario/st-catharines/", "Oshawa|ON": "ontario/oshawa/", "Peterborough|ON": "ontario/peterborough/", "Sarnia|ON": "ontario/sarnia/", "Oakville|ON": "ontario/oakville/", "Cookstown|ON": "ontario/cookstown/", "Aurora|ON": "ontario/aurora/", "Montreal|QC": "quebec/montreal/", "Quebec City|QC": "quebec/quebec-city/", "Laval|QC": "quebec/laval/", "Rosemere|QC": "quebec/rosemere/", "Gatineau|QC": "quebec/gatineau/", "Sherbrooke|QC": "quebec/sherbrooke/", "Granby|QC": "quebec/granby/", "Trois-Rivieres|QC": "quebec/trois-rivieres/", "Longueuil|QC": "quebec/longueuil/", "Brossard|QC": "quebec/brossard/", "Saint-Jerome|QC": "quebec/saint-jerome/", "Terrebonne|QC": "quebec/terrebonne/", "Repentigny|QC": "quebec/repentigny/", "Drummondville|QC": "quebec/drummondville/", "Levis|QC": "quebec/levis/", "Saguenay|QC": "quebec/saguenay/", "Rimouski|QC": "quebec/rimouski/", "Rouyn-Noranda|QC": "quebec/rouyn-noranda/", "Vancouver|BC": "british-columbia/vancouver/", "Surrey|BC": "british-columbia/surrey/", "Burnaby|BC": "british-columbia/burnaby/", "Richmond|BC": "british-columbia/richmond/", "Abbotsford|BC": "british-columbia/abbotsford/", "Victoria|BC": "british-columbia/victoria/", "Nanaimo|BC": "british-columbia/nanaimo/", "Kelowna|BC": "british-columbia/kelowna/", "Kamloops|BC": "british-columbia/kamloops/", "Prince George|BC": "british-columbia/prince-george/", "Calgary|AB": "alberta/calgary/", "Edmonton|AB": "alberta/edmonton/", "Winnipeg|MB": "manitoba/winnipeg/", "Brandon|MB": "manitoba/brandon/"};
+var CITY_PAGE_MAP = {};
 function cityPageUrl(c){
-  var key = c.name + '|' + c.province;
+  var key = c.name + '|' + c.state;
   return CITY_PAGE_MAP[key] || null;
 }
 
@@ -658,16 +652,16 @@ function goToCity(cityMatch, skipGate, caseId, inline){
   var pageUrl = inline ? null : cityPageUrl(cityMatch);
   if(pageUrl){ window.location.href = pageUrl; return; }
   selectedCase = caseId || null;
-  selectedProvince = cityMatch.province;
+  selectedState = cityMatch.state;
   selectedRegion = cityMatch.region;
   selectedCityName = cityMatch.name;
   const url = new URL(window.location);
   url.searchParams.set('city', cityMatch.name);
-  url.searchParams.set('province', cityMatch.province);
+  url.searchParams.set('state', cityMatch.state);
   if(caseId) url.searchParams.set('case', caseId); else url.searchParams.delete('case');
   window.history.replaceState({}, '', url);
   // A city on its own is only ever missing one thing: what kind of case this
-  // is. Province and region are already settled by the city itself, so the
+  // is. State and region are already settled by the city itself, so the
   // only screen we owe someone here is the practice-area question - not the
   // full wizard. A case type arriving in the URL too (e.g. from an ad) skips
   // even that and goes straight to results.
@@ -678,23 +672,23 @@ function goToCity(cityMatch, skipGate, caseId, inline){
   }
 }
 
-/* ---------------- Smart search: "personal injury lawyer in Toronto" ---------------- */
+/* ---------------- Smart search: "personal injury lawyer in New York" ---------------- */
 // One bar, two ideas: the kind of lawyer + the city. We read both out of
 // whatever was typed, so people can write it the way they'd say it.
 const SEARCH_CASES = [
   {id:'injury', say:'personal injury lawyer', words:['personal injury','injury','injured','car accident','accident','slip and fall','whiplash','collision','wrongful death']},
   {id:'traffic', say:'traffic ticket lawyer', words:['traffic ticket','traffic','speeding','ticket','demerit points','careless driving','stunt driving']},
-  {id:'criminal', say:'criminal defence lawyer', words:['criminal defence','criminal defense','criminal','dui','impaired driving','assault','drug charge','charged','charges','bail']},
+  {id:'criminal', say:'criminal defense lawyer', words:['criminal defense','criminal defense','criminal','dui','impaired driving','assault','drug charge','charged','charges','bail']},
   {id:'family', say:'family lawyer', words:['family law','family','divorce','separation','separated','custody','child support','spousal support']},
   {id:'realestate', say:'real estate lawyer', words:['real estate','property','buying a home','selling a home','buy a house','sell a house','house','home','condo','closing','mortgage']},
   {id:'wills', say:'wills and estates lawyer', words:['wills and estates','wills','will','estate','estates','power of attorney','probate','poa','executor']},
   {id:'business', say:'business lawyer', words:['business','corporate','incorporation','contract','contracts','startup','shareholder']},
-  {id:'employment', say:'employment lawyer', words:['employment','wrongful dismissal','fired','terminated','severance','workplace','labour','labor']},
+  {id:'employment', say:'employment lawyer', words:['employment','wrongful dismissal','fired','terminated','severance','workplace','labor','labor']},
   {id:'immigration', say:'immigration lawyer', words:['immigration','visa','permanent resident','citizenship','refugee','work permit','sponsorship']},
   {id:'litigation', say:'civil litigation lawyer', words:['civil litigation','litigation','lawsuit','sue','suing','civil','small claims']}
 ];
-const SEARCH_PROVS = {'ontario':'ON','british columbia':'BC','bc':'BC','alberta':'AB','manitoba':'MB','quebec province':'QC'};
-const CITY_ALIASES = {'sudbury':'Greater Sudbury|ON','quebec':'Quebec City|QC'};
+const SEARCH_PROVS = {"alabama": "AL", "al": "AL", "alaska": "AK", "ak": "AK", "arizona": "AZ", "az": "AZ", "arkansas": "AR", "ar": "AR", "california": "CA", "ca": "CA", "colorado": "CO", "co": "CO", "connecticut": "CT", "ct": "CT", "delaware": "DE", "de": "DE", "district of columbia": "DC", "dc": "DC", "florida": "FL", "fl": "FL", "georgia": "GA", "ga": "GA", "hawaii": "HI", "hi": "HI", "idaho": "ID", "id": "ID", "illinois": "IL", "il": "IL", "indiana": "IN", "in": "IN", "iowa": "IA", "ia": "IA", "kansas": "KS", "ks": "KS", "kentucky": "KY", "ky": "KY", "louisiana": "LA", "la": "LA", "maine": "ME", "me": "ME", "maryland": "MD", "md": "MD", "massachusetts": "MA", "ma": "MA", "michigan": "MI", "mi": "MI", "minnesota": "MN", "mn": "MN", "mississippi": "MS", "ms": "MS", "missouri": "MO", "mo": "MO", "montana": "MT", "mt": "MT", "nebraska": "NE", "ne": "NE", "nevada": "NV", "nv": "NV", "new hampshire": "NH", "nh": "NH", "new jersey": "NJ", "nj": "NJ", "new mexico": "NM", "nm": "NM", "new york": "NY", "ny": "NY", "north carolina": "NC", "nc": "NC", "north dakota": "ND", "nd": "ND", "ohio": "OH", "oh": "OH", "oklahoma": "OK", "ok": "OK", "oregon": "OR", "or": "OR", "pennsylvania": "PA", "pa": "PA", "rhode island": "RI", "ri": "RI", "south carolina": "SC", "sc": "SC", "south dakota": "SD", "sd": "SD", "tennessee": "TN", "tn": "TN", "texas": "TX", "tx": "TX", "utah": "UT", "ut": "UT", "vermont": "VT", "vt": "VT", "virginia": "VA", "va": "VA", "washington": "WA", "wa": "WA", "west virginia": "WV", "wv": "WV", "wisconsin": "WI", "wi": "WI", "wyoming": "WY", "wy": "WY"};
+const CITY_ALIASES = {};
 const FILLER = new Set(['lawyer','lawyers','attorney','attorneys','a','an','the','i','need','needs','find','finding','looking','look','for','to','hire','firm','firms','near','me','in','of','my','get','want','help','with','and','at','around','within']);
 function normQ(s){
   return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
@@ -719,7 +713,7 @@ function parseSearch(raw){
     for(const k in CITY_ALIASES){
       if(pad.includes(' ' + k + ' ')){
         const [nm, pv] = CITY_ALIASES[k].split('|');
-        out.city = CITY_INDEX.find(c => c.name === nm && c.province === pv) || null;
+        out.city = CITY_INDEX.find(c => c.name === nm && c.state === pv) || null;
         if(out.city){ out.cityWord = k; break; }
       }
     }
@@ -736,25 +730,25 @@ function parseSearch(raw){
   return out;
 }
 function caseSay(id){ return (SEARCH_CASES.find(c => c.id === id) || {}).say; }
-const POPULAR_CITIES = ['Toronto|ON','Ottawa|ON','Mississauga|ON','Calgary|AB','Vancouver|BC','Montreal|QC','Edmonton|AB','Winnipeg|MB']
-  .map(k => { const [n,p] = k.split('|'); return CITY_INDEX.find(c => c.name === n && c.province === p); }).filter(Boolean);
+const POPULAR_CITIES = ['Miami|FL','Tampa|FL','Orlando|FL','Fort Lauderdale|FL','Jacksonville|FL','Boca Raton|FL','West Palm Beach|FL','Coral Gables|FL']
+  .map(k => { const [n,p] = k.split('|'); return CITY_INDEX.find(c => c.name === n && c.state === p); }).filter(Boolean);
 
 const fyInput = document.getElementById('citySearchInput');
 const fyForm = document.getElementById('citySearchForm');
 const fyLive = document.getElementById('fyLive');
 const fySug = document.getElementById('fySug');
 const fyErr = document.getElementById('citySearchError');
-function cityLabel(c){ return c.name + ', ' + c.province; }
+function cityLabel(c){ return c.name + ', ' + c.state; }
 function renderLive(){
   const raw = fyInput.value;
   if(!raw.trim()){ fyLive.innerHTML = ''; return; }
   const p = parseSearch(raw);
   const bits = [];
   bits.push(p.caseId
-    ? `<span class="fy-tag">Lawyer type: ${caseLabel(p.caseId, p.city && p.city.province)}</span>`
+    ? `<span class="fy-tag">Lawyer type: ${caseLabel(p.caseId, p.city && p.city.state)}</span>`
     : `<span class="fy-tag miss">Add the kind of lawyer, e.g. "family" or "personal injury"</span>`);
   if(p.city) bits.push(`<span class="fy-tag">City: ${cityLabel(p.city)}</span>`);
-  else if(p.prov) bits.push(`<span class="fy-tag">Province: ${PROVINCE_LABEL[p.prov]}</span>`);
+  else if(p.prov) bits.push(`<span class="fy-tag">State: ${STATE_LABEL[p.prov]}</span>`);
   else {
     // a town with no firm of its own counts too: we show the firms nearest to it
     const guess = placeGuess(raw, p);
@@ -762,7 +756,7 @@ function renderLive(){
     if(guess.length >= 3 && !hit && !LawdbPlaces.ready()) LawdbPlaces.load('').then(() => { if(fyInput.value === raw) renderLive(); }).catch(() => {});
     bits.push(hit
       ? `<span class="fy-tag">Near: ${hit.label}</span>`
-      : `<span class="fy-tag miss">Add a city or town, e.g. "in Toronto"</span>`);
+      : `<span class="fy-tag miss">Add a city or town, e.g. "in New York"</span>`);
   }
   fyLive.innerHTML = bits.join('');
 }
@@ -795,10 +789,10 @@ function lookUpPlace(text, caseId, raw){
     const shown = (raw || text).replace(/</g,'&lt;');
     if(caseId){
       const btns = POPULAR_CITIES.slice(0,6).map(c => `<button type="button" data-q="${caseSay(caseId)} in ${cityLabel(c)}">${c.name}</button>`).join('');
-      showSearchHelp(`We couldn't find a place called <strong>${text.replace(/</g,'&lt;')}</strong>. Try the nearest bigger town, for example <strong>${caseSay(caseId)} in Toronto</strong>.<br>${btns}`);
+      showSearchHelp(`We couldn't find a place called <strong>${text.replace(/</g,'&lt;')}</strong>. Try the nearest bigger town, for example <strong>${caseSay(caseId)} in New York</strong>.<br>${btns}`);
       fyErr.querySelectorAll('button[data-q]').forEach(b => b.addEventListener('click', () => { fyInput.value = b.dataset.q; runSearch(); }));
     } else {
-      showSearchHelp(`We couldn't find a city or a type of lawyer in "${shown}". Try something like <strong>family lawyer in Ottawa</strong>, or browse by case type below. We cover Ontario, Quebec, British Columbia, Alberta and Manitoba.`);
+      showSearchHelp(`We couldn't find a city or a type of lawyer in "${shown}". Try something like <strong>car accident lawyer in Miami</strong>, or browse by case type below. We are starting with Florida, with more states coming.`);
     }
   }).catch(() => showSearchHelp('We could not look that town up just now. Check your connection and try again, or pick a bigger city nearby.'));
 }
@@ -806,7 +800,7 @@ function lookUpPlace(text, caseId, raw){
 function startNear(spot, caseId){
   selectedNear = spot;
   selectedCase = caseId || null;
-  selectedProvince = spot.prov || null; selectedRegion = null; selectedCityName = null;
+  selectedState = spot.prov || null; selectedRegion = null; selectedCityName = null;
   try {
     const url = new URL(window.location);
     url.search = '';
@@ -840,11 +834,11 @@ function runSearch(){
   const raw = fyInput.value;
   fyErr.style.display = 'none';
   if(!raw.trim()){
-    showSearchHelp('Type the kind of lawyer and the city, for example <strong>personal injury lawyer in Toronto</strong>.');
+    showSearchHelp('Type the kind of lawyer and the city, for example <strong>personal injury lawyer in New York</strong>.');
     fyInput.focus(); return;
   }
   let p = parseSearch(raw);
-  // Old behaviour: a bare or partly typed city name still works.
+  // Old behavior: a bare or partly typed city name still works.
   if(!p.city && !p.prov && !p.caseId){
     const m = findCity(raw);
     if(m) p.city = m;
@@ -854,7 +848,7 @@ function runSearch(){
   }
   // Count the search for the owner's traffic report: what kind of lawyer and where, plus the words nobody has a page for yet (a town) when no
   // place matched. Nothing about the visitor is sent, and the words are dropped by the server unless they are plain letters.
-  (window.lwq = window.lwq || []).push({ t:'search', c:p.caseId || '', city:p.city ? p.city.name + '|' + p.city.province : '', prov:p.prov || '', w:(!p.city && !p.prov) ? p.rest : '' });
+  (window.lwq = window.lwq || []).push({ t:'search', c:p.caseId || '', city:p.city ? p.city.name + '|' + p.city.state : '', prov:p.prov || '', w:(!p.city && !p.prov) ? p.rest : '' });
   if(p.city){
     renderLive();
     if(p.caseId) goToCity(p.city, true, p.caseId, true);
@@ -862,7 +856,7 @@ function runSearch(){
     return;
   }
   if(p.prov && p.caseId){
-    selectedCase = p.caseId; selectedProvince = p.prov; selectedRegion = null; selectedCityName = null;
+    selectedCase = p.caseId; selectedState = p.prov; selectedRegion = null; selectedCityName = null;
     showResults();
     return;
   }
@@ -872,16 +866,16 @@ function runSearch(){
   if(p.caseId){
     const btns = POPULAR_CITIES.slice(0,6).map(c =>
       `<button type="button" data-q="${caseSay(p.caseId)} in ${cityLabel(c)}">${c.name}</button>`).join('');
-    showSearchHelp(`Got it: <strong>${caseLabel(p.caseId)}</strong>. Now add a city, for example <strong>${caseSay(p.caseId)} in Toronto</strong>.<br>${btns}`);
+    showSearchHelp(`Got it: <strong>${caseLabel(p.caseId)}</strong>. Now add a city, for example <strong>${caseSay(p.caseId)} in New York</strong>.<br>${btns}`);
     fyErr.querySelectorAll('button[data-q]').forEach(b => b.addEventListener('click', () => { fyInput.value = b.dataset.q; runSearch(); }));
     return;
   }
-  showSearchHelp(`We couldn't find a city or a type of lawyer in "${raw.replace(/</g,'&lt;')}". Try something like <strong>family lawyer in Ottawa</strong>, or browse by case type below. We cover Ontario, Quebec, British Columbia, Alberta and Manitoba.`);
+  showSearchHelp(`We couldn't find a city or a type of lawyer in "${raw.replace(/</g,'&lt;')}". Try something like <strong>car accident lawyer in Miami</strong>, or browse by case type below. We are starting with Florida, with more states coming.`);
 }
 fyForm.addEventListener('submit', e => { e.preventDefault(); closeSug(); runSearch(); });
 
 let selectedCase = null;
-let selectedProvince = null;
+let selectedState = null;
 let selectedRegion = null;
 // "Near a spot": the firms closest to a town with no firm of its own (Keswick) or to the person's own location. { lat, lng, label, prov, me }
 let selectedNear = null;
@@ -901,18 +895,18 @@ function setWizard(show){
   ['wizard','cases'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; });
 }
 
-/* ---------------- URL deep link (?province=xx&case=xxx&region=yyy from the homepage tiles, or ?city=xxx from a city search) ---------------- */
+/* ---------------- URL deep link (?state=xx&case=xxx&region=yyy from the homepage tiles, or ?city=xxx from a city search) ---------------- */
 const params = new URLSearchParams(location.search);
 const deepCase = params.get('case');
-const deepProvince = params.get('province');
+const deepState = params.get('state');
 const deepRegion = params.get('region');
 const deepCity = params.get('city');
-if(deepProvince && PROVINCE_LABEL[deepProvince]) selectedProvince = deepProvince;
+if(deepState && STATE_LABEL[deepState]) selectedState = deepState;
 if(deepCase && CASE_LABEL[deepCase]) selectedCase = deepCase;
 if(deepCity){
-  const cityMatch = findCity(deepCity + (deepProvince ? ', ' + deepProvince : ''));
+  const cityMatch = findCity(deepCity + (deepState ? ', ' + deepState : ''));
   if(cityMatch){
-    document.getElementById('citySearchInput').value = cityMatch.name + ', ' + cityMatch.province;
+    document.getElementById('citySearchInput').value = cityMatch.name + ', ' + cityMatch.state;
     if(deepCase && CASE_LABEL[deepCase]) selectedCase = deepCase;
     goToCity(cityMatch, !!(deepCase && CASE_LABEL[deepCase]), (deepCase && CASE_LABEL[deepCase]) ? deepCase : null);
   }
@@ -922,21 +916,21 @@ if(deepCity){
   var near = params.get('near');
   if(near && near.trim()) startNearFromUrl(near.trim(), (deepCase && CASE_LABEL[deepCase]) ? deepCase : null);
 })();
-// A free-text search arriving from the homepage (?q=family+lawyer+in+Ottawa)
+// A free-text search arriving from the homepage (?q=car+accident+lawyer+in+Miami)
 // runs through the same smart search as the bar on this page.
 (function(){
   var q = new URLSearchParams(window.location.search).get('q');
   if(q && q.trim()){ fyInput.value = q.trim(); renderLive(); runSearch(); }
 })();
-// With a province in hand (and a case type, or not), go straight to the map - the path the map tiles on
-// the location pages use. A region in the URL too zooms to that area instead of the whole province.
-if(!deepCity && !params.get('near') && !params.get('q') && deepProvince && PROVINCE_LABEL[deepProvince]){
-  if(deepRegion && REGION_PROVINCE[deepRegion] === deepProvince) selectedRegion = deepRegion;
+// With a state in hand (and a case type, or not), go straight to the map - the path the map tiles on
+// the location pages use. A region in the URL too zooms to that area instead of the whole state.
+if(!deepCity && !params.get('near') && !params.get('q') && deepState && STATE_LABEL[deepState]){
+  if(deepRegion && REGION_STATE[deepRegion] === deepState) selectedRegion = deepRegion;
   showResults();
 }
-// A case type with no place yet (?case=family, the "Search by Location" link on the province pages): start the sentence
+// A case type with no place yet (?case=family, the "Search by Location" link on the state pages): start the sentence
 // in the search box, "family lawyer in ", and let the person finish it with a city.
-if(selectedCase && !deepCity && !deepProvince && !params.get('near') && !params.get('q')){
+if(selectedCase && !deepCity && !deepState && !params.get('near') && !params.get('q')){
   fyInput.value = caseSay(selectedCase) + ' in ';
   renderLive();
 }
@@ -958,14 +952,14 @@ const HIDDEN_LAYERS = new Set([
   'boundary_3', 'boundary_disputed', 'natural_earth'
 ]);
 
-// City and town names stay on (that's the "Toronto / Markham / North York"
+// City and town names stay on (that's the "Miami / Miami Beach / Coral Gables"
 // orientation you want), but everything smaller than a town is hidden so the
 // map doesn't fill with hamlets.
 const PLACE_LABEL_LAYERS = ['label_city', 'label_city_capital', 'label_town', 'label_state'];
 
 // Every road line and every road label comes off. At the zoom levels this map
 // is actually used at, highway shields and the yellow motorway web were pure
-// noise - what orients someone is the province outline, the water, and their
+// noise - what orients someone is the state outline, the water, and their
 // own firm pins. Streets fade back in faintly only when zoomed right in.
 function isRoadLayer(l){
   if(l.type === 'symbol' && /highway-name|road_|shield|junction/.test(l.id)) return true;
@@ -991,7 +985,7 @@ function applyMapTheme(){
     if(l.id.startsWith('landcover')) map.setPaintProperty(l.id, 'fill-color', '#e3dfd3');
     if(l.id === 'park' || l.id === 'park_outline') map.setPaintProperty(l.id,
       l.type === 'line' ? 'line-color' : 'fill-color', '#e3dfd3');
-    // Province and country borders, dark enough to read on the light base.
+    // State and country borders, dark enough to read on the light base.
     if(l.id === 'boundary_2' || l.id === 'boundary_1'){
       map.setPaintProperty(l.id, 'line-color', 'rgba(88,97,112,0.85)');
       map.setPaintProperty(l.id, 'line-width', 1.3);
@@ -1078,14 +1072,14 @@ function avatarHtml(f, size){
     return `<img class="avatar" src="${f.src}" alt="${f.name} logo" style="width:${size}px;height:${size}px;">`;
   }
   const initials = f.initials || (f.name || '').slice(0,2).toUpperCase();
-  const color = '#2b3a4c'; // one navy for every monogram (a firm's own colour is not used)
+  const color = '#2b3a4c'; // one navy for every monogram (a firm's own color is not used)
   const fs = Math.round(size*0.4);
   return `<div class="avatar avatar-mono" style="width:${size}px;height:${size}px;background:${color};font-size:${fs}px;">${initials}</div>`;
 }
 
 
 /* ---------------- Guides under the results ---------------- */
-var GUIDE_CASE_BY_LABEL = {'Personal Injury':'injury','Real Estate':'realestate','Wills & Estates':'wills','Family Law':'family','Immigration':'immigration','Employment':'employment','Litigation':'litigation','Corporate':'business','Criminal Defence':'criminal','Condominiums':'realestate','Dispute Resolution':'litigation'};
+var GUIDE_CASE_BY_LABEL = {'Personal Injury':'injury','Real Estate':'realestate','Wills & Estates':'wills','Family Law':'family','Immigration':'immigration','Employment':'employment','Litigation':'litigation','Corporate':'business','Criminal Defense':'criminal','Condominiums':'realestate','Dispute Resolution':'litigation'};
 function guideCase(g){
   if(GUIDE_CASE_BY_LABEL[g.banner_label]) return GUIDE_CASE_BY_LABEL[g.banner_label];
   var t = (g.slug + ' ' + g.title).toLowerCase();
@@ -1101,22 +1095,22 @@ function loadGuides(){
 function renderGuides(){
   var box = document.getElementById('resGuides');
   if(!box) return;
-  var city = selectedCityName, prov = selectedProvince, cs = selectedCase;
+  var city = selectedCityName, prov = selectedState, cs = selectedCase;
   loadGuides().then(function(all){
     var scored = all.filter(function(g){ return g.audience !== 'firms' && g.city; }).map(function(g){
       var sc = 0, gc = guideCase(g);
       if(city && g.city === city) sc += 3;
       if(cs && gc === cs) sc += 3;
-      if(prov && g.province === prov) sc += 1;
-      var ok = (city && g.city === city) || (cs && gc === cs && g.province === prov);
+      if(prov && g.state === prov) sc += 1;
+      var ok = (city && g.city === city) || (cs && gc === cs && g.state === prov);
       return {g:g, sc:sc, ok:ok};
     }).filter(function(x){ return x.ok; }).sort(function(a,b){ return b.sc - a.sc; }).slice(0,3);
     if(!scored.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
-    var where = city ? ' in ' + city : (prov ? ' in ' + (PROVINCE_LABEL[prov] || prov) : '');
+    var where = city ? ' in ' + city : (prov ? ' in ' + (STATE_LABEL[prov] || prov) : '');
     var what = cs ? caseLabel(cs, prov) : 'Legal';
     box.innerHTML = '<h2>' + what + ' guides' + where + '</h2><p class="rg-sub">Plain-language reading to do before you call a firm.</p><div class="rg-grid">' +
       scored.map(function(x){ var g = x.g;
-        return '<a class="rg-card" href="/blog/' + g.slug + '"><small>' + g.city + ', ' + g.province + ' &middot; ' + g.banner_label + '</small><b>' + g.title + '</b><span>' + g.excerpt + '</span></a>';
+        return '<a class="rg-card" href="/blog/' + g.slug + '"><small>' + g.city + ', ' + g.state + ' &middot; ' + g.banner_label + '</small><b>' + g.title + '</b><span>' + g.excerpt + '</span></a>';
       }).join('') + '</div>';
     box.style.display = 'block';
   });
@@ -1137,20 +1131,20 @@ function showResults(skipScroll){
   }
   // choosing a city or a region leaves "near a spot" mode
   if(selectedNear && (selectedCityName || selectedRegion)) selectedNear = null;
-  // near a spot: the closest firms to it, whatever province or city they are in
+  // near a spot: the closest firms to it, whatever state or city they are in
   const near = selectedNear ? LawdbPlaces.nearest(firms, selectedNear.lat, selectedNear.lng, { caseId: selectedCase, max: 40 }) : null;
   const nearName = selectedNear ? (selectedNear.me ? 'you' : selectedNear.label) : '';
-  if(near && !selectedProvince && near.list.length) selectedProvince = near.list[0].f.province;
+  if(near && !selectedState && near.list.length) selectedState = near.list[0].f.state;
   setWizard(false);
   document.getElementById('results').classList.add('active');
-  document.getElementById('casePill').textContent = selectedCase ? caseLabel(selectedCase, selectedProvince) : 'Any case type';
+  document.getElementById('casePill').textContent = selectedCase ? caseLabel(selectedCase, selectedState) : 'Any case type';
   document.getElementById('regionPill').textContent = selectedNear
     ? 'Near ' + nearName
     : selectedCityName
-    ? selectedCityName + ', ' + selectedProvince
+    ? selectedCityName + ', ' + selectedState
     : selectedRegion
       ? REGION_LABEL[selectedRegion]
-      : 'All of ' + (PROVINCE_LABEL[selectedProvince] || 'Canada');
+      : 'All of ' + (STATE_LABEL[selectedState] || 'the United States');
   if(!skipScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Landing straight on a city (from a city search) skips the case-type
@@ -1164,7 +1158,7 @@ function showResults(skipScroll){
     document.getElementById('cityRefineLabel').textContent = selectedNear ? `What are you looking for near ${nearName}?` : `What are you looking for in ${selectedCityName}?`;
     const chipsHtml = CASE_TYPES.map(c => {
       const active = selectedCase === c.id ? ' active' : '';
-      return `<div class="city-refine-chip${active}" data-c="${c.id}">${caseLabel(c.id, selectedProvince)}</div>`;
+      return `<div class="city-refine-chip${active}" data-c="${c.id}">${caseLabel(c.id, selectedState)}</div>`;
     }).join('') + `<div class="city-refine-chip${selectedCase ? '' : ' active'}" data-c="">Any case type</div>`;
     document.getElementById('cityRefineChips').innerHTML = chipsHtml;
     document.querySelectorAll('.city-refine-chip').forEach(chip => {
@@ -1179,24 +1173,24 @@ function showResults(skipScroll){
 
   renderGuides();
 
-  // Everything is scoped to the chosen province first: a Quebec search must
-  // never surface Ontario firms, and vice versa.
-  const inProvince = f => !selectedProvince || f.province === selectedProvince;
+  // Everything is scoped to the chosen state first: a Florida search must
+  // never surface firms from another state, and vice versa.
+  const inState = f => !selectedState || f.state === selectedState;
 
   // The Basic list always shows the FULL roster of firms in the chosen region
-  // (or the whole province, if no region was picked) - case type is used to
+  // (or the whole state, if no region was picked) - case type is used to
   // sort the closest matches to the top, not to hide everyone else. Practice-
   // area tags are inferred, not firm-confirmed, so being strict about them
   // would hide perfectly good local options.
   // Exception: the city-refine chips are an explicit, deliberate narrow/broaden
   // action the person just took on a specific city, so there we actually
   // filter rather than just reorder - picking "Any case type" undoes it instantly.
-  const regionFirms = firms.filter(f => !f.featured && inProvince(f) && (!selectedRegion || f.region === selectedRegion));
+  const regionFirms = firms.filter(f => !f.featured && inState(f) && (!selectedRegion || f.region === selectedRegion));
   let cityFiltering = selectedCityName && selectedCase;
   let widenedNote = '';
   if(cityFiltering && !regionFirms.some(f => f.caseTypes.includes(selectedCase))){
     cityFiltering = false;
-    widenedNote = `We don't have a firm tagged for <strong>${caseLabel(selectedCase, selectedProvince).toLowerCase()}</strong> in ${selectedCityName} yet, so these are all the lawyers we list there. Featured partners for this case type appear above when available.`;
+    widenedNote = `We don't have a firm tagged for <strong>${caseLabel(selectedCase, selectedState).toLowerCase()}</strong> in ${selectedCityName} yet, so these are all the lawyers we list there. Featured partners for this case type appear above when available.`;
   }
   let regional = regionFirms
     .filter(f => !cityFiltering || f.caseTypes.includes(selectedCase))
@@ -1213,28 +1207,20 @@ function showResults(skipScroll){
       if(ar !== br) return ar - br;
       return b.rating - a.rating;
     });
-  let featuredMatches = firms.filter(f => f.featured && inProvince(f) && (!selectedRegion || f.region === selectedRegion) && (!selectedCase || f.caseTypes.includes(selectedCase)));
+  let featuredMatches = firms.filter(f => f.featured && inState(f) && (!selectedRegion || f.region === selectedRegion) && (!selectedCase || f.caseTypes.includes(selectedCase)));
   if(near){
     featuredMatches = near.list.filter(x => x.f.featured).map(x => x.f);
     regional = near.list.filter(x => !x.f.featured).map(x => x.f);
     widenedNote = near.widened
-      ? `We don't have a firm tagged for <strong>${caseLabel(selectedCase, selectedProvince).toLowerCase()}</strong> within 150 km of ${selectedNear.me ? 'you' : selectedNear.label} yet, so these are the closest lawyers of any kind.`
+      ? `We don't have a firm tagged for <strong>${caseLabel(selectedCase, selectedState).toLowerCase()}</strong> within 150 km of ${selectedNear.me ? 'you' : selectedNear.label} yet, so these are the closest lawyers of any kind.`
       : '';
   }
   currentFeatured = featuredMatches;
 
   document.getElementById('matchCount').textContent = `${regional.length + featuredMatches.length} firm${(regional.length+featuredMatches.length)===1?'':'s'} shown`;
 
-  // Quebec is a civil-law jurisdiction: residential closings and most routine
-  // estate work are handled by notaires, not avocats. Saying so is more useful
-  // than quietly showing an unrelated list.
-  const noteEl = document.getElementById('provinceNote');
-  if(selectedProvince === 'QC' && (selectedCase === 'realestate' || selectedCase === 'wills')){
-    noteEl.style.display = 'block';
-    noteEl.innerHTML = selectedCase === 'realestate'
-      ? 'These are Quebec lawyers who handle property <strong>disputes</strong> - hidden defects, broken purchase agreements, condo and boundary conflicts. If you are simply buying or selling a home, a <strong>notaire</strong> handles that closing, not a lawyer.'
-      : 'These are Quebec lawyers who handle estate <strong>disputes</strong> - contested wills, conflicts with a liquidator, claims against an estate. If you are simply making a will, a <strong>notaire</strong> does that.';
-  } else if(widenedNote){
+  const noteEl = document.getElementById('stateNote');
+  if(widenedNote){
     noteEl.style.display = 'block';
     noteEl.innerHTML = widenedNote;
   } else {
@@ -1247,7 +1233,7 @@ function showResults(skipScroll){
     document.getElementById('featuredCards').innerHTML = featuredMatches.map(f => `
       <div class="fcard" onclick="focusFirmOnMap('${f.slug}')">
         <span class="ribbon"><span class="r-tick"><svg viewBox="0 0 24 24" fill="none" stroke="#e2bd6a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Featured</span>
-        <div class="fcard-top">${avatarHtml(f, 40)}<div><div class="fname">${f.name}</div><div class="fcity">${f.city}, ${f.province}</div></div></div>
+        <div class="fcard-top">${avatarHtml(f, 40)}<div><div class="fname">${f.name}</div><div class="fcity">${f.city}, ${f.state}</div></div></div>
         <div class="frate">${f.rating.toFixed(1)} stars (${f.count})</div>
         <div class="fcard-actions">
           ${f.phone ? `<a class="fa-call" href="tel:${f.phone}" onclick="event.stopPropagation()">Call</a>` : ''}
@@ -1261,8 +1247,8 @@ function showResults(skipScroll){
   const listBody = document.getElementById('listBody');
   if(!regional.length){
     const emptyMsg = cityFiltering
-      ? `No ${caseLabel(selectedCase, selectedProvince).toLowerCase()} listings in ${selectedCityName} yet.<br><button id="widenBtn">Show all case types in ${selectedCityName}</button>`
-      : `No firms in this region yet.<br><button id="widenBtn">Show all of ${PROVINCE_LABEL[selectedProvince] || 'Canada'}</button>`;
+      ? `No ${caseLabel(selectedCase, selectedState).toLowerCase()} listings in ${selectedCityName} yet.<br><button id="widenBtn">Show all case types in ${selectedCityName}</button>`
+      : `No firms in this region yet.<br><button id="widenBtn">Show all of ${STATE_LABEL[selectedState] || 'the United States'}</button>`;
     listBody.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
     document.getElementById('widenBtn')?.addEventListener('click', ()=>{
       if(cityFiltering){ selectedCase = null; showResults(true); }
@@ -1318,8 +1304,8 @@ document.getElementById('changeFilters').addEventListener('click', ()=>{
   selectedNear = null;
   if(selectedCityName){
     // Already on a city - the only thing worth re-asking is the practice
-    // area, not province/region we already know from the city itself.
-    showCityGate({ name: selectedCityName, province: selectedProvince });
+    // area, not state/region we already know from the city itself.
+    showCityGate({ name: selectedCityName, state: selectedState });
   } else {
     setWizard(true);
   }
@@ -1335,14 +1321,14 @@ function popupHtml(f){
   let extra = '';
   if(f.featured){
     const area = (f.caseTypes && f.caseTypes[0]) ? f.caseTypes[0] : null;
-    // the province-wide page for this firm's main practice area (only where one exists)
-    const PROV = { ON: ['ontario', 'Ontario'], QC: ['quebec', 'Quebec'], BC: ['british-columbia', 'British Columbia'], AB: ['alberta', 'Alberta'], MB: ['manitoba', 'Manitoba'] }[f.province] || ['ontario', 'Ontario'];
-    const AREA_PAGE = { business: 'business-lawyers', criminal: 'criminal-defence-lawyers', employment: 'employment-lawyers', family: 'family-lawyers', immigration: 'immigration-lawyers', injury: 'personal-injury-lawyers', litigation: 'litigation-lawyers', realestate: 'real-estate-lawyers', traffic: 'traffic-ticket-lawyers', wills: 'wills-estate-lawyers' };
-    const MISSING = { AB: ['criminal', 'immigration', 'injury', 'traffic'], MB: ['injury', 'traffic'] }[f.province] || [];
+    // the state-wide page for this firm's main practice area (only where one exists)
+    const PROV = [(f.state || 'FL') === 'FL' ? 'florida' : String(f.state || '').toLowerCase(), (f.state || 'FL') === 'FL' ? 'Florida' : f.state];
+    const AREA_PAGE = { business: 'business-lawyers', criminal: 'criminal-defense-lawyers', employment: 'employment-lawyers', family: 'family-lawyers', immigration: 'immigration-lawyers', injury: 'personal-injury-lawyers', litigation: 'litigation-lawyers', realestate: 'real-estate-lawyers', traffic: 'traffic-ticket-lawyers', wills: 'wills-estate-lawyers' };
+    const MISSING = [];
     const areaSlug = area && AREA_PAGE[area] && !MISSING.includes(area) ? AREA_PAGE[area] : null;
     const provName = PROV[1];
     const areaLink = areaSlug && CASE_LABEL[area]
-      ? `<a href="/${PROV[0]}/${areaSlug}">${caseLabel(area, f.province)} in ${provName}</a>` : '';
+      ? `<a href="/${PROV[0]}/${areaSlug}">${caseLabel(area, f.state)} in ${provName}</a>` : '';
     extra = `<div class="popup-links">
       <a href="/firms/${f.slug}">Full profile and reviews</a>
       ${areaLink}
@@ -1361,7 +1347,7 @@ let featuredPopup = null;
 
 function featuredCardHtml(f, idx, total){
   const areaSlug = f.caseTypes && f.caseTypes[0]
-    ? (f.province === 'QC' ? `qc-${f.caseTypes[0]}` : f.caseTypes[0]) : null;
+    ? f.caseTypes[0] : null;
   const tagLabel = (f.tags && f.tags[0]) || (areaSlug && CASE_LABEL[f.caseTypes[0]]) || '';
   const dots = Array.from({length: total}, (_, i) =>
     `<span class="fp-dot${i===idx?' active':''}"></span>`).join('');

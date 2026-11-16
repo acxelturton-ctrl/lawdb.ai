@@ -6,7 +6,7 @@ import { checkFeedUrl } from './feeds.js';
 import { imageInfo, IMAGE_RULES } from './images.js';
 import { HttpError } from './http.js';
 
-const UA = 'LawDB-LogoFinder/1.0 (+https://lawdb.ca; info@lawdb.ca)';
+const UA = 'LawDB-LogoFinder/1.0 (+https://lawdb.ai; info@lawdb.ai)';
 const TIMEOUT = 8000;
 const HEAD_BYTES = 96 * 1024; // enough of a picture to read its size
 

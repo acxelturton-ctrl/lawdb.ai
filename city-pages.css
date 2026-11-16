@@ -1,6 +1,6 @@
-/* City and case-type pages (<province>/<city>/<practice>-lawyers and the city hubs). Loaded after site.css; city-pages.js adds the firm cards with their logos, the
+/* City and case-type pages (<state>/<city>/<practice>-lawyers and the city hubs). Loaded after site.css; city-pages.js adds the firm cards with their logos, the
    street map and the motion. Everything here is an upgrade of the baked page: with scripts off the page is exactly the table and text it always was.
-   Palette colours only (scripts/palette.mjs). Motion is switched off for visitors who ask for less of it. */
+   Palette colors only (scripts/palette.mjs). Motion is switched off for visitors who ask for less of it. */
 
 /* ---------- the numbers: a dark band, count-up on first view ---------- */
 body.pg-city .seo-stats, .seo-city .seo-stats {

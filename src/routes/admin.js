@@ -1,3 +1,4 @@
+import { inUS } from '../lib/us.js';
 import { json, readJson, clampInt, NO_STORE, HttpError } from '../lib/http.js';
 import { requireAdmin } from '../lib/auth.js';
 import { runBackup } from '../lib/backup.js';
@@ -105,7 +106,7 @@ export async function listFirms({ request, env, url }) {
   const limit = clampInt(url.searchParams.get('limit'), 25, 1, 100);
   const offset = clampInt(url.searchParams.get('offset'), 0, 0, 100000);
   const like = `%${q.replace(/[\\%_]/g, '\\$&')}%`;
-  // Filters, as on the firms table of the admin: status (live, hidden, pending), plan (featured or basic), province.
+  // Filters, as on the firms table of the admin: status (live, hidden, pending), plan (featured or basic), state.
   const where = [];
   const args = [];
   if (q) { where.push("(name LIKE ? ESCAPE '\\' OR city LIKE ? ESCAPE '\\' OR slug LIKE ? ESCAPE '\\')"); args.push(like, like, like); }
@@ -113,14 +114,14 @@ export async function listFirms({ request, env, url }) {
   if (status) { if (!['live', 'hidden', 'pending'].includes(status)) throw new HttpError(422, 'Unknown status'); where.push('status = ?'); args.push(status); }
   const plan = url.searchParams.get('plan') || '';
   if (plan) { if (plan !== 'featured' && plan !== 'basic') throw new HttpError(422, 'plan must be featured or basic'); where.push('featured = ?'); args.push(plan === 'featured' ? 1 : 0); }
-  const province = (url.searchParams.get('province') || '').toUpperCase();
-  if (province) { where.push('province = ?'); args.push(province); }
+  const state = (url.searchParams.get('state') || '').toUpperCase();
+  if (state) { where.push('state = ?'); args.push(state); }
   const ORDER = { name: 'name COLLATE NOCASE ASC', city: 'city COLLATE NOCASE ASC, name COLLATE NOCASE ASC', updated: 'updated_at DESC', rating: 'rating DESC, review_count DESC', id: 'rowid DESC' };
   const sort = url.searchParams.get('sort') || 'name';
   if (!ORDER[sort]) throw new HttpError(422, `sort must be one of: ${Object.keys(ORDER).join(', ')}`);
   const clause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const [list, total] = await env.DB.batch([
-    env.DB.prepare(`SELECT rowid AS id, slug, name, city, province, featured, rating, review_count, status, updated_at, data, hours, about, EXISTS (SELECT 1 FROM firm_verifications v WHERE v.firm_slug = firms.slug AND v.status = 'verified') AS verified FROM firms ${clause} ORDER BY ${ORDER[sort]} LIMIT ? OFFSET ?`).bind(...args, limit, offset),
+    env.DB.prepare(`SELECT rowid AS id, slug, name, city, state, featured, rating, review_count, status, updated_at, data, hours, about, EXISTS (SELECT 1 FROM firm_verifications v WHERE v.firm_slug = firms.slug AND v.status = 'verified') AS verified FROM firms ${clause} ORDER BY ${ORDER[sort]} LIMIT ? OFFSET ?`).bind(...args, limit, offset),
     env.DB.prepare(`SELECT COUNT(*) AS n FROM firms ${clause}`).bind(...args),
   ]);
   // `strength` is the profile strength out of 100 (see src/lib/profile-strength.js); the firm record itself is not sent.
@@ -129,12 +130,12 @@ export async function listFirms({ request, env, url }) {
 
 export async function getFirm({ request, env, params }) {
   await requireAdmin(env, request);
-  const row = await env.DB.prepare('SELECT rowid AS id, data, hours, about, status, updated_at, enquiry_email FROM firms WHERE slug = ?').bind(params.slug).first();
+  const row = await env.DB.prepare('SELECT rowid AS id, data, hours, about, status, updated_at, inquiry_email FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!row) throw new HttpError(404, 'Firm not found');
   const firm = { ...JSON.parse(row.data), about: row.about || '' };
   const verified = (await getVerification(env, params.slug))?.status === 'verified';
   const location = await mainOf(env, params.slug), locations = location ? [] : await locationsOf(env, params.slug); // office pages of a firm: which firm this page belongs to, or which pages belong to it
-  return reply({ id: row.id, slug: params.slug, status: row.status, firm, location, locations, hours: row.hours ? JSON.parse(row.hours) : null, updatedAt: row.updated_at, enquiryEmail: row.enquiry_email || '', strength: profileStrength(firm, { about: row.about, hours: row.hours, verified }) });
+  return reply({ id: row.id, slug: params.slug, status: row.status, firm, location, locations, hours: row.hours ? JSON.parse(row.hours) : null, updatedAt: row.updated_at, inquiryEmail: row.inquiry_email || '', strength: profileStrength(firm, { about: row.about, hours: row.hours, verified }) });
 }
 
 // Any firm's analytics, whatever its plan (the same report the firm sees), plus its free-month record.
@@ -172,7 +173,7 @@ export async function trialEnd({ request, env, params, url, exec }) {
 export async function trialsList({ request, env }) {
   await requireAdmin(env, request);
   const { results } = await env.DB.prepare(
-    `SELECT t.firm_slug AS slug, f.name, f.city, f.province, t.source, t.started_at AS startedAt, t.ends_at AS endsAt, t.status, t.views, t.actions, t.enquiries
+    `SELECT t.firm_slug AS slug, f.name, f.city, f.state, t.source, t.started_at AS startedAt, t.ends_at AS endsAt, t.status, t.views, t.actions, t.inquiries
      FROM firm_trials t JOIN firms f ON f.slug = t.firm_slug ORDER BY t.started_at DESC LIMIT 200`
   ).all();
   return reply({ funnel: await trialFunnel(env), trials: results });
@@ -202,10 +203,10 @@ export async function listAudit({ request, env, url }) {
 // One new listing. `status` is 'live' (shown at once, the default) or 'hidden' (saved, shown nowhere until it is switched on).
 async function createOne(env, admin, body, status) {
   // Coordinates are optional: without them the pin goes to the address, or the middle of the city.
-  const coords = body.lat == null && body.lng == null ? await placeFor(env, { address: typeof body.address === 'string' ? body.address : '', city: String(body.city || ''), province: String(body.province || '').toUpperCase() }) : undefined;
+  const coords = body.lat == null && body.lng == null ? await placeFor(env, { address: typeof body.address === 'string' ? body.address : '', city: String(body.city || ''), state: String(body.state || '').toUpperCase() }) : undefined;
   const built = await prepareNewFirm(env, body, { coords });
   await insertFirm(env, built, { status, createdBy: admin.id });
-  await audit(env, admin, 'firm.create', 'firm', built.firm.slug, { name: built.firm.name, city: built.firm.city, province: built.firm.province, status });
+  await audit(env, admin, 'firm.create', 'firm', built.firm.slug, { name: built.firm.name, city: built.firm.city, state: built.firm.state, status });
   return built.firm.slug;
 }
 
@@ -232,7 +233,7 @@ export async function importFirms({ request, env }) {
   for (const [i, row] of body.rows.entries()) {
     try {
       if (!row || typeof row !== 'object') throw new HttpError(422, 'Not a firm row');
-      const dupe = await env.DB.prepare('SELECT slug FROM firms WHERE name = ? COLLATE NOCASE AND city = ? COLLATE NOCASE AND province = ?').bind(String(row.name || '').trim(), String(row.city || '').trim(), String(row.province || '').toUpperCase()).first();
+      const dupe = await env.DB.prepare('SELECT slug FROM firms WHERE name = ? COLLATE NOCASE AND city = ? COLLATE NOCASE AND state = ?').bind(String(row.name || '').trim(), String(row.city || '').trim(), String(row.state || '').toUpperCase()).first();
       if (dupe) { results.push({ row: i, ok: false, skipped: true, slug: dupe.slug, error: 'Already listed' }); continue; }
       results.push({ row: i, ok: true, slug: await createOne(env, admin, row, status) });
     } catch (err) {
@@ -243,14 +244,14 @@ export async function importFirms({ request, env }) {
   return reply({ ok: true, created: results.filter((r) => r.ok).length, results });
 }
 
-// Look up the map position of an address (admin editor: "Find on map"). `approx` means only the city, or the middle of the province, was found.
+// Look up the map position of an address (admin editor: "Find on map"). `approx` means only the city, or the middle of the state, was found.
 export async function geocodeAddress({ request, env, url }) {
   await requireAdmin(env, request);
   const address = (url.searchParams.get('address') || '').trim().slice(0, 300);
   const city = (url.searchParams.get('city') || '').trim().slice(0, 80);
-  const province = (url.searchParams.get('province') || '').trim().toUpperCase().slice(0, 2);
+  const state = (url.searchParams.get('state') || '').trim().toUpperCase().slice(0, 2);
   if (!address && !city) throw new HttpError(422, 'Give an address or a city');
-  const place = await placeFor(env, { address, city, province });
+  const place = await placeFor(env, { address, city, state });
   return reply({ found: !!place, ...(place ? { lat: place.lat, lng: place.lng, approx: !!place.approx } : {}) });
 }
 
@@ -274,7 +275,7 @@ export async function listMembers({ request, env, url }) {
   const decided = url.searchParams.get('decided') === '1';
   const { results } = await env.DB.prepare(
     `SELECT m.id, m.status, m.contact_name AS contactName, m.job_title AS jobTitle, m.message, m.created_at AS requestedAt, m.decided_at AS decidedAt,
-            u.email, f.slug, f.name AS firmName, f.city, f.province, f.status AS firmStatus, f.featured, f.lat, f.lng, f.created_by AS createdBy, f.data,
+            u.email, f.slug, f.name AS firmName, f.city, f.state, f.status AS firmStatus, f.featured, f.lat, f.lng, f.created_by AS createdBy, f.data,
             (SELECT l.main_slug FROM firm_locations l WHERE l.location_slug = f.slug) AS mainSlug,
             (SELECT f3.name FROM firm_locations l JOIN firms f3 ON f3.slug = l.main_slug WHERE l.location_slug = f.slug) AS mainName,
             (SELECT GROUP_CONCAT(u2.email, ', ') FROM firm_members m2 JOIN users u2 ON u2.id = m2.user_id
@@ -312,10 +313,10 @@ export async function decideMember({ request, env, url, params, exec }) {
       if (body.lat != null || body.lng != null) { lat = Number(body.lat); lng = Number(body.lng); }
       else if (!(lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52)) {
         const f0 = JSON.parse(m.data);
-        const place = await placeFor(env, { address: f0.address, city: f0.city, province: f0.province });
+        const place = await placeFor(env, { address: f0.address, city: f0.city, state: f0.state });
         if (place) ({ lat, lng, approx } = place);
       }
-      if (!(lat >= 41 && lat <= 84 && lng >= -142 && lng <= -52)) throw new HttpError(422, 'Those coordinates are not inside Canada. Clear them to let LawDB place the pin, or check the numbers.');
+      if (!inUS(lat, lng)) throw new HttpError(422, 'Those coordinates are not inside the United States. Clear them to let LawDB place the pin, or check the numbers.');
       const firm = { ...JSON.parse(m.data), lat, lng, ...(approx ? { approxCoords: true } : {}) };
       if (!approx) delete firm.approxCoords;
       writes.push(env.DB.prepare("UPDATE firms SET status = 'live', lat = ?, lng = ?, data = ?, updated_at = datetime('now') WHERE slug = ?").bind(lat, lng, JSON.stringify(firm), m.slug));
@@ -341,7 +342,7 @@ export async function revertEdit({ request, env, params }) {
   const body = {};
   for (const [k, v] of Object.entries(JSON.parse(entry.detail || '{}'))) {
     // Switching a firm on or off, moving it, and the plan are not undone from the list of edits.
-    if (['featured', 'pageMode', 'status', 'city', 'province', 'lat', 'lng'].includes(k)) continue; // (pageMode: old entries only)
+    if (['featured', 'pageMode', 'status', 'city', 'state', 'lat', 'lng'].includes(k)) continue; // (pageMode: old entries only)
     if (k === 'hours') body.hours = v.from ?? null;
     else if (k === 'tags' || k === 'caseTypes' || k === 'offices') body[k] = v.from ?? [];
     else if (k === 'social') body.social = v.from ?? {};
@@ -456,7 +457,7 @@ export async function newsGet({ request, env }) {
   await requireAdmin(env, request);
   const [{ results }, setting] = await Promise.all([
     env.DB.prepare(
-      `SELECT ff.firm_slug AS slug, json_extract(f.data, '$.name') AS name, f.city, f.province, f.featured, ff.enabled, ff.status, ff.kind, ff.feed_url AS feedUrl,
+      `SELECT ff.firm_slug AS slug, json_extract(f.data, '$.name') AS name, f.city, f.state, f.featured, ff.enabled, ff.status, ff.kind, ff.feed_url AS feedUrl,
               ff.last_checked_at AS lastCheckedAt, ff.last_error AS lastError, (SELECT COUNT(*) FROM firm_posts p WHERE p.firm_slug = ff.firm_slug) AS posts
        FROM firm_feeds ff JOIN firms f ON f.slug = ff.firm_slug WHERE f.featured = 1 OR (ff.page_only = 0 AND (ff.status IN ('ok', 'error') OR ff.source = 'manual')) ORDER BY f.featured DESC, name`
     ).all(),
@@ -492,7 +493,7 @@ export async function searchRun({ request, env }) {
 export async function searchInspect({ request, env }) {
   await requireAdmin(env, request);
   const body = await readJson(request, 600);
-  const site = new URL(env.SITE_ORIGIN || 'https://lawdb.ca').origin;
+  const site = new URL(env.SITE_ORIGIN || 'https://lawdb.ai').origin;
   let u;
   try { u = new URL(String(body.url || '').trim(), site + '/'); } catch { throw new HttpError(422, 'That is not a web address.'); }
   if (u.origin !== site) throw new HttpError(422, `Only pages on ${site} can be checked.`);
@@ -519,7 +520,7 @@ export async function logoQueue({ request, env, url }) {
   const base = `FROM firms WHERE status = 'live' AND COALESCE(json_extract(data, '$.type'), '') != 'logo'
                 AND COALESCE(json_extract(data, '$.website'), '') != ''`;
   const [{ results }, rest] = await Promise.all([
-    env.DB.prepare(`SELECT slug, json_extract(data, '$.name') AS name, city, province, json_extract(data, '$.website') AS website ${base} AND slug > ? ORDER BY slug LIMIT ?`).bind(after, limit).all(),
+    env.DB.prepare(`SELECT slug, json_extract(data, '$.name') AS name, city, state, json_extract(data, '$.website') AS website ${base} AND slug > ? ORDER BY slug LIMIT ?`).bind(after, limit).all(),
     env.DB.prepare(`SELECT COUNT(*) AS n ${base} AND slug > ?`).bind(after).first(),
   ]);
   return reply({ firms: results, remaining: rest.n });
@@ -558,18 +559,18 @@ export async function logoAccept({ request, env, params }) {
   return reply({ ok: true, image }, 201);
 }
 
-// Verified by LawDB (see src/lib/verification.js): the admin looks the lawyer up in the province's public directory and records what was checked.
+// Verified by LawDB (see src/lib/verification.js): the admin looks the lawyer up in the state's public directory and records what was checked.
 export async function verificationGet({ request, env, params }) {
   await requireAdmin(env, request);
-  const firm = await env.DB.prepare('SELECT province FROM firms WHERE slug = ?').bind(params.slug).first();
+  const firm = await env.DB.prepare('SELECT state FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!firm) throw new HttpError(404, 'Firm not found');
-  return reply(fullView(await getVerification(env, params.slug), firm.province));
+  return reply(fullView(await getVerification(env, params.slug), firm.state));
 }
 
 export async function verificationSet({ request, env, params, url, exec }) {
   const admin = await requireAdmin(env, request);
   const body = await readJson(request, 2000);
-  const firm = await env.DB.prepare('SELECT name, province FROM firms WHERE slug = ?').bind(params.slug).first();
+  const firm = await env.DB.prepare('SELECT name, state FROM firms WHERE slug = ?').bind(params.slug).first();
   if (!firm) throw new HttpError(404, 'Firm not found');
   const was = await getVerification(env, params.slug);
   await markVerified(env, admin, params.slug, body);
@@ -577,7 +578,7 @@ export async function verificationSet({ request, env, params, url, exec }) {
     const to = await ownerEmails(env, params.slug);
     if (to.length) mailInBackground(env, exec, { to, ...verifiedEmail(env.SITE_ORIGIN || url.origin, { firmName: firm.name, slug: params.slug }) });
   }
-  return reply(fullView(await getVerification(env, params.slug), firm.province));
+  return reply(fullView(await getVerification(env, params.slug), firm.state));
 }
 
 export async function verificationRemove({ request, env, params, url }) {

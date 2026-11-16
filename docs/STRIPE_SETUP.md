@@ -7,7 +7,7 @@ secret. That secret goes straight into Cloudflare, never into chat or the reposi
 
 Stripe dashboard -> Developers -> Webhooks -> **Add endpoint**
 
-- Endpoint URL: `https://lawdb.ca/api/stripe/webhook`
+- Endpoint URL: `https://lawdb.ai/api/stripe/webhook`
 - Events to send (tick exactly these four):
   - `checkout.session.completed`
   - `customer.subscription.created`

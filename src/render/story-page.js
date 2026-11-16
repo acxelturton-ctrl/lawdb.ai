@@ -9,7 +9,7 @@ import { NETWORKS, cleanSocial } from '../lib/social.js';
 
 const fmtDate = (d) => {
   const t = d ? new Date(String(d).replace(' ', 'T') + 'Z') : null;
-  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '';
+  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '';
 };
 const isoDay = (d) => { const t = d ? new Date(String(d).replace(' ', 'T') + 'Z') : null; return t && !Number.isNaN(t.getTime()) ? t.toISOString().slice(0, 10) : ''; };
 
@@ -59,7 +59,7 @@ export function socialRow(firm) {
   return links.length ? `<div class="st-soc">${links.join('')}</div>` : '';
 }
 
-// post: { id, title, url, publishedAt, excerpt, image }; firm: { slug, name, city, province, featured, tags, phone, website, src, social }
+// post: { id, title, url, publishedAt, excerpt, image }; firm: { slug, name, city, state, featured, tags, phone, website, src, social }
 // more: other posts of the firm [{ id, title }]; nearby: other firms in the city [{ slug, name }]
 export function storyBody({ post, firm, more, nearby }) {
   const host = (() => { try { return new URL(post.url).hostname.replace(/^www\./, ''); } catch { return ''; } })();
@@ -68,7 +68,7 @@ export function storyBody({ post, firm, more, nearby }) {
   const call = firm.phone ? `<a href="tel:${esc(String(firm.phone).replace(/[^+\d]/g, ''))}">Call ${esc(firm.name)}</a>` : '';
   return `<article class="st">` +
     (post.image && safePostUrl(post.image) ? `<span class="st-img"><img src="${esc(post.image)}" alt="" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>` : '') +
-    `<div class="st-firm"><span class="st-av">${avatarOf(firm)}</span><span><a class="n" href="/firms/${esc(firm.slug)}">${esc(firm.name)}</a>${firm.featured ? '<span class="ft">Featured</span>' : ''}<small>${esc(firm.city)}, ${esc(firm.province)}${date ? ' &middot; ' + esc(date) : ''}</small></span><button class="lw-fbtn" type="button" data-follow="${esc(firm.slug)}" style="margin-left:auto">Follow</button></div>` +
+    `<div class="st-firm"><span class="st-av">${avatarOf(firm)}</span><span><a class="n" href="/firms/${esc(firm.slug)}">${esc(firm.name)}</a>${firm.featured ? '<span class="ft">Featured</span>' : ''}<small>${esc(firm.city)}, ${esc(firm.state)}${date ? ' &middot; ' + esc(date) : ''}</small></span><button class="lw-fbtn" type="button" data-follow="${esc(firm.slug)}" style="margin-left:auto">Follow</button></div>` +
     `<h1>${esc(post.title)}</h1>` +
     (post.excerpt ? `<p class="pre">${esc(post.excerpt)}</p>` : '') +
     `<div class="st-cta"><a class="st-go" href="${esc(post.url)}" target="_blank" rel="${firm.featured ? 'noopener sponsored' : 'noopener nofollow'}">Read the full article on ${esc(host)} &rarr;</a><button class="lw-sbtn" type="button" data-save="${Number(post.id)}">Save</button></div>` +
@@ -79,11 +79,11 @@ export function storyBody({ post, firm, more, nearby }) {
     `</article>`;
 }
 
-export function renderStoryPage({ post, firm, more, nearby, origin = 'https://lawdb.ca', indexable = true }) {
+export function renderStoryPage({ post, firm, more, nearby, origin = 'https://lawdb.ai', indexable = true }) {
   const url = origin + storyPath(firm.slug, post.id, post.title);
   // A very short excerpt makes a poor description: say whose story it is, so every story page has a real one.
   const base = String(post.excerpt || post.title).trim();
-  const desc = (base.length >= 70 ? base : `${base.replace(/[.\s]+$/, '')}. A story from ${firm.name} in ${firm.city}, ${firm.province}, on LawDB News.`).slice(0, 155);
+  const desc = (base.length >= 70 ? base : `${base.replace(/[.\s]+$/, '')}. A story from ${firm.name} in ${firm.city}, ${firm.state}, on LawDB News.`).slice(0, 155);
   const ld = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: [{ '@type': 'ListItem', position: 1, name: 'LawDB News', item: origin + '/news' }, { '@type': 'ListItem', position: 2, name: firm.name, item: origin + '/firms/' + firm.slug }, { '@type': 'ListItem', position: 3, name: post.title, item: url }],

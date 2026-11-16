@@ -109,7 +109,7 @@
 .site-header.lw-light .hamburger-btn span{ background:#142434; }
 @media (min-width:1100px){ .site-header.lw-light{ height:84px; } .site-header.lw-light .mark img{ height:46px !important; } .site-header.lw-light .wordmark .name{ font-size:22px; } .site-header.lw-light .wordmark .tagline{ font-size:8.5px; } }
 
-/* ---------- articles: one centred reading column, no empty sidebar ---------- */
+/* ---------- articles: one centerd reading column, no empty sidebar ---------- */
 @media (min-width:1100px){
   body.pg-article .wrap{ display:block; max-width:880px; }
   body.pg-article .wrap > .post-cta:first-of-type{ position:static; }

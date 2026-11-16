@@ -1,5 +1,5 @@
 /* The admin and the owner dashboard, laid out like the MSPdatabase admin: a slim bar with the live counts, a menu bar, and a light page of white cards.
-   Loaded after admin.css on /admin/ and /account/ (both pages carry <body class="ap">). Palette colours only. */
+   Loaded after admin.css on /admin/ and /account/ (both pages carry <body class="ap">). Palette colors only. */
 :root { --bar: rgba(245, 243, 236, .95); }
 @media (prefers-color-scheme: dark) { :root:not(.lw-light) { --bar: rgba(20, 36, 52, .95); } }
 

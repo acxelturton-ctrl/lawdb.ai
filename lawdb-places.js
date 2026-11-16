@@ -1,15 +1,15 @@
-/* LawDB places: turns a town people type ("Keswick", "Bradford, ON", "Fort St John") into a spot on the map, and finds the firms nearest to a spot.
+/* LawDB places: turns a town people type ("Orlando", "Naples, FL", "Fort Myers") into a spot on the map, and finds the firms nearest to a spot.
    Shared by the home page search, the Find Your Lawyer page and the map search box, so a place with no firm of its own never ends in "no match".
-   LawdbPlaces.load(root)            -> Promise of the API; fetches places.json once (about 120 KB gzipped) the first time a place is needed
+   LawdbPlaces.load(root)            -> Promise of the API; fetches places.json once the first time a place is needed
    LawdbPlaces.ready()               -> true once places.json has been read
-   LawdbPlaces.find(text)            -> [{ name, prov, lat, lng, pop, label }] exact matches, the place with the most people first ("Keswick, ON" picks the province)
+   LawdbPlaces.find(text)            -> [{ name, prov, lat, lng, pop, label }] exact matches, the place with the most people first ("Naples, FL" picks the state)
    LawdbPlaces.suggest(text, max)    -> places whose name starts with what was typed so far, biggest first
    LawdbPlaces.nearest(firms, lat, lng, { caseId, max, minCase }) -> { list: [{ f, km }], widened } the closest firms, nearest first; when fewer than
                                        `minCase` firms of the practice area are within 150 km, every kind of firm is listed and `widened` is true
-   Place names come from GeoNames (CC BY 4.0); see scripts/build-places.mjs. */
+   Place names come from the firms we list (see tools/us-data/build_places.py). */
 (function(root){
   'use strict';
-  var PROV = { 'ontario': 'ON', 'on': 'ON', 'quebec': 'QC', 'qc': 'QC', 'british columbia': 'BC', 'bc': 'BC', 'alberta': 'AB', 'ab': 'AB', 'manitoba': 'MB', 'mb': 'MB' };
+  var PROV = {"alabama": "AL", "al": "AL", "alaska": "AK", "ak": "AK", "arizona": "AZ", "az": "AZ", "arkansas": "AR", "ar": "AR", "california": "CA", "ca": "CA", "colorado": "CO", "co": "CO", "connecticut": "CT", "ct": "CT", "delaware": "DE", "de": "DE", "district of columbia": "DC", "dc": "DC", "florida": "FL", "fl": "FL", "georgia": "GA", "ga": "GA", "hawaii": "HI", "hi": "HI", "idaho": "ID", "id": "ID", "illinois": "IL", "il": "IL", "indiana": "IN", "in": "IN", "iowa": "IA", "ia": "IA", "kansas": "KS", "ks": "KS", "kentucky": "KY", "ky": "KY", "louisiana": "LA", "la": "LA", "maine": "ME", "me": "ME", "maryland": "MD", "md": "MD", "massachusetts": "MA", "ma": "MA", "michigan": "MI", "mi": "MI", "minnesota": "MN", "mn": "MN", "mississippi": "MS", "ms": "MS", "missouri": "MO", "mo": "MO", "montana": "MT", "mt": "MT", "nebraska": "NE", "ne": "NE", "nevada": "NV", "nv": "NV", "new hampshire": "NH", "nh": "NH", "new jersey": "NJ", "nj": "NJ", "new mexico": "NM", "nm": "NM", "new york": "NY", "ny": "NY", "north carolina": "NC", "nc": "NC", "north dakota": "ND", "nd": "ND", "ohio": "OH", "oh": "OH", "oklahoma": "OK", "ok": "OK", "oregon": "OR", "or": "OR", "pennsylvania": "PA", "pa": "PA", "rhode island": "RI", "ri": "RI", "south carolina": "SC", "sc": "SC", "south dakota": "SD", "sd": "SD", "tennessee": "TN", "tn": "TN", "texas": "TX", "tx": "TX", "utah": "UT", "ut": "UT", "vermont": "VT", "vt": "VT", "virginia": "VA", "va": "VA", "washington": "WA", "wa": "WA", "west virginia": "WV", "wv": "WV", "wisconsin": "WI", "wi": "WI", "wyoming": "WY", "wy": "WY", "washington dc": "DC", "d c": "DC", "washington d c": "DC"};
   var list = null, byName = null, pending = null;
 
   function norm(s){
@@ -32,7 +32,7 @@
     return pending;
   }
 
-  // "keswick", "keswick, on", "keswick ontario" -> { n: 'keswick', prov: 'ON' | null }
+  // "naples", "naples, fl", "naples florida" -> { n: 'naples', prov: 'FL' | null }
   function split(text){
     var raw = String(text == null ? '' : text), prov = null, n;
     var comma = raw.lastIndexOf(',');

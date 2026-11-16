@@ -15,7 +15,7 @@
   var MAP_MIN = 5; /* fewer firms than this and the map adds nothing */
 
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
-  var fmt = function (n) { return Number(n).toLocaleString('en-CA'); };
+  var fmt = function (n) { return Number(n).toLocaleString('en-US'); };
   var digits = function (s) { return String(s || '').replace(/\D/g, ''); };
   var prettyPhone = function (p) { var d = digits(p).slice(-10); return d.length === 10 ? '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6) : ''; };
   var rated = function (f) { return f.rating > 0; };
@@ -93,7 +93,7 @@
     return true;
   };
 
-  /* ---------- streets: "199 Bay St #5300, Toronto, ON ..." -> "Bay St" ---------- */
+  /* ---------- streets: "199 Brickell Ave #5300, Miami, FL ..." -> "Brickell Ave" ---------- */
   var ABBR = { street: 'st', avenue: 'ave', road: 'rd', boulevard: 'blvd', drive: 'dr', west: 'w', east: 'e', north: 'n', south: 's' };
   function streetLabel(address) {
     var s = String(address || '').split(',')[0]
@@ -159,7 +159,7 @@
     [].forEach.call(root.querySelectorAll('[data-n]'), function (e) { e.style.setProperty('--n', e.getAttribute('data-n')); });
   }
 
-  /* the drawn skyline behind the title of a page that has no photo of its own (the shapes differ a little from city to city; Toronto gets its tower) */
+  /* the drawn skyline behind the title of a page that has no photo of its own (the shapes differ a little from city to city; Miami gets its skyline) */
   function skyline(name) {
     var s = svgEl('svg', { viewBox: '0 0 1440 400', preserveAspectRatio: 'xMidYMax slice' });
     var seed = 7, i; for (i = 0; i < name.length; i++) seed = (seed * 31 + name.charCodeAt(i)) % 233280;
@@ -173,10 +173,6 @@
       svgEl('rect', { x: x, y: 400 - h, width: w, height: h, class: rnd() > 0.5 ? 'cp-sk-b1' : 'cp-sk-b2' }, s);
       for (q = 0; q < Math.floor(w * h / 520); q++) svgEl('rect', { x: (x + 5 + rnd() * (w - 12)).toFixed(1), y: (400 - h + 8 + rnd() * (h - 16)).toFixed(1), width: 3, height: 4, class: 'cp-sk-w', opacity: (0.15 + rnd() * 0.5).toFixed(2) }, s);
       x += w + 3;
-    }
-    if (/^toronto$/i.test(name)) {
-      svgEl('path', { d: 'M1250 400 L1255 120 L1252 116 L1248 100 L1252 94 L1246 90 L1246 30 L1244 90 L1238 94 L1242 100 L1238 116 L1235 120 L1240 400Z', class: 'cp-sk-t' }, s);
-      svgEl('ellipse', { cx: 1245, cy: 126, rx: 22, ry: 6, class: 'cp-sk-t' }, s);
     }
     return s;
   }
@@ -388,7 +384,7 @@
 
     /* the live list: same city, same case type */
     if (!window.fetch || !prov || !city || !type) return;
-    fetch('/api/firms?province=' + encodeURIComponent(prov) + '&city=' + encodeURIComponent(city) + '&limit=500', { headers: { accept: 'application/json' } })
+    fetch('/api/firms?state=' + encodeURIComponent(prov) + '&city=' + encodeURIComponent(city) + '&limit=500', { headers: { accept: 'application/json' } })
       .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
       .then(function (all) {
         if (!Array.isArray(all)) return;

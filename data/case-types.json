@@ -1,590 +1,506 @@
 {
-  "_about": "The ten case types: the cards on /find-lawyers, the list on the home page and the national guide pages (/family-lawyers ...). Plain, general, evergreen information only: no fees, deadlines or figures, and nothing that depends on a single province unless it says so. Built by scripts/build-case-pages.mjs.",
-  "updated": "2026-10-22",
-  "types": {
-    "family": {
-      "slug": "family-lawyers",
-      "name": "Family Law & Divorce",
-      "homeLabel": "Family Law / Divorce",
-      "icon": "family",
-      "noun": "family lawyer",
-      "h1": "Family Law & Divorce Lawyers in Canada",
-      "card": "Separation, divorce, parenting time, support and dividing property.",
-      "description": "When to hire a family lawyer, what they do and what to ask. Then find family law firms by province and city, with public Google ratings.",
-      "lede": "A family lawyer helps with the legal side of separation and divorce: where the children will live and how decisions about them are made, child and spousal support, and how property and debts are divided. Many also draft marriage contracts and separation agreements, so arrangements are clear before a dispute starts.",
-      "when": [
-        "You are separating, or thinking about it, and want to understand your rights before you act.",
-        "You and your partner need to agree on parenting time, support or who keeps the home.",
-        "You have received court papers or a proposed agreement and are unsure what to sign.",
-        "You want a marriage contract or cohabitation agreement before or during a relationship.",
-        "An existing order or agreement no longer fits because income, work or living arrangements have changed."
-      ],
-      "does": [
-        "Explains your rights and options under the Divorce Act and your province's family law.",
-        "Negotiates a separation agreement, or represents you in mediation or collaborative law.",
-        "Prepares court documents and appears for you if the matter cannot be settled.",
-        "Helps with financial disclosure, the records both sides must exchange.",
-        "Drafts or reviews marriage contracts, cohabitation agreements and parenting plans."
-      ],
-      "differ": "Divorce is governed by the federal Divorce Act, but the division of property and many questions about children and support are decided under provincial law, and Quebec has its own Civil Code rules. The same facts can lead to different results in Ontario, Alberta or Quebec, so hire someone who practises family law in your province.",
-      "ask": [
-        "How much of your practice is family law, and have you handled cases like mine?",
-        "Do you recommend mediation or a negotiated agreement before going to court?",
-        "How do you bill, what retainer do you require, and what is billed separately?",
-        "What should I do, and not do, before we speak again?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I need a lawyer to get a divorce in Canada?",
-          "a": "You are not required to hire one, and some people complete an uncontested divorce themselves. A lawyer is worth considering when there are children, property, pensions or a business involved, or when you and your spouse disagree, because agreements you sign can be hard to change later."
-        },
-        {
-          "q": "What is the difference between mediation and going to court?",
-          "a": "In mediation a neutral person helps the two of you reach an agreement that you control. In court a judge decides if you cannot agree. Many lawyers try to settle first because it is usually faster and less adversarial, and court remains available if it is needed."
-        },
-        {
-          "q": "Can a support or parenting order be changed later?",
-          "a": "Often yes, when circumstances have changed in a meaningful way, such as a change in income or in a child's needs. A lawyer can tell you whether your situation meets the test that applies in your province or under the Divorce Act."
-        },
-        {
-          "q": "How do I find a family lawyer near me?",
-          "a": "Choose your province or city on this page to see the family law firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ],
-      "photos": {
-        "hero": {
-          "src": "/images/guides/family-lawyer-family-silhouette-sunset-1000.webp",
-          "small": "/images/guides/family-lawyer-family-silhouette-sunset-640.webp",
-          "w": 1000,
-          "h": 666,
-          "alt": "A family of four holding hands in silhouette against an orange sunset by the sea"
-        },
-        "side": {
-          "src": "/images/guides/law-library-books-and-busts-1000.webp",
-          "small": "/images/guides/law-library-books-and-busts-640.webp",
-          "w": 1000,
-          "h": 667,
-          "alt": "Shelves of old leather-bound law books beside a row of marble busts in a long library",
-          "caption": "The rules behind a family law case come from federal and provincial law, and they differ from one province to the next."
-        },
-        "credit": "Downloaded from Pixabay (confirmed by the site owner, Oct 22 2026). The Pixabay Content Licence allows commercial use without attribution."
-      }
+ "_about": "The ten case types: the cards on /find-lawyers, the list on the home page and the national guide pages (/family-lawyers ...). Plain, general, evergreen information only: no fees, deadlines or figures, and nothing that depends on a single state unless it says so. Built by scripts/build-case-pages.mjs.",
+ "updated": "2026-11-16",
+ "types": {
+  "family": {
+   "slug": "family-lawyers",
+   "name": "Family Law & Divorce",
+   "homeLabel": "Family Law / Divorce",
+   "icon": "family",
+   "noun": "family lawyer",
+   "h1": "Family Law & Divorce Lawyers in the United States",
+   "card": "Divorce, child custody, support and dividing property.",
+   "description": "When to hire a family lawyer, what they do and what to ask. Then find family law firms by state and city.",
+   "lede": "A family lawyer helps with the legal side of separation and divorce: where the children will live and how decisions about them are made, child support and spousal support (alimony), and how property and debts are divided. Many also draft prenuptial and postnuptial agreements and parenting plans, so arrangements are clear before a dispute starts.",
+   "when": [
+    "You are separating, or thinking about it, and want to understand your rights before you act.",
+    "You and your spouse need to settle custody, parenting time, support or who keeps the home.",
+    "You have been served with divorce papers or handed a proposed settlement and are unsure what to sign.",
+    "You want a prenuptial or postnuptial agreement.",
+    "An existing order no longer fits because income, work or living arrangements have changed."
+   ],
+   "does": [
+    "Explains your rights and options under your state's family law.",
+    "Negotiates a settlement agreement, or represents you in mediation or collaborative divorce.",
+    "Prepares court filings and appears for you if the case cannot be settled.",
+    "Helps with financial disclosure, the records both sides must exchange.",
+    "Drafts or reviews prenuptial agreements and parenting plans."
+   ],
+   "differ": "Family law is mostly state law. Each state sets its own rules on how long you must live there before filing, how property is divided (some states use community property, others equitable distribution), and how custody and support are decided. The same facts can lead to different results in different states, so hire someone who practices family law in your state.",
+   "ask": [
+    "How much of your practice is family law, and have you handled cases like mine?",
+    "Do you recommend mediation or a negotiated settlement before going to court?",
+    "How do you bill, what retainer do you require, and what is billed separately?",
+    "What should I do, and not do, before we speak again?"
+   ],
+   "faqs": [
+    {
+     "q": "Do I need a lawyer to get a divorce?",
+     "a": "You are not required to hire one, and some people complete an uncontested divorce on their own. A lawyer is worth considering when there are children, property, retirement accounts or a business involved, or when you and your spouse disagree, because agreements you sign can be hard to change later."
     },
-    "criminal": {
-      "slug": "criminal-defence-lawyers",
-      "name": "Criminal Defence",
-      "homeLabel": "Criminal Charges",
-      "icon": "shield",
-      "noun": "criminal defence lawyer",
-      "h1": "Criminal Defence Lawyers in Canada",
-      "card": "Charges, bail, trials and sentencing, and protecting your rights from the first police contact.",
-      "description": "When to call a criminal defence lawyer, what they do and what to ask. Then find defence firms by province and city, with public Google ratings.",
-      "lede": "A criminal defence lawyer represents people who have been charged with, or are being investigated for, an offence under the Criminal Code or another federal law. They explain the charge, protect your rights from the first police contact, and argue for the best available outcome, whether that is a withdrawn charge, an acquittal, a negotiated resolution or a fair sentence.",
-      "when": [
-        "You have been arrested, charged or told that you are under investigation.",
-        "Police have asked to question you, or to search your phone, home or vehicle.",
-        "You have been charged with impaired driving, assault, theft, a drug offence or another criminal charge.",
-        "You have a bail hearing or a court date coming up.",
-        "You are worried about a criminal record and what it could mean for work, travel or immigration."
-      ],
-      "does": [
-        "Advises you on your rights, including the right to speak to a lawyer without delay if you are arrested or detained.",
-        "Reviews the evidence the Crown has and looks for problems in how it was gathered.",
-        "Represents you at bail hearings, pre-trial meetings, trials and sentencing.",
-        "Negotiates with the Crown prosecutor where a resolution is appropriate.",
-        "Explains the longer-term effects of a conviction and the options for dealing with a record."
-      ],
-      "differ": "The Criminal Code is federal and applies across Canada, but cases are prosecuted in provincial and territorial courts, so local practice, court schedules and available programs differ. A lawyer who regularly appears in the courthouse where your case will be heard often knows how things work there.",
-      "ask": [
-        "How often do you handle charges like mine, and in which courthouse?",
-        "What are the realistic outcomes, and what could make them better or worse?",
-        "Will you appear for me at every step, or will someone else from the firm?",
-        "How are fees set, and what is included if the case goes to trial?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I have to speak to police if I am arrested?",
-          "a": "You have the right to speak to a lawyer without delay when you are arrested or detained, and you have the right to remain silent. Many people choose to say little until they have spoken to a lawyer. This page is general information, not advice about your situation."
-        },
-        {
-          "q": "Can I get legal help if I cannot afford a lawyer?",
-          "a": "In many cases, yes. Duty counsel are usually available at court, and each province runs a legal aid program with its own eligibility rules. Ask the court or your provincial legal aid office what is available to you."
-        },
-        {
-          "q": "Will a conviction show up on a background check?",
-          "a": "It can. What appears depends on the type of check and on whether a record has been suspended, and the options differ depending on the offence. A lawyer can explain how this applies to you."
-        },
-        {
-          "q": "How do I find a criminal defence lawyer near me?",
-          "a": "Choose your province or city on this page to see the criminal defence firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ],
-      "photos": {
-        "hero": {
-          "src": "/images/guides/criminal-lawyer-lady-justice-scales-and-law-books-1000.webp",
-          "small": "/images/guides/criminal-lawyer-lady-justice-scales-and-law-books-640.webp",
-          "w": 1000,
-          "h": 750,
-          "pos": "50% 8%",
-          "alt": "A statue of Lady Justice holding up her scales beside a row of law books and a globe, in blue-grey light from a window blind"
-        },
-        "side": {
-          "src": "/images/guides/criminal-lawyer-client-in-handcuffs-meeting-lawyer-1000.webp",
-          "small": "/images/guides/criminal-lawyer-client-in-handcuffs-meeting-lawyer-640.webp",
-          "w": 1000,
-          "h": 667,
-          "alt": "A person in handcuffs with their hands clasped, facing a lawyer in a dark suit who is writing notes",
-          "caption": "If you are arrested or detained, you have the right to speak to a lawyer without delay."
-        },
-        "credit": "Downloaded from Pixabay (confirmed by the site owner, Oct 22 2026). The Pixabay Content Licence allows commercial use without attribution."
-      }
+    {
+     "q": "What is the difference between mediation and going to court?",
+     "a": "In mediation a neutral person helps the two of you reach an agreement that you control. In court a judge decides if you cannot agree. Many lawyers try to settle first because it is usually faster and less adversarial, and court remains available if it is needed."
     },
-    "injury": {
-      "slug": "personal-injury-lawyers",
-      "name": "Personal Injury",
-      "homeLabel": "Personal Injury / Accident",
-      "icon": "cross",
-      "noun": "personal injury lawyer",
-      "h1": "Personal Injury Lawyers in Canada",
-      "card": "Car accidents, slips and falls and other injuries caused by someone else's carelessness.",
-      "description": "When to talk to a personal injury lawyer, how claims work and what to ask. Then find injury law firms by province and city, with public Google ratings.",
-      "lede": "A personal injury lawyer helps people who were hurt because of someone else's carelessness: car and truck collisions, slips and falls, dog bites and other accidents. They explain what you may be entitled to claim, deal with insurers on your behalf, and take the claim to court if it cannot be settled.",
-      "when": [
-        "You were injured in a collision, a fall or another accident that was not your fault.",
-        "An insurance company has offered a settlement and you do not know whether it is fair.",
-        "Your injuries are keeping you from work, or are expected to last.",
-        "You have been told that you are partly at fault.",
-        "A family member was seriously hurt, or died, because of someone else's negligence."
-      ],
-      "does": [
-        "Explains whether you have a claim and which insurance or compensation system applies.",
-        "Gathers medical records, accident reports and other evidence.",
-        "Deals with insurers so that you do not have to negotiate while you recover.",
-        "Values the claim, including future care costs and lost income.",
-        "Takes the case to court if it cannot be settled."
-      ],
-      "differ": "Car accident claims work differently across the country. Quebec and Manitoba rely on public no-fault insurance for injuries from vehicle collisions, and British Columbia moved to a no-fault model for most crash injuries. In other provinces, such as Ontario and Alberta, you can generally pursue the at-fault driver as well as claim no-fault benefits, subject to rules and limits. Time limits for starting a claim are strict and vary by province and type of claim, so speak to a lawyer early.",
-      "ask": [
-        "Do you handle injury claims regularly, and have you taken cases like mine to trial?",
-        "How are you paid? Many injury lawyers work on contingency, so ask what that means for me in writing.",
-        "What costs could I owe if the claim does not succeed?",
-        "What do you need from me, and what should I avoid saying to the other side's insurer?"
-      ],
-      "faqs": [
-        {
-          "q": "How much is my injury claim worth?",
-          "a": "It depends on the injuries, your recovery, lost income and the rules that apply in your province, so no website can tell you. A lawyer can assess your case once they have seen your medical records and the circumstances of the accident."
-        },
-        {
-          "q": "Should I accept the insurer's first offer?",
-          "a": "Not before you understand what it covers. Early offers may not account for future treatment or lost earning capacity, and signing a release usually ends the claim. Consider getting advice first."
-        },
-        {
-          "q": "What does a contingency fee mean?",
-          "a": "The lawyer is paid a share of the amount recovered instead of hourly fees, on the terms set out in a written agreement. Rules about these agreements differ by province, so ask what you would owe in each possible outcome."
-        },
-        {
-          "q": "How do I find a personal injury lawyer near me?",
-          "a": "Choose your province or city on this page to see the personal injury firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
+    {
+     "q": "Can a custody or support order be changed later?",
+     "a": "Often yes, when circumstances have changed in a meaningful way, such as a change in income or in a child's needs. A lawyer can tell you whether your situation meets the standard that applies in your state."
     },
-    "traffic": {
-      "slug": "traffic-ticket-lawyers",
-      "name": "Traffic Tickets",
-      "homeLabel": "Traffic Ticket",
-      "icon": "car",
-      "noun": "traffic ticket lawyer",
-      "h1": "Traffic Ticket Lawyers in Canada",
-      "card": "Speeding, careless driving and other tickets, demerit points and licence risks.",
-      "description": "When a traffic ticket is worth a lawyer, what they do and what to ask. Then find traffic ticket firms by province and city, with Google ratings.",
-      "lede": "A traffic ticket lawyer helps people who have been given a ticket or summons for a provincial offence such as speeding, careless driving, stunt driving or running a red light. They can explain the penalties, appear for you and challenge the ticket where there is a defence. Because a conviction can add demerit points and raise insurance costs, many drivers ask for advice before they simply pay.",
-      "when": [
-        "You received a ticket and are not sure whether to pay it or dispute it.",
-        "The offence is serious, such as stunt driving or careless driving, or could put your licence at risk.",
-        "You are worried about demerit points or higher insurance premiums.",
-        "You drive for work and a licence suspension would affect your job.",
-        "You missed a deadline to respond or a court date."
-      ],
-      "does": [
-        "Explains your options on the ticket, such as paying it, disputing it or asking to resolve it with the prosecutor.",
-        "Reviews the evidence, including how the offence was measured or observed.",
-        "May be able to appear in court on your behalf, so that you do not have to attend.",
-        "Negotiates a lesser charge where that is appropriate.",
-        "Advises on licence suspensions and on how a conviction could affect your insurance."
-      ],
-      "differ": "Traffic offences are mostly provincial, so the penalties, demerit point systems, deadlines and the process for disputing a ticket all differ by province. The ticket itself names the court and explains how to respond. Act quickly: an unanswered ticket can lead to a conviction by default and further penalties.",
-      "ask": [
-        "Have you handled this type of ticket in this court before?",
-        "What are the realistic outcomes, and what will it cost compared with simply paying the fine?",
-        "Do I need to attend in person?",
-        "How will a conviction, or a reduced charge, affect my licence and insurance?"
-      ],
-      "faqs": [
-        {
-          "q": "Should I pay my ticket or fight it?",
-          "a": "Paying usually counts as a guilty plea, which can bring demerit points and a possible insurance increase. Disputing the ticket keeps your options open. A lawyer can tell you whether it is worth contesting in your situation."
-        },
-        {
-          "q": "What happens if I ignore a traffic ticket?",
-          "a": "In most provinces an unanswered ticket results in a conviction by default and can lead to a licence suspension or further penalties. Check the response instructions on your ticket, and get advice before any deadline passes."
-        },
-        {
-          "q": "Are stunt driving and careless driving serious tickets?",
-          "a": "They are more serious than a standard speeding ticket and can carry heavier penalties, including licence suspensions in some provinces. If you are charged with one, speak to a lawyer quickly."
-        },
-        {
-          "q": "How do I find a traffic ticket lawyer near me?",
-          "a": "Choose your province or city on this page to see the traffic ticket firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
-    },
-    "realestate": {
-      "slug": "real-estate-lawyers",
-      "name": "Real Estate",
-      "homeLabel": "Buying or Selling a Home",
-      "icon": "house",
-      "noun": "real estate lawyer",
-      "h1": "Real Estate Lawyers in Canada",
-      "card": "Buying, selling or refinancing property, title searches and closings.",
-      "description": "When to hire a real estate lawyer, what they do at closing and what to ask. Then find real estate firms by province and city, with Google ratings.",
-      "lede": "A real estate lawyer handles the legal work of buying, selling or refinancing property. They review the agreement, search the title to confirm who owns the property and what claims are registered against it, prepare the closing documents, move the funds and register the transfer. They also act in property disputes, such as boundary and condominium conflicts.",
-      "when": [
-        "You are about to sign an agreement of purchase and sale, or have just accepted one with conditions.",
-        "You are selling a home and need the sale closed correctly.",
-        "You are refinancing, taking out a mortgage, or adding or removing someone from the title.",
-        "You are buying a condominium and want the documents reviewed.",
-        "A neighbour, builder, seller or buyer is in a dispute with you about the property."
-      ],
-      "does": [
-        "Reviews the purchase or sale agreement and explains its conditions.",
-        "Searches the title and checks for liens, easements and other registered interests.",
-        "Prepares and registers the transfer and mortgage documents.",
-        "Holds and moves the funds on closing day and reports the adjustments.",
-        "Advises on title insurance and on problems that turn up before closing."
-      ],
-      "differ": "Property law is provincial, and the process differs. In Quebec, home purchases are normally completed by a notary, so LawDB's Quebec pages cover property disputes handled by lawyers. In other provinces lawyers usually handle closings, and in some provinces notaries do this work too. Land title and registration systems, and the taxes and fees on a transfer, also vary by province.",
-      "ask": [
-        "Will you review the agreement before I sign, and what will you check?",
-        "What is your fee, and which costs, such as title insurance, searches and registration, are extra?",
-        "Who at your firm will handle my file and answer my questions?",
-        "What happens if a problem appears with the title before closing?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I need a lawyer to buy a house in Canada?",
-          "a": "In most provinces a lawyer, or in some places a notary, is involved at closing because the transfer and the mortgage must be properly registered. Even where it is not strictly required, many buyers have a lawyer review the agreement before they sign."
-        },
-        {
-          "q": "When should I contact a real estate lawyer?",
-          "a": "Ideally before you sign. The agreement of purchase and sale sets out your obligations, and it is easier to fix a problem before you are bound by it."
-        },
-        {
-          "q": "What is title insurance?",
-          "a": "A policy, usually paid for once at closing, that protects owners and lenders against certain problems with the title, such as fraud or registration errors. Your lawyer can explain what a policy covers and what it does not."
-        },
-        {
-          "q": "How do I find a real estate lawyer near me?",
-          "a": "Choose your province or city on this page to see the real estate firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ],
-      "photos": {
-        "hero": {
-          "src": "/images/guides/real-estate-lawyer-holding-plans-and-house-key-ring-1000.webp",
-          "small": "/images/guides/real-estate-lawyer-holding-plans-and-house-key-ring-640.webp",
-          "w": 1000,
-          "h": 668,
-          "alt": "A person in a dark suit holding a black folder and a roll of plans, with a house-shaped key ring and a key hanging from one hand",
-          "pos": "50% 80%"
-        },
-        "side": {
-          "src": "/images/guides/real-estate-lawyer-model-house-and-magnifying-glass-on-plans-1000.webp",
-          "small": "/images/guides/real-estate-lawyer-model-house-and-magnifying-glass-on-plans-640.webp",
-          "w": 1000,
-          "h": 751,
-          "alt": "A small model house with a red front and a grey roof on a floor plan, next to a magnifying glass and a pen, with a pink piggy bank blurred behind it",
-          "pos": "50% 60%",
-          "caption": "A real estate lawyer looks closely at the title and the agreement, so that problems are found before closing day."
-        },
-        "credit": "Supplied by the site owner as free-to-use photos. The owner to confirm the source (Unsplash, Pexels and Pixabay all allow commercial use)."
-      }
-    },
-    "wills": {
-      "slug": "wills-estate-lawyers",
-      "name": "Wills & Estates",
-      "homeLabel": "Wills, Estates & Power of Attorney",
-      "icon": "doc",
-      "noun": "wills and estates lawyer",
-      "h1": "Wills & Estates Lawyers in Canada",
-      "card": "Wills, powers of attorney, probate and helping families settle an estate.",
-      "description": "When to see a wills and estates lawyer, what they do and what to ask. Then find wills and estates firms by province and city, with Google ratings.",
-      "lede": "A wills and estates lawyer helps you plan for what happens to your property and your care if you die or cannot make decisions for yourself, and helps families settle an estate after a death. That includes wills, powers of attorney, trusts, probate and disputes over an estate.",
-      "when": [
-        "You do not have a will, or yours is out of date after a marriage, separation, birth or move.",
-        "You want someone you trust to manage your money or health decisions if you become unable to.",
-        "You have been named an executor and are not sure what the role involves.",
-        "You have a family business, property in more than one province or country, or a blended family.",
-        "You think a will is invalid, or you were left out of one and want to understand your options."
-      ],
-      "does": [
-        "Drafts wills and powers of attorney that fit your family and your province's rules.",
-        "Explains what happens if you die without a will.",
-        "Guides an executor through the court process, where one is needed, and through paying debts and distributing assets.",
-        "Sets up trusts and plans for children, family members with disabilities and blended families.",
-        "Acts in estate disputes, including claims that a will is invalid or that a family member was unfairly left out."
-      ],
-      "differ": "Rules on signing, witnessing and challenging wills are provincial, and the court process after a death goes by different names: probate in most provinces, and a verification process in Quebec, where notarial wills are common. Powers of attorney and personal directives also have different names and requirements, so a document prepared for one province may not work in another.",
-      "ask": [
-        "Do you handle both planning and settling estates?",
-        "What documents will I need, and how often should I update them?",
-        "What is the fee for a will and a power of attorney, and what does it include?",
-        "Where will the originals be stored?"
-      ],
-      "faqs": [
-        {
-          "q": "Is a will the same as a power of attorney?",
-          "a": "No. A will takes effect after you die and says who inherits and who administers your estate. A power of attorney lets someone you choose manage your finances while you are alive but unable to act, and health decisions are usually covered by a separate document."
-        },
-        {
-          "q": "What happens if someone dies without a will?",
-          "a": "Provincial law decides who inherits, and a court appoints an administrator. The result may not match what the person would have wanted, and it can be slower and more costly for the family."
-        },
-        {
-          "q": "Do I need a lawyer to make a will?",
-          "a": "Not always, but a lawyer can make sure the will meets your province's formal requirements and avoid mistakes that cause disputes later, which matters when your situation is more than simple."
-        },
-        {
-          "q": "How do I find a wills and estates lawyer near me?",
-          "a": "Choose your province or city on this page to see the wills and estates firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
-    },
-    "business": {
-      "slug": "business-lawyers",
-      "name": "Business & Corporate",
-      "homeLabel": "Business / Corporate",
-      "icon": "briefcase",
-      "noun": "business lawyer",
-      "h1": "Business & Corporate Lawyers in Canada",
-      "card": "Starting or buying a company, shareholder agreements, leases and contracts.",
-      "description": "When to hire a business lawyer, what they do and what to ask. Then find business and corporate law firms by province and city, with Google ratings.",
-      "lede": "A business lawyer advises owners and founders on the legal structure and everyday contracts of a company: incorporating, shareholder and partnership agreements, commercial leases, buying or selling a business, and dealing with suppliers, customers and regulators. The aim is to prevent disputes, and to be ready when one happens.",
-      "when": [
-        "You are starting a business and choosing between a sole proprietorship, a partnership and a corporation.",
-        "You are bringing in a partner, an investor or a key employee.",
-        "You are signing a lease, a franchise agreement or a major customer or supplier contract.",
-        "You are buying, selling or merging a business.",
-        "A partner or shareholder dispute threatens the company."
-      ],
-      "does": [
-        "Helps you choose a structure and incorporates the company, federally or provincially.",
-        "Drafts shareholder, partnership and operating agreements.",
-        "Reviews and negotiates commercial leases and contracts.",
-        "Handles the legal side of buying or selling a business or raising investment.",
-        "Advises on compliance and represents the business if a dispute arises."
-      ],
-      "differ": "A corporation can be incorporated federally or under the law of a province, and registration, annual filing and licensing rules depend on where it operates. Many contracts, permits and licences are provincial, so check that the lawyer works in the province where your business operates.",
-      "ask": [
-        "Do you work with businesses of my size and in my industry?",
-        "Is this a fixed fee or hourly, and what is included?",
-        "What should be in place before I sign or raise money?",
-        "Can you coordinate with my accountant?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I need a lawyer to incorporate a business?",
-          "a": "It is not required, and online filing services exist. A lawyer adds the most value when there are several owners, investors or intellectual property, because the share structure and the shareholder agreement are hard to fix later."
-        },
-        {
-          "q": "What is a shareholder agreement?",
-          "a": "A contract between a company's owners that sets out how decisions are made, what happens if someone wants to leave, and how disputes are resolved. It is most useful when it is written before a disagreement, not after."
-        },
-        {
-          "q": "Should I incorporate federally or in my province?",
-          "a": "It depends on where you plan to operate and what name protection you need. A business lawyer or accountant can explain the trade-offs for your plans."
-        },
-        {
-          "q": "How do I find a business lawyer near me?",
-          "a": "Choose your province or city on this page to see the business and corporate firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ],
-      "photos": {
-        "hero": {
-          "src": "/images/guides/business-lawyers-meeting-around-a-table-1000.webp",
-          "small": "/images/guides/business-lawyers-meeting-around-a-table-640.webp",
-          "w": 1000,
-          "h": 666,
-          "alt": "Five lawyers in business clothes talking around a meeting table, with an open law book, a laptop and a small statue of Lady Justice in front of them",
-          "pos": "50% 40%"
-        },
-        "side": {
-          "src": "/images/guides/business-lawyer-signing-a-contract-1000.webp",
-          "small": "/images/guides/business-lawyer-signing-a-contract-640.webp",
-          "w": 1000,
-          "h": 666,
-          "alt": "A person in a dark suit signing a form on a wooden desk with a silver pen",
-          "caption": "Contracts, leases and agreements are the paperwork a business lawyer reviews before you sign."
-        },
-        "extra": {
-          "src": "/images/guides/business-lawyer-calculator-and-financial-statement-1000.webp",
-          "small": "/images/guides/business-lawyer-calculator-and-financial-statement-640.webp",
-          "w": 1000,
-          "h": 589,
-          "alt": "A calculator, a pen and a printed financial statement with handwritten notes on a desk",
-          "caption": "Many business decisions involve the numbers as well as the law, so ask whether the lawyer can work with your accountant."
-        },
-        "credit": "Downloaded from Pixabay (confirmed by the site owner, Oct 22 2026). The Pixabay Content Licence allows commercial use without attribution."
-      }
-    },
-    "employment": {
-      "slug": "employment-lawyers",
-      "name": "Employment",
-      "homeLabel": "Employment Dispute",
-      "icon": "person",
-      "noun": "employment lawyer",
-      "h1": "Employment Lawyers in Canada",
-      "card": "Dismissal and severance, contracts, harassment, and pay or leave disputes.",
-      "description": "When to talk to an employment lawyer, what they do and what to ask. Then find employment law firms by province and city, with public Google ratings.",
-      "lede": "An employment lawyer advises employees and employers on rights at work: employment contracts, dismissal and severance, harassment and discrimination, and disputes over pay or leave. They explain what the law and your contract require, and negotiate or go to court when a resolution cannot be reached.",
-      "when": [
-        "You were fired, laid off or had your job changed significantly, and were offered a severance package.",
-        "You have been asked to sign an employment contract, a non-compete or a termination agreement.",
-        "You face harassment, discrimination or retaliation at work.",
-        "You are an employer ending someone's employment or drafting contracts and policies.",
-        "You have not been paid what you are owed, or you were refused a leave."
-      ],
-      "does": [
-        "Reviews an employment contract or severance offer before you sign it.",
-        "Explains your entitlements under employment standards law, your contract and the common law.",
-        "Negotiates a settlement with the employer, or represents you before a court or tribunal.",
-        "Advises employers on terminations, policies and compliance.",
-        "Helps with human rights complaints and workplace investigations."
-      ],
-      "differ": "Employment standards are mostly provincial, so minimum notice, vacation and leave rules depend on where you work, while federally regulated workplaces such as banks, airlines and telecommunications follow the Canada Labour Code. Quebec has its own rules as well. Your contract and the common law can give you more than the statutory minimum.",
-      "ask": [
-        "Do you act for employees, employers or both?",
-        "Before I sign anything, what should I understand about this offer?",
-        "How will you charge for the work, and can I get a fixed fee for a contract review?",
-        "What is a realistic outcome, and how long might it take?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I have to sign the severance package I was offered?",
-          "a": "No. You can ask for time to review it, and it may be possible to negotiate. Signing usually releases the employer from further claims, so many people get advice first."
-        },
-        {
-          "q": "What is wrongful dismissal?",
-          "a": "A dismissal without just cause, or without the notice or pay in lieu that the law or your contract requires. Whether it applies depends on your province, your contract and your role and length of service."
-        },
-        {
-          "q": "Can an employer fire me without cause?",
-          "a": "Generally yes, but they must give the notice or pay in lieu that the law and your contract require, and they cannot end your employment for reasons that breach human rights or other protections."
-        },
-        {
-          "q": "How do I find an employment lawyer near me?",
-          "a": "Choose your province or city on this page to see the employment firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
-    },
-    "immigration": {
-      "slug": "immigration-lawyers",
-      "name": "Immigration",
-      "homeLabel": "Immigration",
-      "icon": "globe",
-      "noun": "immigration lawyer",
-      "h1": "Immigration Lawyers in Canada",
-      "card": "Work and study permits, permanent residence, sponsorship, citizenship and refusals.",
-      "description": "When to hire an immigration lawyer, what they do and what to ask. Then find immigration law firms by province and city, with public Google ratings.",
-      "lede": "An immigration lawyer helps people apply to live, work, study or stay in Canada, and represents people in immigration disputes. That includes work and study permits, permanent residence, family sponsorship, citizenship, refugee claims, and appeals or reviews after a refusal.",
-      "when": [
-        "You want to work, study or settle in Canada and are unsure which program fits you.",
-        "Your application was refused, or you received a letter asking you to respond to a concern.",
-        "You or a family member is facing removal or a hearing before the Immigration and Refugee Board.",
-        "Your case is complicated by a past refusal, a criminal record or a medical issue.",
-        "You want to sponsor a spouse, partner, child or parent."
-      ],
-      "does": [
-        "Assesses which program or permit you may be eligible for.",
-        "Prepares the application and supporting documents so that they are complete and consistent.",
-        "Responds to requests from Immigration, Refugees and Citizenship Canada or the Canada Border Services Agency.",
-        "Represents you at hearings and in appeals or applications for judicial review.",
-        "Explains your status, your obligations and the effect of changes in your situation."
-      ],
-      "differ": "Immigration is mainly federal, so the core rules are the same across the country, although Quebec and some provinces also run their own selection programs with separate requirements. Only authorized representatives, such as lawyers who are members of a law society, Quebec notaries and regulated immigration consultants, can charge for immigration advice or representation. Check a person's licence before you hire.",
-      "ask": [
-        "Are you a member in good standing of a law society, and can I verify that?",
-        "Have you handled applications like mine, and what is the realistic outlook?",
-        "What does your fee cover, and what is not included, such as government fees?",
-        "How will we communicate, and who will prepare my documents?"
-      ],
-      "faqs": [
-        {
-          "q": "Do I need a lawyer to apply for immigration to Canada?",
-          "a": "No, you may apply yourself. A lawyer or another authorized representative can help when your case is complex, when you have had a refusal, or when you want help making sure the application is complete, because mistakes can cause delays or refusals."
-        },
-        {
-          "q": "What is the difference between a lawyer and an immigration consultant?",
-          "a": "Both can be authorized to advise on and represent immigration applications. Lawyers are regulated by provincial and territorial law societies and can also act in court, while regulated immigration consultants are licensed by the College of Immigration and Citizenship Consultants."
-        },
-        {
-          "q": "What can I do if my application is refused?",
-          "a": "Depending on the program there may be a review, an appeal or the option to apply again with a stronger application. Time limits can be short, so get advice quickly."
-        },
-        {
-          "q": "How do I find an immigration lawyer near me?",
-          "a": "Choose your province or city on this page to see the immigration firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
-    },
-    "litigation": {
-      "slug": "litigation-lawyers",
-      "name": "Civil Litigation",
-      "homeLabel": "Civil Lawsuit / Litigation",
-      "icon": "gavel",
-      "noun": "civil litigation lawyer",
-      "h1": "Civil Litigation Lawyers in Canada",
-      "card": "Contract, debt, property and other disputes, from demand letters to trial.",
-      "description": "When to hire a civil litigation lawyer, what they do and what to ask. Then find litigation law firms by province and city, with public Google ratings.",
-      "lede": "A civil litigation lawyer represents people and businesses in disputes that are resolved through the courts, or through alternatives such as mediation and arbitration: unpaid debts, broken contracts, property and construction disputes, defamation and other claims for money or a court order. Their work ranges from a demand letter to a trial and an appeal.",
-      "when": [
-        "Someone owes you money or has broken a contract and will not resolve it.",
-        "You have been served with a statement of claim or other court documents.",
-        "A business or property dispute, such as a construction deficiency or a boundary issue, is escalating.",
-        "You need a court order, such as an injunction, to stop or compel something.",
-        "You want to know whether a claim is worth pursuing before you spend money on it."
-      ],
-      "does": [
-        "Assesses the strength of a claim or defence, and the likely cost.",
-        "Sends demand letters and negotiates settlements.",
-        "Starts or defends the lawsuit and prepares the evidence.",
-        "Represents you at mediation, arbitration, hearings and trial.",
-        "Helps enforce a judgment, or appeals a result."
-      ],
-      "differ": "Civil procedure, court names and monetary limits differ by province. Each province has a small claims court for smaller disputes, where many people represent themselves. Time limits for starting a lawsuit are set by provincial law and can be short, so do not wait to get advice.",
-      "ask": [
-        "How strong is my case, and how does the likely cost compare with what is at stake?",
-        "Is there a way to resolve this without a trial, such as mediation?",
-        "How will you bill, and what extra costs, such as court fees and experts, should I expect?",
-        "Who will handle my file day to day?"
-      ],
-      "faqs": [
-        {
-          "q": "What is the difference between small claims court and a lawsuit in superior court?",
-          "a": "Small claims court handles disputes up to a limit set by each province, with simpler procedures and lower costs, and people often represent themselves. Larger or more complex claims go to the province's superior court, where a lawyer is usually needed."
-        },
-        {
-          "q": "How long do I have to start a lawsuit?",
-          "a": "Each province sets time limits, called limitation periods, for different kinds of claims, and missing one can end your right to sue. Because the rules vary, get advice as soon as a dispute starts."
-        },
-        {
-          "q": "Is it worth suing?",
-          "a": "It depends on the strength of the evidence, the amount involved, the other side's ability to pay and the cost of getting to a result. A lawyer can give you a realistic assessment before you commit."
-        },
-        {
-          "q": "How do I find a civil litigation lawyer near me?",
-          "a": "Choose your province or city on this page to see the litigation firms LawDB lists there, with their public Google ratings, addresses and phone numbers."
-        }
-      ]
+    {
+     "q": "How do I find a family lawyer near me?",
+     "a": "Choose your state or city on this page to see the family law firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
     }
+   ]
+  },
+  "criminal": {
+   "slug": "criminal-defense-lawyers",
+   "name": "Criminal Defense",
+   "homeLabel": "Criminal Charges / DUI",
+   "icon": "shield",
+   "noun": "criminal defense lawyer",
+   "h1": "Criminal Defense Lawyers in the United States",
+   "card": "Arrests, criminal charges and DUI, from the first hours on.",
+   "description": "When to hire a criminal defense lawyer, what they do and what to ask. Then find criminal defense firms by state and city.",
+   "lede": "A criminal defense lawyer represents people who have been arrested or charged with a crime, from DUI and drug charges to theft, assault and serious felonies. They explain the charges and your rights, deal with the prosecutor, and defend you in court if the case goes to trial. The earlier a lawyer is involved, the more options there usually are.",
+   "when": [
+    "You have been arrested, charged or told you are under investigation.",
+    "Police want to question you, or you have received a court date or summons.",
+    "You were charged with DUI or another driving offense and your license is at risk.",
+    "You want to know whether a past record can be sealed or expunged.",
+    "You are a non-citizen and a charge could affect your immigration status."
+   ],
+   "does": [
+    "Explains the charges, the possible outcomes and your rights.",
+    "Speaks with the police and the prosecutor on your behalf.",
+    "Challenges the evidence and negotiates, where appropriate, for a reduced charge or dismissal.",
+    "Represents you at hearings, at trial and at sentencing.",
+    "Advises on bail, probation and sealing or expunging a record."
+   ],
+   "differ": "Criminal law is mostly state law, with its own offenses, courts and procedures in each state, and federal charges are handled in separate federal courts. Rules on DUI penalties, bail and record sealing differ a lot from state to state, so hire a lawyer who regularly defends cases in the county or court where you were charged.",
+   "ask": [
+    "How often do you handle cases like mine in this court?",
+    "What are the realistic outcomes, and what does each one involve?",
+    "Who will actually work on my case, and how will you keep me informed?",
+    "How do you bill, and what is included?"
+   ],
+   "faqs": [
+    {
+     "q": "What should I do if I am arrested?",
+     "a": "You have the right to remain silent and the right to a lawyer. Politely say that you want a lawyer and do not answer questions about the case until you have spoken to one. Do not discuss the matter with others, and do not sign anything you do not understand."
+    },
+    {
+     "q": "Can I get a public defender?",
+     "a": "If you are charged with a crime that could lead to jail and you cannot afford a lawyer, the court will generally appoint one. Many people also choose to hire a private defense lawyer, who may be able to give a case more individual time. Either way, the lawyer's duty to you is the same."
+    },
+    {
+     "q": "Can criminal charges be reduced or dismissed?",
+     "a": "Sometimes. It depends on the evidence, how it was gathered, the facts of the case and the prosecutor's position. A lawyer can tell you what is realistic after reviewing the details."
+    },
+    {
+     "q": "How do I find a criminal defense lawyer near me?",
+     "a": "Choose your state or city on this page to see the criminal defense firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "injury": {
+   "slug": "personal-injury-lawyers",
+   "name": "Personal Injury",
+   "homeLabel": "Personal Injury / Accident",
+   "icon": "cross",
+   "noun": "personal injury lawyer",
+   "h1": "Personal Injury Lawyers in the United States",
+   "card": "Car accidents, falls and other injuries caused by someone else.",
+   "description": "When to hire a personal injury lawyer, what they do and what to ask. Then find injury firms by state and city.",
+   "lede": "A personal injury lawyer helps people who were hurt because of someone else's carelessness, such as in a car or truck accident, a slip and fall, a dog bite or medical negligence. They gather the evidence, deal with the insurance companies and, if a fair settlement is not offered, take the claim to court.",
+   "when": [
+    "You were hurt in an accident that was not your fault.",
+    "An insurance company has called you, offered a settlement or asked for a recorded statement.",
+    "Your injuries need ongoing treatment or you cannot work.",
+    "The other driver has little or no insurance.",
+    "You are not sure who is responsible, for example in a fall on someone's property."
+   ],
+   "does": [
+    "Explains whether you have a claim and what it may involve.",
+    "Collects medical records, photos, police reports and witness accounts.",
+    "Handles the insurance adjusters and negotiates a settlement.",
+    "Works with doctors and other experts to show the effect of the injury.",
+    "Files the lawsuit and represents you at trial if the claim does not settle."
+   ],
+   "differ": "Injury law is mostly state law. Each state sets its own time limit for filing a claim, and these can be short. States also differ in how fault is shared and in how car insurance works, such as no-fault systems. Because deadlines can pass quietly, speak to a local lawyer early, and ask how fees work: many personal injury lawyers are paid only if you recover money, and you should see that agreement in writing.",
+   "ask": [
+    "Do you handle cases like mine, and what have the results been like?",
+    "How are you paid, and what costs do I owe if we do not win?",
+    "Who will work on my case day to day?",
+    "What should I avoid doing or saying while the claim is open?"
+   ],
+   "faqs": [
+    {
+     "q": "Should I talk to the other side's insurance company?",
+     "a": "You are usually not required to give a recorded statement, and what you say can be used to reduce your claim. Many people speak to a lawyer first. Never sign a release or accept a settlement before you understand how serious your injuries are."
+    },
+    {
+     "q": "How long do I have to make a claim?",
+     "a": "Each state has a time limit, and it can be short. If you wait, you may lose the right to claim at all. A lawyer can tell you which deadline applies to your situation."
+    },
+    {
+     "q": "How much does a personal injury lawyer cost?",
+     "a": "Many handle injury cases on a contingency basis, which means they are paid a share of what you recover and nothing if you do not. Ask for the agreement in writing and ask what case costs are charged on top."
+    },
+    {
+     "q": "How do I find a personal injury lawyer near me?",
+     "a": "Choose your state or city on this page to see the personal injury firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "traffic": {
+   "slug": "traffic-ticket-lawyers",
+   "name": "Traffic Tickets",
+   "homeLabel": "Traffic Ticket",
+   "icon": "car",
+   "noun": "traffic ticket lawyer",
+   "h1": "Traffic Tickets Lawyers in the United States",
+   "card": "Speeding, reckless driving and license problems.",
+   "description": "When to hire a traffic ticket lawyer, what they do and what to ask. Then find traffic ticket firms by state and city.",
+   "lede": "A traffic ticket lawyer helps drivers who have received a citation, such as for speeding, running a light or reckless driving, or who face a license suspension. They look at whether the ticket can be fought or reduced, handle the court for you where the rules allow, and explain how points and insurance could be affected.",
+   "when": [
+    "You received a ticket and are worried about points or your insurance.",
+    "You have a commercial driver's license and a violation could affect your job.",
+    "You were cited for reckless driving, racing or driving with a suspended license.",
+    "You have been told your license may be suspended or revoked.",
+    "You have several tickets and want to understand your options."
+   ],
+   "does": [
+    "Reviews the ticket and tells you whether it can be challenged or reduced.",
+    "Appears in traffic court for you where the local rules allow it.",
+    "Negotiates with the prosecutor for a lesser charge.",
+    "Explains how points, fines and insurance may be affected.",
+    "Helps with license suspension hearings and reinstatement."
+   ],
+   "differ": "Traffic rules, fines, point systems and procedures are set by each state, and often differ by county or city. Whether you can have a lawyer appear for you, or must attend yourself, depends on where you were cited. Choose a lawyer who regularly handles tickets in that court.",
+   "ask": [
+    "Have you handled tickets in this court before?",
+    "What outcomes are realistic for my ticket?",
+    "Do I need to attend in person?",
+    "What is your fee, and is it fixed?"
+   ],
+   "faqs": [
+    {
+     "q": "Is it worth hiring a lawyer for a ticket?",
+     "a": "It can be, especially when points, a higher insurance rate, a commercial license or a more serious charge are involved. A lawyer can tell you whether the cost makes sense for your situation."
+    },
+    {
+     "q": "Will a ticket raise my insurance?",
+     "a": "Often it can, depending on the violation and your insurer. Reducing or dismissing the charge may help avoid that. Ask a lawyer what is possible where you were cited."
+    },
+    {
+     "q": "What happens if I ignore a ticket?",
+     "a": "Ignoring a ticket can lead to extra penalties, a warrant or a license suspension in many places. It is better to respond before the deadline on the citation."
+    },
+    {
+     "q": "How do I find a traffic ticket lawyer near me?",
+     "a": "Choose your state or city on this page to see the traffic ticket firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "realestate": {
+   "slug": "real-estate-lawyers",
+   "name": "Real Estate",
+   "homeLabel": "Buying or Selling a Home",
+   "icon": "house",
+   "noun": "real estate lawyer",
+   "h1": "Real Estate Lawyers in the United States",
+   "card": "Buying and selling property, closings, titles and landlord-tenant issues.",
+   "description": "When to hire a real estate lawyer, what they do and what to ask. Then find real estate firms by state and city.",
+   "lede": "A real estate lawyer helps with the legal side of buying, selling or owning property: reviewing contracts, checking title, handling the closing, and resolving disputes with buyers, sellers, landlords, tenants or neighbors. They can also help with foreclosure, homeowners association disputes and commercial property.",
+   "when": [
+    "You are buying or selling a home and want the contract reviewed.",
+    "There is a problem with the title, a lien or a boundary.",
+    "A deal is going wrong, for example a buyer or seller backs out.",
+    "You are a landlord or a tenant facing a lease dispute or an eviction.",
+    "You are facing foreclosure or a dispute with a homeowners association."
+   ],
+   "does": [
+    "Reviews and negotiates purchase and sale contracts.",
+    "Checks title and deals with liens or other problems.",
+    "Handles or oversees the closing and the transfer of ownership.",
+    "Advises on leases, evictions and landlord-tenant disputes.",
+    "Represents you in property disputes and foreclosure matters."
+   ],
+   "differ": "Property law is mostly state law, and practices differ. In some states a lawyer normally handles the closing; in others a title or escrow company does and a lawyer is hired mainly for problems. Because of this, ask a local real estate lawyer what is customary and what is worth paying for in your state.",
+   "ask": [
+    "Is a lawyer customary for this kind of transaction here?",
+    "What will you review, and what is your fee?",
+    "What problems do you see most often with deals like mine?",
+    "Can you also handle the closing?"
+   ],
+   "faqs": [
+    {
+     "q": "Do I need a lawyer to buy a home?",
+     "a": "Not always. It depends on your state and the deal. A lawyer is worth considering for unusual contracts, title problems or a purchase where a lot of money is at stake."
+    },
+    {
+     "q": "What does a lawyer check on title?",
+     "a": "They look for liens, unpaid taxes, easements and other claims on the property, so you know what you are buying and what could surface later."
+    },
+    {
+     "q": "Can a lawyer help with an eviction?",
+     "a": "Yes. Landlords and tenants both use lawyers for evictions and lease disputes, and the rules and timelines are set by state and local law."
+    },
+    {
+     "q": "How do I find a real estate lawyer near me?",
+     "a": "Choose your state or city on this page to see the real estate firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "wills": {
+   "slug": "wills-estate-lawyers",
+   "name": "Wills, Trusts & Probate",
+   "homeLabel": "Wills, Trusts & Probate",
+   "icon": "doc",
+   "noun": "wills and estate lawyer",
+   "h1": "Wills, Trusts & Probate Lawyers in the United States",
+   "card": "Wills, trusts, powers of attorney and settling an estate.",
+   "description": "When to hire a wills and estate lawyer, what they do and what to ask. Then find estate planning firms by state and city.",
+   "lede": "A wills and estate lawyer helps you plan for what happens to your property, and who decides for you if you cannot, and helps families settle an estate after someone dies. That includes wills, living trusts, powers of attorney, health care directives, guardianship and probate.",
+   "when": [
+    "You want a will or trust, or your family situation has changed.",
+    "You need a power of attorney or a health care directive.",
+    "A loved one has died and you need to settle their estate (probate).",
+    "You are worried about care costs, or about a family member who cannot manage their affairs.",
+    "You own property in more than one state."
+   ],
+   "does": [
+    "Prepares wills, living trusts and powers of attorney.",
+    "Advises on how to avoid probate and plan for taxes where it applies.",
+    "Guides executors and families through probate.",
+    "Helps set up guardianship or arrangements for a loved one.",
+    "Represents you if an estate or a will is disputed."
+   ],
+   "differ": "Estate law is mostly state law. Rules on what makes a will valid, how probate works and how long it takes differ by state, and property in another state may need its own process. Choose a lawyer who practices estate law in the state where you live or where the estate is being settled.",
+   "ask": [
+    "How much of your practice is estate planning or probate?",
+    "Would a will or a trust suit my situation, and why?",
+    "What is your fee, and is it fixed or hourly?",
+    "What documents should I bring?"
+   ],
+   "faqs": [
+    {
+     "q": "Do I need a will if I have little property?",
+     "a": "A will lets you say who gets what and who looks after any children, and without one state law decides. Even with modest assets, many people find it worthwhile. A lawyer can tell you what suits your situation."
+    },
+    {
+     "q": "What is probate?",
+     "a": "Probate is the court process of confirming a will, paying debts and passing assets to the people entitled to them. How it works, and how long it takes, depends on the state."
+    },
+    {
+     "q": "Do I need a trust as well as a will?",
+     "a": "Sometimes. A trust can help manage assets, plan for incapacity or avoid probate for some property. Whether it suits you depends on your assets, family and state."
+    },
+    {
+     "q": "How do I find a wills and estate lawyer near me?",
+     "a": "Choose your state or city on this page to see the estate planning and probate firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "business": {
+   "slug": "business-lawyers",
+   "name": "Business & Corporate",
+   "homeLabel": "Business / Corporate",
+   "icon": "briefcase",
+   "noun": "business lawyer",
+   "h1": "Business & Corporate Lawyers in the United States",
+   "card": "Starting, running, buying and selling a business.",
+   "description": "When to hire a business lawyer, what they do and what to ask. Then find business law firms by state and city.",
+   "lede": "A business lawyer helps owners set up and run a company on a sound legal footing: choosing a structure such as an LLC or corporation, writing and reviewing contracts, protecting the business and handling disputes. They also advise on partnerships, hiring, buying and selling a business and day-to-day compliance.",
+   "when": [
+    "You are starting a business and choosing a legal structure.",
+    "You are signing or writing contracts with customers, suppliers or partners.",
+    "Co-owners need a written agreement about ownership and what happens if one leaves.",
+    "You are buying, selling or raising money for a business.",
+    "A partner, customer or employee is in dispute with the company."
+   ],
+   "does": [
+    "Helps form an LLC, corporation or partnership and keeps it in good standing.",
+    "Drafts and reviews contracts and agreements.",
+    "Advises on partnership, shareholder and operating agreements.",
+    "Supports the purchase or sale of a business.",
+    "Represents the business in disputes and negotiations."
+   ],
+   "differ": "Companies are created under state law, and the state where you form the company matters. Licensing, taxes and some regulations also depend on where you operate, and federal rules apply in areas such as employment and taxes. A local business lawyer can explain which rules apply to your company.",
+   "ask": [
+    "Have you worked with businesses like mine?",
+    "What do you recommend for structure, and why?",
+    "How do you bill for ongoing advice?",
+    "What should I put in writing before we start?"
+   ],
+   "faqs": [
+    {
+     "q": "Should I form an LLC or a corporation?",
+     "a": "It depends on your goals, the number of owners, how you plan to raise money and how you want to be taxed. A business lawyer, often together with an accountant, can help you choose."
+    },
+    {
+     "q": "Why do I need a written agreement with my partners?",
+     "a": "A clear agreement says who owns what, who decides, and what happens if someone leaves or the partners disagree. It is far easier to agree on these points at the start than during a dispute."
+    },
+    {
+     "q": "Can a lawyer review a contract before I sign?",
+     "a": "Yes, and it is a common reason to hire one. A lawyer can point out risks and terms you may want to change before you are bound by them."
+    },
+    {
+     "q": "How do I find a business lawyer near me?",
+     "a": "Choose your state or city on this page to see the business firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "employment": {
+   "slug": "employment-lawyers",
+   "name": "Employment",
+   "homeLabel": "Employment Dispute",
+   "icon": "person",
+   "noun": "employment lawyer",
+   "h1": "Employment Lawyers in the United States",
+   "card": "Firing, discrimination, unpaid wages and workplace disputes.",
+   "description": "When to hire an employment lawyer, what they do and what to ask. Then find employment firms by state and city.",
+   "lede": "An employment lawyer helps workers and employers with problems at work: being fired, discrimination or harassment, unpaid wages and overtime, retaliation, leave rights, employment contracts and non-compete agreements. They explain your rights and options and, where needed, take a case to an agency or a court.",
+   "when": [
+    "You were fired, laid off or pushed to resign and think it may not have been lawful.",
+    "You face discrimination, harassment or retaliation at work.",
+    "You are owed wages, overtime or other pay.",
+    "You were offered a severance package or a non-compete agreement and want it reviewed.",
+    "You are an employer facing a complaint or writing policies."
+   ],
+   "does": [
+    "Reviews your situation and explains your rights under federal and state law.",
+    "Negotiates severance, settlements and contract terms.",
+    "Files complaints with the right agency when required.",
+    "Represents you in a lawsuit or in arbitration.",
+    "Advises employers on compliance and handling complaints."
+   ],
+   "differ": "Workplace rights come from both federal law and state law, and states often give more protection than the federal rules. Most states treat employment as at will, with important exceptions, and some complaints must first go to an agency with its own short deadlines. A lawyer in your state can tell you which rules and deadlines apply.",
+   "ask": [
+    "How much of your work is employment law, and do you represent employees, employers or both?",
+    "What deadlines apply to my situation?",
+    "How are you paid, and is there a free first meeting?",
+    "What documents should I collect now?"
+   ],
+   "faqs": [
+    {
+     "q": "Can my employer fire me for any reason?",
+     "a": "In most states employment is at will, which means an employer can end it without notice. There are important exceptions, such as discrimination, retaliation, and rights under a contract. A lawyer can tell you whether an exception may apply."
+    },
+    {
+     "q": "What should I do if I think I am being discriminated against?",
+     "a": "Keep a record of what happened, with dates, names and any messages, and speak to a lawyer. Some claims must be filed with a government agency within a short time."
+    },
+    {
+     "q": "Should I sign a severance agreement right away?",
+     "a": "Not necessarily. These agreements often waive your right to bring claims, so it is worth having a lawyer review the terms and, where possible, negotiate before you sign."
+    },
+    {
+     "q": "How do I find a employment lawyer near me?",
+     "a": "Choose your state or city on this page to see the employment firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "immigration": {
+   "slug": "immigration-lawyers",
+   "name": "Immigration",
+   "homeLabel": "Immigration",
+   "icon": "globe",
+   "noun": "immigration lawyer",
+   "h1": "Immigration Lawyers in the United States",
+   "card": "Visas, green cards, citizenship and removal defense.",
+   "description": "When to hire an immigration lawyer, what they do and what to ask. Then find immigration firms by state and city.",
+   "lede": "An immigration lawyer helps people with the legal process of coming to, staying in or becoming a citizen of the United States: family-based and employment-based visas, green cards, work permits, citizenship, asylum and defending against removal (deportation). They prepare applications, represent you with the immigration agencies and appear in immigration court.",
+   "when": [
+    "You want to sponsor a family member or apply for a green card.",
+    "You or an employer need a work visa or a change of status.",
+    "You are applying for citizenship.",
+    "You have received a notice from an immigration agency or from immigration court.",
+    "You or a family member face detention or removal proceedings."
+   ],
+   "does": [
+    "Explains which immigration options you may qualify for.",
+    "Prepares and files applications and responds to agency requests.",
+    "Represents you at interviews and in immigration court.",
+    "Advises on how past events, such as a criminal charge, may affect your case.",
+    "Helps employers sponsor workers."
+   ],
+   "differ": "Immigration is governed by federal law, so a lawyer in any state can generally handle your case, but experience with your local immigration court and office can help. Only licensed attorneys, or specially accredited representatives, may give legal advice on immigration. Be careful with anyone who is not, including \"notarios\" and consultants, because mistakes can be hard to undo.",
+   "ask": [
+    "Are you a licensed attorney, and do you handle my kind of case?",
+    "What are my realistic options, and what are the risks?",
+    "What will the process cost, including government fees?",
+    "What happens if the case is denied?"
+   ],
+   "faqs": [
+    {
+     "q": "Can I file immigration forms myself?",
+     "a": "Many people do, but errors and missing information can cause delays or denials, and some situations are risky to file without advice. A lawyer is worth considering when your history is complicated."
+    },
+    {
+     "q": "How do I know my immigration helper is a real lawyer?",
+     "a": "Ask for their bar number and check it with the state bar. Only attorneys and accredited representatives may give immigration legal advice, and anyone who promises a guaranteed result should be treated with caution."
+    },
+    {
+     "q": "What should I do if I receive a notice to appear in court?",
+     "a": "Do not ignore it. Missing a hearing can lead to an order of removal. Speak to an immigration lawyer as soon as possible and bring the notice with you."
+    },
+    {
+     "q": "How do I find a immigration lawyer near me?",
+     "a": "Choose your state or city on this page to see the immigration firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
+  },
+  "litigation": {
+   "slug": "litigation-lawyers",
+   "name": "Civil Litigation",
+   "homeLabel": "Civil Lawsuit / Litigation",
+   "icon": "gavel",
+   "noun": "civil litigation lawyer",
+   "h1": "Civil Litigation Lawyers in the United States",
+   "card": "Lawsuits, contract disputes and getting a fair result in court.",
+   "description": "When to hire a civil litigation lawyer, what they do and what to ask. Then find litigation firms by state and city.",
+   "lede": "A civil litigation lawyer represents people and businesses in disputes that go to court, such as contract disagreements, property disputes, business and partnership conflicts and claims for money owed. They assess the case, try to settle it where that makes sense, and take it through the court process if it does not.",
+   "when": [
+    "You have been sued or received a demand letter.",
+    "Someone owes you money or has not honored a contract.",
+    "A dispute with a business partner, neighbor or contractor is getting serious.",
+    "You want to know whether your claim is worth pursuing.",
+    "You are told you must respond to a lawsuit by a certain date."
+   ],
+   "does": [
+    "Reviews your documents and explains your position.",
+    "Sends demand letters and negotiates settlements.",
+    "Handles mediation and arbitration.",
+    "Files and defends lawsuits and represents you at trial.",
+    "Advises on the costs and risks before you decide how far to go."
+   ],
+   "differ": "Civil cases are heard in state courts or federal courts, depending on the parties and the type of claim, and each state has its own procedures, deadlines and small claims rules. Lawsuits are expensive and slow, so a good lawyer will tell you early what the case is likely to cost and whether a settlement makes sense.",
+   "ask": [
+    "What do you think my case is worth, and what are the risks?",
+    "How do you charge, and what are the likely costs through trial?",
+    "Is mediation or settlement realistic here?",
+    "How long might this take?"
+   ],
+   "faqs": [
+    {
+     "q": "What should I do if I am served with a lawsuit?",
+     "a": "Do not ignore it. There is a deadline to respond, and missing it can lead to a judgment against you. Speak to a lawyer promptly and keep all the papers."
+    },
+    {
+     "q": "Do I need a lawyer for small claims court?",
+     "a": "Usually not, since small claims courts are designed for people to represent themselves. For larger or more complicated disputes, a lawyer can be worth the cost."
+    },
+    {
+     "q": "Can a dispute be settled without going to trial?",
+     "a": "Yes, and most are. Settlement, mediation and arbitration are common because they are faster and cheaper than a trial, and a lawyer can advise on when they make sense."
+    },
+    {
+     "q": "How do I find a civil litigation lawyer near me?",
+     "a": "Choose your state or city on this page to see the civil litigation firms LawDB lists there, with their addresses, phone numbers and the practice areas they handle."
+    }
+   ]
   }
+ }
 }

@@ -1,7 +1,7 @@
 // Which firm profile pages Google is invited to index.
 // A profile built only from the public listing (address, phone, rating) with no real description is the thin kind of page that can
 // pull a whole directory down, so it stays out of the sitemap and carries a noindex tag until the firm (or an admin) writes a description.
-// Everything else about the page is unchanged: it still loads, still appears in search on lawdb.ca and still links onward.
+// Everything else about the page is unchanged: it still loads, still appears in search on lawdb.ai and still links onward.
 // 40 words: a real written profile (what the firm does, where, for whom) clears it; a listing with only an address, phone and rating does not.
 export const MIN_ABOUT_WORDS = 40;
 

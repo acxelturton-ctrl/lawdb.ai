@@ -1,7 +1,7 @@
 // LawDB firm-owner dashboard. No framework, no build step.
-// SECURITY: everything shown here (including enquiries typed by the public) is inserted as text nodes only.
+// SECURITY: everything shown here (including inquiries typed by the public) is inserted as text nodes only.
 
-import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, planPanel, lockIcon, PROVINCES } from '/admin/ui.js';
+import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, planPanel, lockIcon, STATES } from '/admin/ui.js';
 import { analyticsView, analyticsPreview } from '/admin/firm-analytics.js';
 import { profileEditor } from '/admin/profile-editor.js';
 
@@ -18,7 +18,7 @@ const ICONS = {
 const icon = (k) => h('img', { src: 'data:image/svg+xml;utf8,' + encodeURIComponent(ICONS[k]), alt: '', width: 20, height: 20 });
 const SIGNIN_MESSAGES = {
   failed: 'We could not sign you in with that account. Please try again, or use the other sign-in button.',
-  cancelled: 'Sign-in was cancelled. You can try again whenever you like.',
+  canceled: 'Sign-in was canceled. You can try again whenever you like.',
   unavailable: 'That sign-in option is not available right now. Please try the other button, or come back soon.',
 };
 
@@ -58,21 +58,21 @@ async function renderLogin() {
   const band = (cls, title, text, items) => h('section', { class: `auth-band ${cls}` }, h('div', { class: 'auth-band-in' },
     h('div', { class: 'auth-band-text' }, h('h2', null, title), h('p', null, text)),
     h('div', { class: 'auth-chips' }, ...items.map(chip))));
-  const AREAS = [['Business', '/business-lawyers'], ['Criminal defence', '/criminal-defence-lawyers'], ['Employment', '/employment-lawyers'], ['Family', '/family-lawyers'], ['Immigration', '/immigration-lawyers'], ['Litigation', '/litigation-lawyers'], ['Personal injury', '/personal-injury-lawyers'], ['Real estate', '/real-estate-lawyers'], ['Traffic tickets', '/traffic-ticket-lawyers'], ['Wills and estates', '/wills-estate-lawyers']];
-  const PROVINCES = [['Ontario', '/ontario/'], ['Quebec', '/quebec/'], ['British Columbia', '/british-columbia/'], ['Alberta', '/alberta/'], ['Manitoba', '/manitoba/']];
+  const AREAS = [['Business', '/business-lawyers'], ['Criminal defense', '/criminal-defense-lawyers'], ['Employment', '/employment-lawyers'], ['Family', '/family-lawyers'], ['Immigration', '/immigration-lawyers'], ['Litigation', '/litigation-lawyers'], ['Personal injury', '/personal-injury-lawyers'], ['Real estate', '/real-estate-lawyers'], ['Traffic tickets', '/traffic-ticket-lawyers'], ['Wills and estates', '/wills-estate-lawyers']];
+  const STATES = [['Florida', '/florida/']];
   // Two firm cards and a map pin, drawn for LawDB (shown as an image so it needs no extra files).
   const ART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440"><circle cx="260" cy="225" r="205" fill="#f4ecd8"/><rect x="110" y="95" width="250" height="150" rx="14" fill="#fff" stroke="#e3dfd3"/><circle cx="148" cy="136" r="18" fill="#142434"/><rect x="178" y="124" width="120" height="11" rx="5" fill="#142434"/><rect x="178" y="144" width="80" height="8" rx="4" fill="#c9a050"/><rect x="132" y="176" width="206" height="8" rx="4" fill="#e3dfd3"/><rect x="132" y="194" width="170" height="8" rx="4" fill="#e3dfd3"/><rect x="132" y="214" width="84" height="20" rx="10" fill="#c9a050"/><rect x="200" y="215" width="260" height="150" rx="14" fill="#fff" stroke="#e3dfd3"/><circle cx="238" cy="256" r="18" fill="#c9a050"/><rect x="268" y="244" width="130" height="11" rx="5" fill="#142434"/><rect x="268" y="264" width="90" height="8" rx="4" fill="#c9a050"/><rect x="222" y="296" width="216" height="8" rx="4" fill="#e3dfd3"/><rect x="222" y="314" width="150" height="8" rx="4" fill="#e3dfd3"/><rect x="222" y="334" width="84" height="20" rx="10" fill="#142434"/><circle cx="108" cy="318" r="34" fill="#142434"/><polygon points="86,340 130,340 108,384" fill="#142434"/><circle cx="108" cy="318" r="13" fill="#f5f3ec"/><g fill="#c9a050"><circle cx="410" cy="120" r="6"/><circle cx="430" cy="140" r="4"/><circle cx="395" cy="150" r="3"/></g></svg>';
   document.body.classList.add('lw-auth');
   mount(h('div', { class: 'auth-wrap' },
     h('section', { class: 'auth-hero' },
       h('div', { class: 'auth-hero-copy' },
-        h('h1', null, join ? 'Create your free LawDB account' : 'Welcome to Canada’s legal directory'),
+        h('h1', null, join ? 'Create your free LawDB account' : 'Welcome to the LawDB legal directory'),
         h('div', { class: 'auth-btns' }, ...social, social.length ? null : form, msg),
         h('p', { class: 'auth-terms' }, 'By continuing, you agree to LawDB’s ', h('a', { href: '/terms' }, 'Terms'), ' and ', h('a', { href: '/privacy-policy' }, 'Privacy Policy'), '. There is no password to remember.'),
         h('p', { class: 'auth-new' }, join ? 'Already a member? ' : 'New to LawDB? ', h('a', { href: join ? '/account/' : '/account/?join=1' }, join ? 'Sign in' : 'Join now'))),
       h('div', { class: 'auth-hero-art' }, h('img', { src: 'data:image/svg+xml;utf8,' + encodeURIComponent(ART), alt: 'Two law firm profile cards and a map pin', width: 520, height: 440 }))),
     band('areas', 'Explore by kind of case', 'Real, reviewed law firms near you, sorted by the kind of case you have.', AREAS),
-    band('provinces', 'Find a firm in your province', 'Five provinces are live now, with more coming soon.', PROVINCES)));
+    band('states', 'Find a firm in your state', 'Five states are live now, with more coming soon.', STATES)));
 }
 
 // ---------------------------------------------------------------- shell
@@ -82,13 +82,13 @@ function shell(active, content, { wide = false } = {}) {
   document.body.classList.add('ap', 'ap-in'); // hides the public header and footer on these pages (see msp.css)
   const mine = approved();
   const fresh = mine.reduce((n, m) => n + (m.newLeads || 0), 0);
-  // What a firm owner uses every day comes first, on the left. Analytics and Enquiries are always there: on a Basic plan (or before claiming a firm) they carry
+  // What a firm owner uses every day comes first, on the left. Analytics and Inquiries are always there: on a Basic plan (or before claiming a firm) they carry
   // a padlock and open a preview of what Featured shows. Everything else (the member side: feed, network, saved, your own profile) is under "More".
   const unlocked = mine.some((m) => m.featured);
   const primary = [
     ['firms', mine.length > 1 ? 'My firms' : mine.length ? 'My firm' : 'Your firm'],
     ['stats', 'Analytics', !unlocked],
-    ['leads', 'Enquiries', !unlocked],
+    ['leads', 'Inquiries', !unlocked],
   ];
   const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'My network'], ['saved', 'Saved']];
   const moreActive = more.some(([id]) => id === active);
@@ -96,12 +96,12 @@ function shell(active, content, { wide = false } = {}) {
   const stat = (label, n) => h('span', null, label, ' ', h('b', null, n));
   return h('div', null,
     h('header', { class: 'appbar' }, h('div', { class: 'appbar-in' },
-      h('a', { class: 'brand', href: '/' }, h('img', { src: '/images/logo-icon.png', alt: '' }), 'LawDB.ca'),
-      h('div', { class: 'stats' }, ...(mine.length ? [stat('Your firms:', mine.length), stat('Featured:', mine.filter((m) => m.featured).length), stat('New enquiries:', fresh)] : [h('span', null, 'Welcome to LawDB')])),
+      h('a', { class: 'brand', href: '/' }, h('img', { src: '/images/logo-icon.png', alt: '' }), 'LawDB.ai'),
+      h('div', { class: 'stats' }, ...(mine.length ? [stat('Your firms:', mine.length), stat('Featured:', mine.filter((m) => m.featured).length), stat('New inquiries:', fresh)] : [h('span', null, 'Welcome to LawDB')])),
       h('div', { class: 'right' },
         h('details', { class: 'user' }, h('summary', null, h('span', { class: 'ava' }, initial), (user.name || user.email.split('@')[0]), ' ▾'),
           h('div', { class: 'menu' }, h('div', { class: 'who' }, user.email),
-            h('a', { href: '/find-lawyers' }, 'Back to LawDB.ca'),
+            h('a', { href: '/find-lawyers' }, 'Back to LawDB.ai'),
             h('a', { href: '#', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout').catch(() => {}); location.reload(); } }, 'Sign out'),
             h('a', { href: '#', title: 'Ends every session on every device', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout-all').catch(() => {}); location.reload(); } }, 'Sign out everywhere'))))) ),
     h('nav', { class: 'menubar', 'aria-label': 'Sections' }, h('div', { class: 'menubar-in has-more' },
@@ -116,7 +116,7 @@ function shell(active, content, { wide = false } = {}) {
 
 const approved = () => memberships.filter((m) => m.status === 'approved');
 document.addEventListener('click', (e) => { const d = document.querySelector('.mb-more[open]'); if (d && !d.contains(e.target)) d.removeAttribute('open'); });
-const where = (m) => `${m.city}, ${PROVINCES[m.province] || m.province}`;
+const where = (m) => `${m.city}, ${STATES[m.state] || m.state}`;
 
 // ---------------------------------------------------------------- my firms
 function viewFirms() {
@@ -128,24 +128,24 @@ function viewFirms() {
         h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm'))),
       h('div', { class: 'card' }, h('h2', null, 'What you get once it is yours'),
         h('div', { class: 'fx-two' },
-          h('div', null, h('b', null, 'Basic, free'), h('ul', { class: 'fx-list' }, ['Keep your name, phone, address, website and hours up to date', 'Write your own description and tagline', 'Every enquiry emailed to you', 'Your blog posts shown as cards', 'Your totals for the last 30 days'].map((t) => row(t, false)))),
-          h('div', null, h('b', null, 'Featured, with a free first month'), h('ul', { class: 'fx-list' }, ['Your logo, cover and photos', 'A booking link and the Book a call button', 'Enquiries to a second email address', 'The analytics dashboard: views, clicks, where visitors come from', 'The enquiries inbox, with notes and export', 'Placed above Basic firms in your city'].map((t) => row(t, true))))),
+          h('div', null, h('b', null, 'Basic, free'), h('ul', { class: 'fx-list' }, ['Keep your name, phone, address, website and hours up to date', 'Write your own description and tagline', 'Every inquiry emailed to you', 'Your blog posts shown as cards', 'Your totals for the last 30 days'].map((t) => row(t, false)))),
+          h('div', null, h('b', null, 'Featured, with a free first month'), h('ul', { class: 'fx-list' }, ['Your logo, cover and photos', 'A booking link and the Book a call button', 'Inquiries to a second email address', 'The analytics dashboard: views, clicks, where visitors come from', 'The inquiries inbox, with notes and export', 'Placed above Basic firms in your city'].map((t) => row(t, true))))),
         h('p', { class: 'muted' }, 'Curious? Open ', h('a', { href: '#stats' }, 'Analytics'), ' to see the dashboard with sample numbers.')));
   }
   return h('div', null, h('h1', null, 'My firms'), memberships.map((m) => {
     const state = m.status === 'approved' ? null
       : m.status === 'pending' ? note('msg-ok', 'Waiting for approval. We will email you as soon as it is done.')
-      : note('msg-err', 'This request was declined. If that is a mistake, write to info@lawdb.ca.');
+      : note('msg-err', 'This request was declined. If that is a mistake, write to info@lawdb.ai.');
     return h('div', { class: 'card' },
       h('div', { class: 'row spread' }, h('b', null, m.name), h('span', { class: 'badge' + (m.status === 'approved' ? (m.featured ? ' featured' : '') : ' new') }, m.status === 'approved' ? (m.trialEnds ? 'Featured, free month' : m.featured ? 'Featured' : 'Basic') : m.status === 'pending' ? 'Pending' : 'Declined')),
       h('p', { class: 'muted' }, where(m)), state,
       m.status === 'approved' && m.strength && strengthLine(m),
-      m.status === 'approved' && !m.featured && m.firmStatus === 'live' && h('p', { class: 'muted fx-lockline' }, lockIcon(13), ' Locked on Basic: a booking link, pictures, a second enquiry email, the analytics dashboard and the enquiries inbox.'),
+      m.status === 'approved' && !m.featured && m.firmStatus === 'live' && h('p', { class: 'muted fx-lockline' }, lockIcon(13), ' Locked on Basic: a booking link, pictures, a second inquiry email, the analytics dashboard and the inquiries inbox.'),
       m.status === 'approved' && h('div', { class: 'row' },
         h('a', { href: `#edit/${m.slug}` }, h('button', { class: 'primary', type: 'button' }, 'Edit my profile')),
         h('a', { href: `#stats/${m.slug}` }, h('button', { type: 'button' }, !m.featured && m.firmStatus === 'live' ? 'Analytics and free month' : 'Analytics')),
         !m.featured && m.firmStatus === 'live' && h('a', { href: `#edit/${m.slug}` }, h('button', { type: 'button' }, 'Upgrade to Featured')),
-        h('a', { href: `#leads/${m.slug}` }, h('button', { type: 'button' }, 'Enquiries')),
+        h('a', { href: `#leads/${m.slug}` }, h('button', { type: 'button' }, 'Inquiries')),
         m.firmStatus === 'live' && h('a', { href: `/firms/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View public page')));
   }));
 }
@@ -164,7 +164,7 @@ function viewFind(slug) {
       const { firms } = await api('GET', '/api/account/search?q=' + encodeURIComponent(q));
       results.replaceChildren(...(firms.length
         ? firms.map((f) => h('button', { class: 'firm-row', type: 'button', onclick: () => claimForm(f) },
-            h('span', null, f.name, h('small', null, `${f.city}, ${f.province}`)), f.managed && h('span', { class: 'badge' }, 'Has an owner')))
+            h('span', null, f.name, h('small', null, `${f.city}, ${f.state}`)), f.managed && h('span', { class: 'badge' }, 'Has an owner')))
         : [h('p', { class: 'muted' }, 'No match. If your firm is not listed you can add it below.')]));
     } catch (err) { results.replaceChildren(note('msg-err', err.message)); }
   }
@@ -179,7 +179,7 @@ function viewFind(slug) {
     return {
       f,
       el: [field('Your name', f.contactName), field('Your role at the firm', f.jobTitle), field('Note for our team', f.message),
-        h('label', { class: 'check small', for: 'terms' }, terms, h('span', null, 'I am authorised to act for this firm and I accept the ', h('a', { href: '/terms#firm-terms', target: '_blank', rel: 'noopener' }, 'Terms for firms'), '.'))],
+        h('label', { class: 'check small', for: 'terms' }, terms, h('span', null, 'I am authorized to act for this firm and I accept the ', h('a', { href: '/terms#firm-terms', target: '_blank', rel: 'noopener' }, 'Terms for firms'), '.'))],
       get: () => ({ contactName: f.contactName.value, jobTitle: f.jobTitle.value, message: f.message.value, acceptTerms: terms.checked }),
     };
   }
@@ -197,7 +197,7 @@ function viewFind(slug) {
         location.hash = '#firms';
       } catch (err) { out.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
     } },
-      h('h2', null, firm.name), h('p', { class: 'muted' }, `${firm.city}, ${firm.province}. We will email you when your request is approved. Signed in with your work email (the same address as the firm's website)? That helps us approve you faster.`),
+      h('h2', null, firm.name), h('p', { class: 'muted' }, `${firm.city}, ${firm.state}. We will email you when your request is approved. Signed in with your work email (the same address as the firm's website)? That helps us approve you faster.`),
       c.el, h('div', { class: 'row' }, go, h('button', { type: 'button', onclick: () => panel.replaceChildren() }, 'Cancel')), out));
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -208,7 +208,7 @@ function viewFind(slug) {
     const f = {
       name: h('input', { type: 'text', required: true, maxlength: 200 }),
       city: h('input', { type: 'text', required: true, maxlength: 80 }),
-      province: h('select', null, Object.entries(PROVINCES).map(([code, n]) => h('option', { value: code }, n))),
+      state: h('select', null, Object.entries(STATES).map(([code, n]) => h('option', { value: code }, n))),
       address: h('input', { type: 'text', maxlength: 300, placeholder: 'Street address, so clients and the map find you' }),
       phone: h('input', { type: 'text', maxlength: 30 }),
       website: h('input', { type: 'text', maxlength: 300, placeholder: 'https://' }),
@@ -223,7 +223,7 @@ function viewFind(slug) {
       go.disabled = true;
       try {
         const payload = {
-          ...c.get(), name: f.name.value, city: f.city.value, province: f.province.value, address: f.address.value, phone: f.phone.value,
+          ...c.get(), name: f.name.value, city: f.city.value, state: f.state.value, address: f.address.value, phone: f.phone.value,
           website: f.website.value, tags: splitTags(f.tags.value), caseTypes: cats.get(), about: f.about.value,
         };
         if (hrs.anyOpen()) payload.hours = hrs.get();
@@ -237,7 +237,7 @@ function viewFind(slug) {
       }
     } },
       h('h2', null, 'Add your firm'), h('p', { class: 'muted' }, 'It appears on LawDB once we have checked it. Everything here can be changed later.'),
-      field('Firm name', f.name), field('City', f.city), field('Province', f.province), field('Address', f.address), field('Phone', f.phone), field('Website', f.website),
+      field('Firm name', f.name), field('City', f.city), field('State', f.state), field('Address', f.address), field('Phone', f.phone), field('Website', f.website),
       field('Practice areas (comma separated)', f.tags), h('label', null, 'Categories'), cats.el,
       field('About the firm', f.about, 'A few sentences clients will read on your page.'),
       h('label', null, 'Opening hours'), hrs.el,
@@ -287,19 +287,19 @@ function viewStats(slug) {
   return h('div', null, back, analyticsView({ base: `/api/account/firms/${encodeURIComponent(slug)}`, mode: 'owner', slug, name: firmName, onPlanChange: () => loadMe().catch(() => {}) }));
 }
 
-// ---------------------------------------------------------------- enquiries
+// ---------------------------------------------------------------- inquiries
 async function viewLeads(slug) {
   const mine = approved();
   if (!mine.length) {
-    return h('div', null, h('h1', null, 'Enquiries'), h('div', { class: 'card lx-locked' },
-      h('div', { class: 'row spread' }, h('h2', null, 'Your enquiries inbox'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
-      h('p', { class: 'muted' }, 'When someone writes to your firm through your LawDB page, the enquiry is emailed to you. Featured firms also get them here, in one inbox.'),
-      h('ul', { class: 'lx-perks' }, ['Every enquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each enquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
+    return h('div', null, h('h1', null, 'Inquiries'), h('div', { class: 'card lx-locked' },
+      h('div', { class: 'row spread' }, h('h2', null, 'Your inquiries inbox'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
+      h('p', { class: 'muted' }, 'When someone writes to your firm through your LawDB page, the inquiry is emailed to you. Featured firms also get them here, in one inbox.'),
+      h('ul', { class: 'lx-perks' }, ['Every inquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each inquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
       h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm'))));
   }
   if (!slug) {
     if (mine.length === 1) { location.replace(`#leads/${mine[0].slug}`); return h('p', { class: 'muted' }, 'Loading…'); }
-    return h('div', null, h('h1', null, 'Enquiries'), mine.length ? mine.map((m) => h('a', { class: 'firm-row', href: `#leads/${m.slug}` }, h('span', null, m.name, h('small', null, where(m))), m.newLeads > 0 && h('span', { class: 'badge new' }, `${m.newLeads} new`))) : h('p', { class: 'muted' }, 'You do not manage a firm yet.'));
+    return h('div', null, h('h1', null, 'Inquiries'), mine.length ? mine.map((m) => h('a', { class: 'firm-row', href: `#leads/${m.slug}` }, h('span', null, m.name, h('small', null, where(m))), m.newLeads > 0 && h('span', { class: 'badge new' }, `${m.newLeads} new`))) : h('p', { class: 'muted' }, 'You do not manage a firm yet.'));
   }
   const firmName = (memberships.find((m) => m.slug === slug) || {}).name || slug;
   const base = `/api/account/firms/${encodeURIComponent(slug)}/leads`;
@@ -308,13 +308,13 @@ async function viewLeads(slug) {
 
   if (first.locked) {
     const s = first.summary;
-    return h('div', null, back, h('h1', null, 'Enquiries for ' + firmName),
+    return h('div', null, back, h('h1', null, 'Inquiries for ' + firmName),
       h('div', { class: 'card lx-locked' },
-        h('h2', null, s.total ? `${s.total} ${s.total === 1 ? 'enquiry' : 'enquiries'} so far` : 'No enquiries yet'),
+        h('h2', null, s.total ? `${s.total} ${s.total === 1 ? 'inquiry' : 'inquiries'} so far` : 'No inquiries yet'),
         h('p', { class: 'muted' }, s.total
-          ? `${s.new} still new, ${s.week} in the last 7 days. We email you every enquiry as it arrives, so none are lost. Featured members also read and manage them here.`
-          : 'When someone contacts you through your LawDB page, we email it to you. Featured members also read and manage enquiries here.'),
-        h('ul', { class: 'lx-perks' }, ['Every enquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each enquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
+          ? `${s.new} still new, ${s.week} in the last 7 days. We email you every inquiry as it arrives, so none are lost. Featured members also read and manage them here.`
+          : 'When someone contacts you through your LawDB page, we email it to you. Featured members also read and manage inquiries here.'),
+        h('ul', { class: 'lx-perks' }, ['Every inquiry in one inbox, newest first', 'Reply by email or call in one tap', 'Status and private notes on each inquiry', 'Filters, search and a spreadsheet export', 'A weekly summary email'].map((t) => h('li', null, t))),
         first.upgradeUrl ? h('a', { href: first.upgradeUrl }, h('button', { class: 'primary', type: 'button' }, `Upgrade to Featured, ${first.price}`)) : h('a', { href: `#edit/${slug}` }, h('button', { class: 'primary', type: 'button' }, 'See my plan'))));
   }
 
@@ -328,7 +328,7 @@ async function viewLeads(slug) {
     const badge = h('span', { class: 'badge ' + (l.status === 'new' ? 'new' : '') }, l.status);
     const save = async (patch) => api('PATCH', `/api/account/leads/${l.id}`, patch);
     const setStatus = async (v) => { await save({ status: v }); l.status = v; badge.textContent = v; badge.className = 'badge ' + (v === 'new' ? 'new' : ''); sel.value = v; };
-    const sel = h('select', { 'aria-label': 'Enquiry status', onchange: async () => {
+    const sel = h('select', { 'aria-label': 'Inquiry status', onchange: async () => {
       sel.disabled = true;
       try { await setStatus(sel.value); } catch (err) { saved.replaceChildren(note('msg-err', err.message)); sel.value = l.status; }
       sel.disabled = false;
@@ -341,7 +341,7 @@ async function viewLeads(slug) {
       try { await save({ note: memo.value }); was = memo.value.trim(); saved.textContent = 'Saved'; setTimeout(() => { saved.textContent = ''; }, 1800); }
       catch (err) { saved.replaceChildren(note('msg-err', err.message)); }
     });
-    const subject = encodeURIComponent(`Re: your enquiry to ${firmName}`);
+    const subject = encodeURIComponent(`Re: your inquiry to ${firmName}`);
     const body = encodeURIComponent(`Hello${l.name ? ' ' + l.name.split(' ')[0] : ''},\r\n\r\nThank you for contacting ${firmName}. `);
     const reply = l.email && h('a', { class: 'lx-act', href: `mailto:${l.email}?subject=${subject}&body=${body}`, onclick: () => { if (l.status === 'new') setStatus('contacted').catch(() => {}); } }, 'Reply by email');
     const call = l.phone && h('a', { class: 'lx-act', href: 'tel:' + l.phone.replace(/[^\d+]/g, ''), onclick: () => { if (l.status === 'new') setStatus('contacted').catch(() => {}); } }, 'Call');
@@ -363,7 +363,7 @@ async function viewLeads(slug) {
       if (next) qs.set('before', String(next));
       const data = await api('GET', `${base}?${qs}`);
       if (reset) drawTiles(data.summary);
-      if (!data.leads.length && reset) list.append(h('p', { class: 'muted' }, q || status ? 'No enquiries match.' : 'No enquiries yet. When someone contacts you through your LawDB page, it appears here and we email you.'));
+      if (!data.leads.length && reset) list.append(h('p', { class: 'muted' }, q || status ? 'No inquiries match.' : 'No inquiries yet. When someone contacts you through your LawDB page, it appears here and we email you.'));
       data.leads.forEach((l) => list.append(card(l)));
       next = data.next;
       if (next) more.append(h('button', { type: 'button', onclick: () => load(false) }, 'Load more'));
@@ -377,15 +377,15 @@ async function viewLeads(slug) {
     } }, label);
     return b;
   }));
-  const search = h('input', { type: 'search', placeholder: 'Search name, email, message or note', 'aria-label': 'Search enquiries' });
+  const search = h('input', { type: 'search', placeholder: 'Search name, email, message or note', 'aria-label': 'Search inquiries' });
   search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { q = search.value.trim(); load(true); }, 300); });
 
   await load(true);
   await loadMe().catch(() => {}); // the "new" count on the tab clears once they have been opened
   return h('div', null, back,
-    h('div', { class: 'row spread' }, h('h1', null, 'Enquiries for ' + firmName), h('a', { class: 'lx-export', href: `${base}.csv`, download: '' }, 'Export to spreadsheet')),
+    h('div', { class: 'row spread' }, h('h1', null, 'Inquiries for ' + firmName), h('a', { class: 'lx-export', href: `${base}.csv`, download: '' }, 'Export to spreadsheet')),
     tiles, h('div', { class: 'lx-bar' }, chipRow, search), list, more,
-    h('p', { class: 'muted small' }, 'Enquiries are kept in full for 12 months, then only the date and status remain. Notes are private to your firm.'));
+    h('p', { class: 'muted small' }, 'Inquiries are kept in full for 12 months, then only the date and status remain. Notes are private to your firm.'));
 }
 
 
@@ -474,8 +474,8 @@ function followPill(f, onChange) {
 
 function firmRow(f, onChange) {
   const src = logoSrc(f);
-  const place = `${f.city}, ${PROVINCES[f.province] || f.province}`;
-  const facts = [f.why, f.followers ? `${f.followers.toLocaleString('en-CA')} follower${f.followers === 1 ? '' : 's'}` : '', f.rating ? `★ ${Number(f.rating).toFixed(1)}` : ''].filter(Boolean).join(' · ');
+  const place = `${f.city}, ${STATES[f.state] || f.state}`;
+  const facts = [f.why, f.followers ? `${f.followers.toLocaleString('en-US')} follower${f.followers === 1 ? '' : 's'}` : '', f.rating ? `★ ${Number(f.rating).toFixed(1)}` : ''].filter(Boolean).join(' · ');
   return h('div', { class: 'nw-row' },
     h('a', { class: 'nw-ava', href: `/firms/${f.slug}`, 'aria-hidden': 'true', tabindex: '-1' }, src ? h('img', { src, alt: '', loading: 'lazy' }) : initialsOf(f.name)),
     h('div', { class: 'nw-info' }, h('a', { href: `/firms/${f.slug}` }, h('b', null, f.name)), f.featured && h('span', { class: 'badge featured' }, 'Featured'), h('span', { class: 'muted' }, place), facts && h('span', { class: 'muted' }, facts)),
@@ -520,7 +520,7 @@ async function viewSaved() {
 
 // ---------------------------------------------------------------- profile
 const KIND_LABELS = [['lawyer', 'A lawyer'], ['staff', 'Law firm staff'], ['public', 'Looking for a lawyer'], ['other', 'Something else']];
-// Profile photo and cover: the picture is cropped to the right shape (a centred square, or 3:1 for the cover) and shrunk in the browser,
+// Profile photo and cover: the picture is cropped to the right shape (a centerd square, or 3:1 for the cover) and shrunk in the browser,
 // so uploads are small and fast.
 async function cropJpeg(file, w, h) {
   const bmp = await createImageBitmap(file).catch(() => null);
@@ -544,7 +544,7 @@ function photoCard() {
         h('button', { type: 'button', onclick: () => cvIn.click() }, user.cover ? 'Change cover' : 'Add cover photo'),
         user.cover && h('button', { type: 'button', onclick: () => remove('cover') }, 'Remove')));
     const face = user.avatar ? h('img', { src: user.avatar, alt: 'Your profile photo' }) : h('span', null, initialsOf(user.name || user.email));
-    const who = h('div', { class: 'pf-who' }, h('b', null, user.name || 'Your name'), [user.jobTitle, user.employer].filter(Boolean).length && h('span', { class: 'muted' }, [user.jobTitle, user.employer].filter(Boolean).join(' at ')), (user.city || user.province) && h('span', { class: 'muted' }, [user.city, PROVINCES[user.province] || user.province].filter(Boolean).join(', ')));
+    const who = h('div', { class: 'pf-who' }, h('b', null, user.name || 'Your name'), [user.jobTitle, user.employer].filter(Boolean).length && h('span', { class: 'muted' }, [user.jobTitle, user.employer].filter(Boolean).join(' at ')), (user.city || user.state) && h('span', { class: 'muted' }, [user.city, STATES[user.state] || user.state].filter(Boolean).join(', ')));
     box.replaceChildren(cover, h('div', { class: 'pf-body' }, h('div', { class: 'ph' }, face), who,
       h('div', { class: 'row' }, h('button', { type: 'button', class: 'primary', onclick: () => avIn.click() }, user.avatar ? 'Change photo' : 'Add photo'), user.avatar && h('button', { type: 'button', onclick: () => remove('avatar') }, 'Remove photo')),
       h('p', { class: 'muted pf-note' }, 'Only you can see your photos for now. JPEG, PNG or WebP.'), msg), avIn, cvIn);
@@ -579,14 +579,14 @@ async function viewProfile() {
   const f = (id, label, key, extra = {}) => { const i = h('input', { type: 'text', id, value: user[key] || '', maxlength: 100, ...extra }); return [h('label', { for: id }, label), i, i]; };
   const [l1, name] = f('pname', 'Your name', 'name', { autocomplete: 'name' }); const [l2, city] = f('pcity', 'City', 'city', { autocomplete: 'address-level2' });
   const [l3, title] = f('ptitle', 'Job title', 'jobTitle'); const [l4, emp] = f('pemp', 'Law firm or employer', 'employer');
-  const prov = h('select', { id: 'pprov' }, h('option', { value: '' }, 'Province or territory'), Object.entries(PROVINCES).map(([v, l]) => { const o = h('option', { value: v }, l); if (v === user.province) o.selected = true; return o; }));
+  const prov = h('select', { id: 'pprov' }, h('option', { value: '' }, 'State or territory'), Object.entries(STATES).map(([v, l]) => { const o = h('option', { value: v }, l); if (v === user.state) o.selected = true; return o; }));
   const kind = h('select', { id: 'pkind' }, h('option', { value: '' }, 'Choose one'), KIND_LABELS.map(([v, l]) => { const o = h('option', { value: v }, l); if (v === user.kind) o.selected = true; return o; }));
   const msg = h('div');
   const form = h('form', { onsubmit: async (e) => {
     e.preventDefault(); msg.replaceChildren();
-    try { const r = await api('PATCH', '/api/account/profile', { name: name.value, city: city.value, province: prov.value, jobTitle: title.value, employer: emp.value, kind: kind.value }); Object.assign(user, r.profile); if (window.lawdbRefresh) window.lawdbRefresh(); msg.replaceChildren(note('msg-ok', 'Saved.')); }
+    try { const r = await api('PATCH', '/api/account/profile', { name: name.value, city: city.value, state: prov.value, jobTitle: title.value, employer: emp.value, kind: kind.value }); Object.assign(user, r.profile); if (window.lawdbRefresh) window.lawdbRefresh(); msg.replaceChildren(note('msg-ok', 'Saved.')); }
     catch (err) { msg.replaceChildren(note('msg-err', err.message)); }
-  } }, h('label', { for: 'pname' }, 'Your name'), name, h('label', { for: 'pkind' }, 'I am'), kind, h('label', { for: 'pcity' }, 'City'), city, h('label', { for: 'pprov' }, 'Province or territory'), prov, h('label', { for: 'ptitle' }, 'Job title'), title, h('label', { for: 'pemp' }, 'Law firm or employer'), emp, h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit' }, 'Save')), msg);
+  } }, h('label', { for: 'pname' }, 'Your name'), name, h('label', { for: 'pkind' }, 'I am'), kind, h('label', { for: 'pcity' }, 'City'), city, h('label', { for: 'pprov' }, 'State or territory'), prov, h('label', { for: 'ptitle' }, 'Job title'), title, h('label', { for: 'pemp' }, 'Law firm or employer'), emp, h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit' }, 'Save')), msg);
   const mine = h('div', { class: 'card' });
   const drawMine = () => mine.replaceChildren(...(ratings.length ? ratings.map((r) => {
     const del = h('button', { type: 'button' }, 'Remove');
@@ -594,7 +594,7 @@ async function viewProfile() {
     return h('div', { class: 'audit' }, h('div', null, h('a', { href: `/firms/${r.slug}#rate` }, h('b', null, r.name)), ' ', h('span', { class: 'muted' }, '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + (r.commentStatus === 'pending' ? ' · comment waiting for review' : ''))), r.comment && h('div', { class: 'muted' }, r.comment), h('div', { class: 'row' }, del));
   }) : [h('p', { class: 'muted' }, 'You have not rated any firms yet. Open a firm page and use "Rate this firm".')]));
   drawMine();
-  return h('div', null, h('h1', null, 'Your profile'), h('p', { class: 'muted' }, `Signed in as ${user.email}. Your name personalises your dashboard and emails.`), photoCard(), h('div', { class: 'card' }, form), h('h2', null, 'Your ratings'), mine,
+  return h('div', null, h('h1', null, 'Your profile'), h('p', { class: 'muted' }, `Signed in as ${user.email}. Your name personalizes your dashboard and emails.`), photoCard(), h('div', { class: 'card' }, form), h('h2', null, 'Your ratings'), mine,
     h('p', { class: 'muted' }, h('a', { href: '#', title: 'Ends every session on every device', onclick: async (e) => { e.preventDefault(); await api('POST', '/api/auth/logout-all').catch(() => {}); try { localStorage.setItem('lawdb_in', '0'); sessionStorage.removeItem('lawdb_me'); } catch (err) {} location.replace('/account/'); } }, 'Sign out of every device')));
 }
 
@@ -628,7 +628,7 @@ let cityList = null;
 function renderWizard() {
   document.body.classList.remove('ap', 'ap-in');
   const parts = (user.name || '').trim().split(/\s+/);
-  const d = { first: parts[0] || '', last: parts.slice(1).join(' '), city: user.city || '', province: user.province || '', title: user.jobTitle || '', employer: user.employer || '', goal: user.goal || '' };
+  const d = { first: parts[0] || '', last: parts.slice(1).join(' '), city: user.city || '', state: user.state || '', title: user.jobTitle || '', employer: user.employer || '', goal: user.goal || '' };
   let step = 0;
   const steps = 4;
   const valid = [() => d.first.trim() && d.last.trim(), () => d.city.trim(), () => d.title.trim(), () => !!d.goal];
@@ -644,7 +644,7 @@ function renderWizard() {
   async function finish(skipped) {
     go.disabled = true;
     try {
-      const body = skipped ? { complete: true } : { name: `${d.first.trim()} ${d.last.trim()}`.trim(), city: d.city.trim(), province: d.province, jobTitle: d.title.trim(), employer: d.employer.trim(), goal: d.goal, complete: true };
+      const body = skipped ? { complete: true } : { name: `${d.first.trim()} ${d.last.trim()}`.trim(), city: d.city.trim(), state: d.state, jobTitle: d.title.trim(), employer: d.employer.trim(), goal: d.goal, complete: true };
       const r = await api('PATCH', '/api/account/profile', body);
       Object.assign(user, r.profile);
       if (skipped) { location.hash = '#feed'; return render(); }
@@ -658,21 +658,21 @@ function renderWizard() {
   function body() {
     if (step === 0) return [h('h1', { class: 'wiz-h' }, 'Join LawDB. It is free'), h('p', { class: 'muted center-text' }, 'Follow firms, save stories and rate the firms you have worked with.'), ...input('w-first', 'First name', 'first', { autocomplete: 'given-name' }), ...input('w-last', 'Last name', 'last', { autocomplete: 'family-name' })];
     if (step === 1) {
-      const box = h('input', { type: 'text', id: 'w-city', value: d.city ? (d.province ? `${d.city}, ${d.province}` : d.city) : '', placeholder: 'Start typing a city', autocomplete: 'off', maxlength: 80 });
+      const box = h('input', { type: 'text', id: 'w-city', value: d.city ? (d.state ? `${d.city}, ${d.state}` : d.city) : '', placeholder: 'Start typing a city', autocomplete: 'off', maxlength: 80 });
       const list = h('div', { class: 'wiz-list' });
-      const pickCity = (c, pv) => { d.city = c; d.province = pv; box.value = pv ? `${c}, ${pv}` : c; list.replaceChildren(); refresh(); };
+      const pickCity = (c, pv) => { d.city = c; d.state = pv; box.value = pv ? `${c}, ${pv}` : c; list.replaceChildren(); refresh(); };
       const draw = () => {
-        const q = box.value.trim().toLowerCase(); d.city = box.value.trim(); d.province = ''; refresh();
+        const q = box.value.trim().toLowerCase(); d.city = box.value.trim(); d.state = ''; refresh();
         if (q.length < 1) return list.replaceChildren();
-        const hits = (cityList || []).filter((c) => c.city.toLowerCase().startsWith(q) || `${c.city}, ${c.province}`.toLowerCase().startsWith(q)).slice(0, 6);
-        list.replaceChildren(...hits.map((c) => h('button', { type: 'button', onclick: () => pickCity(c.city, c.province) }, `${c.city}, ${PROVINCES[c.province] || c.province}`)));
+        const hits = (cityList || []).filter((c) => c.city.toLowerCase().startsWith(q) || `${c.city}, ${c.state}`.toLowerCase().startsWith(q)).slice(0, 6);
+        list.replaceChildren(...hits.map((c) => h('button', { type: 'button', onclick: () => pickCity(c.city, c.state) }, `${c.city}, ${STATES[c.state] || c.state}`)));
       };
       box.addEventListener('input', draw);
       if (!cityList) api('GET', '/api/cities').then((r) => { cityList = r.cities; }).catch(() => { cityList = []; });
       return [h('h1', { class: 'wiz-h' }, 'Add your location'), h('p', { class: 'muted center-text' }, 'Pick the city closest to you. It helps us show firms nearby.'), h('label', { for: 'w-city' }, 'Location'), box, list];
     }
     if (step === 2) return [h('h1', { class: 'wiz-h' }, 'What is your most recent experience?'), ...input('w-title', 'Job title', 'title', { placeholder: 'For example: Lawyer, Paralegal, Student', autocomplete: 'organization-title' }), ...input('w-emp', 'Law firm or employer (optional)', 'employer', { maxlength: 100, autocomplete: 'organization' })];
-    return [h('h1', { class: 'wiz-h' }, 'What brings you to LawDB?'), h('p', { class: 'muted center-text' }, 'This helps us personalise your LawDB.'),
+    return [h('h1', { class: 'wiz-h' }, 'What brings you to LawDB?'), h('p', { class: 'muted center-text' }, 'This helps us personalize your LawDB.'),
       h('div', { class: 'wiz-opts' }, GOALS.map(([k, label, sub]) => h('button', { type: 'button', class: 'wiz-opt', 'aria-pressed': d.goal === k ? 'true' : 'false', onclick: () => { d.goal = k; draw(); } }, h('b', null, label), sub && h('span', null, sub))))];
   }
   function draw() {

@@ -1,5 +1,5 @@
 {
-  // LawDB.ca: static site + Worker API + D1 database.
+  // LawDB.ai: static site + Worker API + D1 database.
   // The Worker name here must match the Cloudflare project name exactly.
   "name": "lawdb-ai",
   "main": "src/worker.js",
@@ -8,7 +8,7 @@
     "directory": ".",
     "binding": "ASSETS",
     // Static files are served directly (free, fast). The Worker only runs for the API, the three data
-    // files, and the pages that embed the firm list (find-lawyers, the province/city hubs): for those it
+    // files, and the pages that embed the firm list (find-lawyers, the state/city hubs): for those it
     // swaps in the live database list, falling back to the static file if the database is unavailable.
     "run_worker_first": [
       "/api/*",
@@ -19,8 +19,7 @@
       "/report-listing",
       "/news", "/news/*", "/sitemap-news.xml", "/sitemap-firms.xml", "/*.html",
       "/img/*",
-      "/alberta/", "/manitoba/",
-      "/ontario/*/", "/quebec/*/", "/british-columbia/*/", "/alberta/*/", "/manitoba/*/"
+      "/*/", "/*/*/"
     ]
   },
   // The site will live at lawdb.ai (a custom domain added in the dashboard). Until then the free *.workers.dev address and the per-version

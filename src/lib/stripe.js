@@ -212,7 +212,7 @@ export async function planInfo(env, user, slug) {
     // An office page has no plan of its own: it is Featured when the firm's main listing is.
     return { featured: !!firm?.featured, price: FEATURED_PRICE_LABEL, includedWith: { slug: ofMain.slug, name: ofMain.name }, subscription: null, upgradeUrl: null, portalUrl: null, trial: null, trialAvailable: false, trialDays: TRIAL_DAYS };
   }
-  const trialRow = await env.DB.prepare('SELECT status, started_at AS startedAt, ends_at AS endsAt, views, actions, enquiries FROM firm_trials WHERE firm_slug = ?').bind(slug).first();
+  const trialRow = await env.DB.prepare('SELECT status, started_at AS startedAt, ends_at AS endsAt, views, actions, inquiries FROM firm_trials WHERE firm_slug = ?').bind(slug).first();
   const sub = await env.DB.prepare("SELECT status, period_end AS periodEnd, cancel_at_period_end AS cancelAtPeriodEnd FROM firm_subscriptions WHERE firm_slug = ? AND status IN ('active','past_due') ORDER BY created_at DESC LIMIT 1").bind(slug).first();
   const featured = !!firm?.featured;
   const base = (env.STRIPE_PAYMENT_LINK || '').trim();
@@ -228,7 +228,7 @@ export async function planInfo(env, user, slug) {
     upgradeUrl,
     portalUrl: sub && /^https:\/\//.test(portal) ? portal : null,
     // The free month: running (with its end date), already used, or still on offer to this firm.
-    trial: trialRow ? { status: trialRow.status, startedAt: trialRow.startedAt, endsAt: trialRow.endsAt, daysLeft: trialRow.status === 'active' ? Math.max(0, Math.ceil((new Date(trialRow.endsAt.replace(' ', 'T') + 'Z') - Date.now()) / 86400000)) : 0, views: trialRow.views, actions: trialRow.actions, enquiries: trialRow.enquiries } : null,
+    trial: trialRow ? { status: trialRow.status, startedAt: trialRow.startedAt, endsAt: trialRow.endsAt, daysLeft: trialRow.status === 'active' ? Math.max(0, Math.ceil((new Date(trialRow.endsAt.replace(' ', 'T') + 'Z') - Date.now()) / 86400000)) : 0, views: trialRow.views, actions: trialRow.actions, inquiries: trialRow.inquiries } : null,
     trialAvailable: !trialRow && !featured && firm?.status === 'live',
     trialDays: TRIAL_DAYS,
   };

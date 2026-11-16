@@ -1,3 +1,4 @@
+import { STATES } from './us.js';
 // The Traffic tab's projection and its "how to grow" advice. Pure functions of the numbers in the report, so they are easy to test and never guess:
 // every piece of advice quotes the figure it comes from, and with too little data the answer is "keep counting" instead of a made-up curve.
 
@@ -44,14 +45,13 @@ export function forecast(series, horizon = 30) {
   };
 }
 
-const PROV_NAME = { ON: 'Ontario', QC: 'Quebec', BC: 'British Columbia', AB: 'Alberta', MB: 'Manitoba', NS: 'Nova Scotia', NB: 'New Brunswick', SK: 'Saskatchewan', PE: 'Prince Edward Island', NL: 'Newfoundland and Labrador' };
-const CASE_NAME = { injury: 'personal injury', traffic: 'traffic ticket', criminal: 'criminal defence', family: 'family', realestate: 'real estate', wills: 'wills and estates', business: 'business', employment: 'employment', immigration: 'immigration', litigation: 'litigation' };
+const CASE_NAME = { injury: 'personal injury', traffic: 'traffic ticket', criminal: 'criminal defense', family: 'family', realestate: 'real estate', wills: 'wills and estates', business: 'business', employment: 'employment', immigration: 'immigration', litigation: 'litigation' };
 // Which advice matters most when there is more than six: lower comes first (matched on the start of the title).
 const PRIORITY = [['Add firms where people are already looking', 1], ['wants more than we list', 2], ['Traffic is flat', 2], ['Few visitors contact a firm', 3], ['Teach the search the words', 3], ['Traffic is climbing', 3],
   ['Almost all your visitors come from Google', 4], ['Search engines send very little yet', 4], ['Social media sends nothing so far', 5], ['has listings but little traffic', 6], ['Most visits start on the home page', 6], ['Most visitors are on phones', 7]];
 const pct = (a, b) => (b > 0 ? Math.round((a / b) * 100) : 0);
 
-// report: the Traffic report (totals, refs, entries, geo, devices, events, towns, noparse, forecast...), coverage: [{ province, firms }].
+// report: the Traffic report (totals, refs, entries, geo, devices, events, towns, noparse, forecast...), coverage: [{ state, firms }].
 // Returns up to six pieces of advice, each { title, why, action }.
 export function growthTips(report, coverage = []) {
   const tips = [];
@@ -70,22 +70,22 @@ export function growthTips(report, coverage = []) {
     tips.push({ title: 'Teach the search the words people use', why: `Searches that matched nothing: ${noparse.slice(0, 4).map((x) => `"${x.label}" ${x.n}x`).join(', ')}.`, action: 'Add these as practice-area words or town names so the next person gets results.' });
   }
 
-  // Where visits and listings do not line up (Canadian visits only, by province).
+  // Where visits and listings do not line up (US visits only, by state).
   const byProv = {};
   for (const g of report.geo || []) {
     const [c, r] = String(g.label).split(' ');
-    if (c === 'CA' && r) byProv[r] = (byProv[r] || 0) + g.n;
+    if (c === 'US' && r) byProv[r] = (byProv[r] || 0) + g.n;
   }
   const caVisits = Object.values(byProv).reduce((a, b) => a + b, 0);
   const firmsTotal = coverage.reduce((a, c) => a + c.firms, 0);
   if (caVisits >= 20 && firmsTotal > 0) {
-    const rows = coverage.map((c) => ({ prov: c.province, firms: c.firms, firmShare: pct(c.firms, firmsTotal), visitShare: pct(byProv[c.province] || 0, caVisits) }));
+    const rows = coverage.map((c) => ({ prov: c.state, firms: c.firms, firmShare: pct(c.firms, firmsTotal), visitShare: pct(byProv[c.state] || 0, caVisits) }));
     // demand ahead of listings: a real share of visits (5%+) that is at least 1.5 times the share of firms
     const asking = rows.filter((r) => r.visitShare >= 5 && r.firmShare > 0 && r.visitShare >= 1.5 * r.firmShare && r.visitShare - r.firmShare >= 3).sort((x, y) => y.visitShare / y.firmShare - x.visitShare / x.firmShare)[0];
-    if (asking) tips.push({ title: `${PROV_NAME[asking.prov] || asking.prov} wants more than we list`, why: `${asking.visitShare}% of Canadian visits come from ${PROV_NAME[asking.prov] || asking.prov}, but it has ${asking.firmShare}% of the firms (${asking.firms}).`, action: 'Add high-quality firms there first; the demand is already showing up.' });
+    if (asking) tips.push({ title: `${STATES[asking.prov] || asking.prov} wants more than we list`, why: `${asking.visitShare}% of US visits come from ${STATES[asking.prov] || asking.prov}, but it has ${asking.firmShare}% of the firms (${asking.firms}).`, action: 'Add high-quality firms there first; the demand is already showing up.' });
     // listings nobody is finding: a real share of firms (10%+) with under 40% of its fair share of visits
     const quiet = rows.filter((r) => r.firmShare >= 10 && r.visitShare <= 0.4 * r.firmShare).sort((x, y) => y.firmShare - x.firmShare)[0];
-    if (quiet) tips.push({ title: `${PROV_NAME[quiet.prov] || quiet.prov} has listings but little traffic`, why: `${PROV_NAME[quiet.prov] || quiet.prov} has ${quiet.firmShare}% of the firms (${quiet.firms}) but only ${quiet.visitShare}% of Canadian visits.`, action: 'Market it: local outreach to its firms, ads aimed at that province, and make sure its city pages are indexed (Search tab).' });
+    if (quiet) tips.push({ title: `${STATES[quiet.prov] || quiet.prov} has listings but little traffic`, why: `${STATES[quiet.prov] || quiet.prov} has ${quiet.firmShare}% of the firms (${quiet.firms}) but only ${quiet.visitShare}% of US visits.`, action: 'Market it: local outreach to its firms, ads aimed at that state, and make sure its city pages are indexed (Search tab).' });
   }
 
   // Where visitors arrive from.

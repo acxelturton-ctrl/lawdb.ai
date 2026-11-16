@@ -1,4 +1,4 @@
-// "Report a listing" page: a short form anyone can use to flag a wrong, misleading or unauthorised listing.
+// "Report a listing" page: a short form anyone can use to flag a wrong, misleading or unauthorized listing.
 // Built from the same header/footer/styles as every other page. Reports arrive as leads (form "report-listing")
 // and the admin is emailed.
 import * as C from './firm-chunks.generated.js';

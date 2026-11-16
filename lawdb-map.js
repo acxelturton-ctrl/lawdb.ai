@@ -23,27 +23,23 @@
   function fmtKm(d){ return (d < 10 ? d.toFixed(1) : Math.round(d)) + ' km'; }
 
   var LAWYERS = {
-    traffic: 'Traffic ticket lawyers', criminal: 'Criminal defence lawyers', family: 'Family law lawyers',
+    traffic: 'Traffic ticket lawyers', criminal: 'Criminal defense lawyers', family: 'Family law lawyers',
     injury: 'Personal injury lawyers', realestate: 'Real estate lawyers', wills: 'Wills & estates lawyers',
     business: 'Business lawyers', employment: 'Employment lawyers', immigration: 'Immigration lawyers', litigation: 'Litigation lawyers'
   };
   var AREA = {
-    traffic: 'Traffic', criminal: 'Criminal defence', family: 'Family law', injury: 'Personal injury', realestate: 'Real estate',
+    traffic: 'Traffic', criminal: 'Criminal defense', family: 'Family law', injury: 'Personal injury', realestate: 'Real estate',
     wills: 'Wills & estates', business: 'Business law', employment: 'Employment', immigration: 'Immigration', litigation: 'Litigation'
   };
   function areaName(id, prov){
-    if(prov === 'QC' && id === 'realestate') return 'Property disputes';
-    if(prov === 'QC' && id === 'wills') return 'Estate disputes';
     return AREA[id] || (typeof caseLabel === 'function' ? caseLabel(id, prov) : id);
   }
   function lawyersLabel(id, prov){
-    if(prov === 'QC' && id === 'realestate') return 'Property dispute lawyers';
-    if(prov === 'QC' && id === 'wills') return 'Estate dispute lawyers';
     return LAWYERS[id] || ((typeof caseLabel === 'function' ? caseLabel(id, prov) : id) + ' lawyers');
   }
   function firmArea(f){
-    if(selectedCase && f.caseTypes && f.caseTypes.indexOf(selectedCase) >= 0) return areaName(selectedCase, f.province);
-    if(f.caseTypes && f.caseTypes.length) return areaName(f.caseTypes[0], f.province);
+    if(selectedCase && f.caseTypes && f.caseTypes.indexOf(selectedCase) >= 0) return areaName(selectedCase, f.state);
+    if(f.caseTypes && f.caseTypes.length) return areaName(f.caseTypes[0], f.state);
     return 'Law firm';
   }
   /* "near a spot" (find-lawyers page only): the firms closest to a town with no firm of its own, or to the person: { lat, lng, label, me } */
@@ -52,15 +48,15 @@
   function placeLabel(short){
     var nr = nearSel();
     if(nr) return 'Closest to ' + (nr.me ? 'you' : nr.label);
-    if(selectedCityName) return selectedCityName + ', ' + selectedProvince;
+    if(selectedCityName) return selectedCityName + ', ' + selectedState;
     if(selectedRegion && typeof REGION_LABEL !== 'undefined' && REGION_LABEL[selectedRegion]) return REGION_LABEL[selectedRegion];
-    var pv = (typeof PROVINCE_LABEL !== 'undefined' && PROVINCE_LABEL[selectedProvince]) || 'Canada';
+    var pv = (typeof STATE_LABEL !== 'undefined' && STATE_LABEL[selectedState]) || 'the United States';
     return short ? pv : 'All of ' + pv;
   }
 
   /* ------------------------------------------------------------ hours */
   var hours = null, hoursP = null;
-  var TZ = { ON: 'America/Toronto', QC: 'America/Toronto', BC: 'America/Vancouver', AB: 'America/Edmonton', MB: 'America/Winnipeg' };
+  var TZ = {"AL": "America/Chicago", "AK": "America/Anchorage", "AZ": "America/Phoenix", "AR": "America/Chicago", "CA": "America/Los_Angeles", "CO": "America/Denver", "CT": "America/New_York", "DE": "America/New_York", "DC": "America/New_York", "FL": "America/New_York", "GA": "America/New_York", "HI": "Pacific/Honolulu", "ID": "America/Boise", "IL": "America/Chicago", "IN": "America/Indiana/Indianapolis", "IA": "America/Chicago", "KS": "America/Chicago", "KY": "America/New_York", "LA": "America/Chicago", "ME": "America/New_York", "MD": "America/New_York", "MA": "America/New_York", "MI": "America/Detroit", "MN": "America/Chicago", "MS": "America/Chicago", "MO": "America/Chicago", "MT": "America/Denver", "NE": "America/Chicago", "NV": "America/Los_Angeles", "NH": "America/New_York", "NJ": "America/New_York", "NM": "America/Denver", "NY": "America/New_York", "NC": "America/New_York", "ND": "America/Chicago", "OH": "America/New_York", "OK": "America/Chicago", "OR": "America/Los_Angeles", "PA": "America/New_York", "RI": "America/New_York", "SC": "America/New_York", "SD": "America/Chicago", "TN": "America/Chicago", "TX": "America/Chicago", "UT": "America/Denver", "VT": "America/New_York", "VA": "America/New_York", "WA": "America/Los_Angeles", "WV": "America/New_York", "WI": "America/Chicago", "WY": "America/Denver"};
   var DAYN = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   function loadHours(){
     if(hoursP) return hoursP;
@@ -78,7 +74,7 @@
   function fmtT(v){ var t = toMin(v), h = Math.floor(t / 60) % 24, m = t % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + (m ? ':' + ('0' + m).slice(-2) : '') + ' ' + ap; }
   function openInfo(f){
     var h = hours && hours[f.slug]; if(!h) return null;
-    var n = nowIn(TZ[f.province] || 'America/Toronto'), today = h[n.d] || [], i, r;
+    var n = nowIn(TZ[f.state] || 'America/New_York'), today = h[n.d] || [], i, r;
     for(i = 0; i < today.length; i++){ r = today[i]; if(n.m >= toMin(r[0]) && n.m < toMin(r[1])) return { open: true, text: 'Closes ' + fmtT(r[1]) }; }
     for(i = 0; i < today.length; i++){ r = today[i]; if(toMin(r[0]) > n.m) return { open: false, text: 'Opens ' + fmtT(r[0]) }; }
     for(i = 1; i <= 7; i++){
@@ -152,7 +148,7 @@
       '</div></article>';
   }
   function detailHtml(f){
-    var tags = (f.caseTypes || []).slice(0, 6).map(function(c){ return '<span>' + esc(areaName(c, f.province)) + '</span>'; }).join('');
+    var tags = (f.caseTypes || []).slice(0, 6).map(function(c){ return '<span>' + esc(areaName(c, f.state)) + '</span>'; }).join('');
     return '<div class="gm-sel-bar"><button class="gm-sel-back" type="button" data-back>' + IC.back + 'All results</button></div>' +
       itemHtml(f, true) + (tags ? '<div class="gm-sel-tags">' + tags + '</div>' : '');
   }
@@ -210,7 +206,7 @@
   }
 
   function queryText(){
-    var what = selectedCase ? lawyersLabel(selectedCase, selectedProvince) : 'Lawyers', nr = nearSel();
+    var what = selectedCase ? lawyersLabel(selectedCase, selectedState) : 'Lawyers', nr = nearSel();
     return nr ? what + ' near ' + (nr.me ? 'you' : nr.label) : what + ' in ' + placeLabel(true);
   }
   function renderQuery(){
@@ -222,11 +218,11 @@
   /* Articles from the firms in the city the visitor searched, shown under the lawyers (fetched once per city). */
   var newsKey = '', newsList = null;
   function placeNews(){
-    if(!selectedCityName || !selectedProvince) return '';
-    var key = selectedCityName + '|' + selectedProvince;
+    if(!selectedCityName || !selectedState) return '';
+    var key = selectedCityName + '|' + selectedState;
     if(newsKey !== key){
       newsKey = key; newsList = null;
-      fetch(ROOT + 'api/news?province=' + encodeURIComponent(selectedProvince) + '&city=' + encodeURIComponent(selectedCityName))
+      fetch(ROOT + 'api/news?state=' + encodeURIComponent(selectedState) + '&city=' + encodeURIComponent(selectedCityName))
         .then(function(r){ return r.ok ? r.json() : []; })
         .then(function(list){ if(newsKey === key){ newsList = list; renderPanel(); } })
         .catch(function(){ if(newsKey === key) newsList = []; });
@@ -266,7 +262,7 @@
   function buildChips(){
     var h = chipHtml('feat', 'Featured') + chipHtml('top', 'Top rated') + chipHtml('rev', '40+ reviews') + chipHtml('open', 'Open now') + '<span class="gm-chip-sep"></span>';
     (typeof CASE_TYPES !== 'undefined' ? CASE_TYPES : []).forEach(function(c){
-      h += '<button type="button" class="gm-chip" data-case="' + esc(c.id) + '">' + esc(areaName(c.id, selectedProvince)) + '</button>';
+      h += '<button type="button" class="gm-chip" data-case="' + esc(c.id) + '">' + esc(areaName(c.id, selectedState)) + '</button>';
     });
     $('gmChips').innerHTML = h;
   }
@@ -276,7 +272,7 @@
     for(var i = 0; i < chips.length; i++){
       var c = chips[i], on = c.dataset.k ? !!F[c.dataset.k] : (c.dataset.case === selectedCase);
       c.classList.toggle('on', on); c.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if(c.dataset.case) c.textContent = areaName(c.dataset.case, selectedProvince);
+      if(c.dataset.case) c.textContent = areaName(c.dataset.case, selectedState);
     }
     /* a practice area chosen by a link or the search box can sit off to the right: bring it into view, once per choice */
     if(selectedCase !== shownCase){
@@ -677,17 +673,17 @@
   var IS_FIND = /find-lawyers/.test(location.pathname);
   var KW = {
     traffic: ['traffic ticket', 'traffic', 'ticket', 'speeding', 'demerit', 'stunt driving'],
-    criminal: ['criminal', 'charge', 'charges', 'defence', 'defense', 'dui', 'impaired', 'assault', 'bail'],
+    criminal: ['criminal', 'charge', 'charges', 'defense', 'defense', 'dui', 'impaired', 'assault', 'bail'],
     family: ['family', 'divorce', 'custody', 'separation', 'child support', 'spousal'],
     injury: ['personal injury', 'injury', 'injured', 'accident', 'car accident', 'slip and fall', 'whiplash'],
     realestate: ['real estate', 'house', 'home', 'closing', 'condo', 'property', 'mortgage'],
     wills: ['wills', 'will', 'estate', 'estates', 'probate', 'power of attorney', 'poa', 'inheritance'],
     business: ['business', 'corporate', 'commercial', 'incorporation', 'contract'],
-    employment: ['employment', 'wrongful dismissal', 'dismissal', 'labour', 'labor', 'severance', 'workplace', 'harassment'],
+    employment: ['employment', 'wrongful dismissal', 'dismissal', 'labor', 'labor', 'severance', 'workplace', 'harassment'],
     immigration: ['immigration', 'visa', 'citizenship', 'refugee', 'sponsorship', 'work permit'],
     litigation: ['litigation', 'lawsuit', 'sue', 'civil', 'dispute']
   };
-  var PROVS = { 'ontario': 'ON', 'quebec': 'QC', 'british columbia': 'BC', 'alberta': 'AB', 'manitoba': 'MB', 'bc': 'BC', 'qc': 'QC', 'alta': 'AB' };
+  var PROVS = {"alabama": "AL", "al": "AL", "alaska": "AK", "ak": "AK", "arizona": "AZ", "az": "AZ", "arkansas": "AR", "ar": "AR", "california": "CA", "ca": "CA", "colorado": "CO", "co": "CO", "connecticut": "CT", "ct": "CT", "delaware": "DE", "de": "DE", "district of columbia": "DC", "dc": "DC", "florida": "FL", "fl": "FL", "georgia": "GA", "ga": "GA", "hawaii": "HI", "hi": "HI", "idaho": "ID", "id": "ID", "illinois": "IL", "il": "IL", "indiana": "IN", "in": "IN", "iowa": "IA", "ia": "IA", "kansas": "KS", "ks": "KS", "kentucky": "KY", "ky": "KY", "louisiana": "LA", "la": "LA", "maine": "ME", "me": "ME", "maryland": "MD", "md": "MD", "massachusetts": "MA", "ma": "MA", "michigan": "MI", "mi": "MI", "minnesota": "MN", "mn": "MN", "mississippi": "MS", "ms": "MS", "missouri": "MO", "mo": "MO", "montana": "MT", "mt": "MT", "nebraska": "NE", "ne": "NE", "nevada": "NV", "nv": "NV", "new hampshire": "NH", "nh": "NH", "new jersey": "NJ", "nj": "NJ", "new mexico": "NM", "nm": "NM", "new york": "NY", "ny": "NY", "north carolina": "NC", "nc": "NC", "north dakota": "ND", "nd": "ND", "ohio": "OH", "oh": "OH", "oklahoma": "OK", "ok": "OK", "oregon": "OR", "or": "OR", "pennsylvania": "PA", "pa": "PA", "rhode island": "RI", "ri": "RI", "south carolina": "SC", "sc": "SC", "south dakota": "SD", "sd": "SD", "tennessee": "TN", "tn": "TN", "texas": "TX", "tx": "TX", "utah": "UT", "ut": "UT", "vermont": "VT", "vt": "VT", "virginia": "VA", "va": "VA", "washington": "WA", "wa": "WA", "west virginia": "WV", "wv": "WV", "wisconsin": "WI", "wi": "WI", "wyoming": "WY", "wy": "WY", "washington dc": "DC", "d c": "DC", "washington d c": "DC"};
   var STOP = /\b(lawyers?|attorneys?|law firms?|firms?|a|an|the|in|for|near|me|nearby|my|need|find|i|looking|to|get)\b/g;
   function norm(x){ return String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
   function hasW(n, w){ return (' ' + n + ' ').indexOf(' ' + w + ' ') >= 0; }
@@ -709,16 +705,16 @@
     return r;
   }
   function curTarget(){
-    if(selectedCityName){ var c = cities().filter(function(x){ return x.c.name === selectedCityName && x.c.province === selectedProvince; })[0]; if(c) return { city: c.c }; }
-    return { prov: selectedProvince };
+    if(selectedCityName){ var c = cities().filter(function(x){ return x.c.name === selectedCityName && x.c.state === selectedState; })[0]; if(c) return { city: c.c }; }
+    return { prov: selectedState };
   }
   function tgtLabel(t){
-    if(t.city) return t.city.name + ', ' + t.city.province;
-    if(t.prov) return (typeof PROVINCE_LABEL !== 'undefined' && PROVINCE_LABEL[t.prov]) || t.prov;
+    if(t.city) return t.city.name + ', ' + t.city.state;
+    if(t.prov) return (typeof STATE_LABEL !== 'undefined' && STATE_LABEL[t.prov]) || t.prov;
     return placeLabel(true);
   }
   function combo(kase, t, extra){
-    var what = kase ? lawyersLabel(kase, t.city ? t.city.province : (t.prov || selectedProvince)) : 'Lawyers';
+    var what = kase ? lawyersLabel(kase, t.city ? t.city.state : (t.prov || selectedState)) : 'Lawyers';
     return { kind: 'combo', icon: kase ? 'search' : 'pin', main: what + ' in ' + tgtLabel(t), sub: extra || (kase ? 'Practice area' : 'All practice areas'),
       t: { caseId: kase || null, city: t.city || null, prov: t.prov || null } };
   }
@@ -756,10 +752,10 @@
       if(!p.kase) Object.keys(KW).forEach(function(id){
         if(KW[id].some(function(w){ return w.indexOf(tail) === 0; }) || norm(AREA[id]).indexOf(tail) === 0) add(combo(id, tgt));
       });
-      Object.keys(PROVS).forEach(function(k){ if(k.length > 3 && k.indexOf(tail) === 0) add(combo(p.kase, { prov: PROVS[k] }, 'Province')); });
+      Object.keys(PROVS).forEach(function(k){ if(k.length > 3 && k.indexOf(tail) === 0) add(combo(p.kase, { prov: PROVS[k] }, 'State')); });
       if(placesReady && tail.length >= 3 && !p.city){
         window.LawdbPlaces.suggest(tail, 6).filter(function(pl){
-          return !cities().some(function(c){ return c.c.name === pl.name && c.c.province === pl.prov; });
+          return !cities().some(function(c){ return c.c.name === pl.name && c.c.state === pl.prov; });
         }).slice(0, 3).forEach(function(pl){
           add({ kind: 'place', icon: 'pin', main: pl.label, sub: (p.kase ? lawyersLabel(p.kase, pl.prov) : 'Lawyers') + ' nearest to ' + pl.name, t: { place: pl, caseId: p.kase || null } });
         });
@@ -767,8 +763,8 @@
     }
     var fq = p.n.replace(STOP, ' ').replace(/\s+/g, ' ').trim();
     if(fq.length >= 3){
-      var fm = firms.filter(function(f){ return norm(f.name).indexOf(fq) >= 0; }).sort(function(a, b){ var sa = (a.city === selectedCityName ? 2 : 0) + (a.province === selectedProvince ? 1 : 0), sb = (b.city === selectedCityName ? 2 : 0) + (b.province === selectedProvince ? 1 : 0); return (sb - sa) || ((b.featured ? 1 : 0) - (a.featured ? 1 : 0)) || (b.count - a.count); }).slice(0, 4);
-      fm.forEach(function(f){ add({ kind: 'firm', icon: 'firm', main: f.name, sub: 'Law firm · ' + f.city + ', ' + f.province, t: { slug: f.slug } }); });
+      var fm = firms.filter(function(f){ return norm(f.name).indexOf(fq) >= 0; }).sort(function(a, b){ var sa = (a.city === selectedCityName ? 2 : 0) + (a.state === selectedState ? 1 : 0), sb = (b.city === selectedCityName ? 2 : 0) + (b.state === selectedState ? 1 : 0); return (sb - sa) || ((b.featured ? 1 : 0) - (a.featured ? 1 : 0)) || (b.count - a.count); }).slice(0, 4);
+      fm.forEach(function(f){ add({ kind: 'firm', icon: 'firm', main: f.name, sub: 'Law firm · ' + f.city + ', ' + f.state, t: { slug: f.slug } }); });
     }
     return items.slice(0, 9);
   }
@@ -784,7 +780,7 @@
     var val = (document.activeElement === $('gmQ') && q === queryText()) ? '' : q;
     sugItems = suggestions(val); sugIdx = -1;
     if(!sugItems.length){
-      box.innerHTML = '<div class="gm-sug-empty">No match yet. Try a city or a practice area, like <b>family lawyer in Ottawa</b>.</div>';
+      box.innerHTML = '<div class="gm-sug-empty">No match yet. Try a city or a practice area, like <b>car accident lawyer in Miami</b>.</div>';
     } else {
       box.innerHTML = (val ? '' : '<div class="gm-sug-h">Try</div>') + sugItems.map(function(it, i){
         return '<div class="gm-sug-i" role="option" id="gmSug' + i + '" data-i="' + i + '"><span class="gm-sug-ico">' + SUGICO[it.icon] + '</span><span class="gm-sug-t"><b>' + esc(it.main) + '</b><small>' + esc(it.sub) + '</small></span></div>';
@@ -808,7 +804,7 @@
     if(t.place){
       var spot = { lat: t.place.lat, lng: t.place.lng, label: t.place.label, prov: t.place.prov, me: false };
       if(!IS_FIND || typeof selectedNear === 'undefined'){ location.href = ROOT + 'find-lawyers?near=' + encodeURIComponent(spot.label) + (kase ? '&case=' + encodeURIComponent(kase) : ''); return; }
-      selectedNear = spot; selectedCase = kase; selectedProvince = spot.prov; selectedRegion = null; selectedCityName = null;
+      selectedNear = spot; selectedCase = kase; selectedState = spot.prov; selectedRegion = null; selectedCityName = null;
       try { var nu = new URL(location.href); nu.searchParams.set('near', spot.label); history.replaceState({}, '', nu); } catch(e){}
       showResults(true);
       return;
@@ -820,30 +816,30 @@
     }
     if(t.slug){
       var f = firms.filter(function(x){ return x.slug === t.slug; })[0]; if(!f) return;
-      var path = typeof CITY_PAGE_MAP !== 'undefined' && CITY_PAGE_MAP[f.city + '|' + f.province];
+      var path = typeof CITY_PAGE_MAP !== 'undefined' && CITY_PAGE_MAP[f.city + '|' + f.state];
       var inBase = base.filter(function(x){ return x.slug === f.slug; })[0];
       if(inBase){ select(inBase); return; }
       if(!IS_FIND && path && selectedCityName !== f.city){ location.href = ROOT + path + '?firm=' + encodeURIComponent(f.slug); return; }
-      pendingSlug = f.slug; selectedCase = null; selectedProvince = f.province; selectedRegion = f.region; selectedCityName = f.city; showResults(true);
+      pendingSlug = f.slug; selectedCase = null; selectedState = f.state; selectedRegion = f.region; selectedCityName = f.city; showResults(true);
       return;
     }
     if(t.city){
-      var key = t.city.name + '|' + t.city.province;
+      var key = t.city.name + '|' + t.city.state;
       var cp = typeof CITY_PAGE_MAP !== 'undefined' && CITY_PAGE_MAP[key];
-      var same = selectedCityName === t.city.name && selectedProvince === t.city.province;
+      var same = selectedCityName === t.city.name && selectedState === t.city.state;
       if(cp && !same){ location.href = ROOT + cp + (kase ? '?case=' + encodeURIComponent(kase) : ''); return; }
-      selectedCase = kase; selectedProvince = t.city.province; selectedRegion = t.city.region; selectedCityName = t.city.name; showResults(true);
+      selectedCase = kase; selectedState = t.city.state; selectedRegion = t.city.region; selectedCityName = t.city.name; showResults(true);
       return;
     }
     if(t.prov){
-      if(!IS_FIND){ location.href = ROOT + 'find-lawyers?province=' + t.prov + (kase ? '&case=' + encodeURIComponent(kase) : ''); return; }
-      selectedCase = kase; selectedProvince = t.prov; selectedRegion = null; selectedCityName = null; showResults(true);
+      if(!IS_FIND){ location.href = ROOT + 'find-lawyers?state=' + t.prov + (kase ? '&case=' + encodeURIComponent(kase) : ''); return; }
+      selectedCase = kase; selectedState = t.prov; selectedRegion = null; selectedCityName = null; showResults(true);
       return;
     }
     selectedCase = kase; showResults(true);
   }
-  /* A city page or province hub carries only its own province's firms (LAWDB_SCOPE). The rest are fetched the first time the search box is used,
-     so a firm from another province can still be found by name. */
+  /* A city page or state hub carries only its own state's firms (LAWDB_SCOPE). The rest are fetched the first time the search box is used,
+     so a firm from another state can still be found by name. */
   var allFirms = null;
   function ensureAllFirms(){
     if(typeof LAWDB_SCOPE === 'undefined') return Promise.resolve();
@@ -912,7 +908,7 @@
   var chipsBuilt = false;
   function buildChipsOnce(){ if(!chipsBuilt){ buildChips(); chipsBuilt = true; } }
 
-  /* the heading block above the search: an eyebrow, the page's own h1 (its place in gold italic) and one line under it. City and province pages
+  /* the heading block above the search: an eyebrow, the page's own h1 (its place in gold italic) and one line under it. City and state pages
      already have their h1 in a .city-hero, which is kept as it is for search engines and only styled; the Find page gets its own. */
   function buildHead(wrap, before){
     var head = document.querySelector('.city-hero');
@@ -964,7 +960,7 @@
     wrap.insertBefore(app, stack);
     mapWrap = $('gmMapWrap'); panel = $('gmPanel'); scrollEl = $('gmScroll'); listEl = $('gmList'); selEl = $('gmSel'); areaBtn = $('gmArea'); locBtn = $('gmLoc');
     mapWrap.insertBefore(card, mapWrap.firstChild);
-    var note = $('provinceNote'); if(note) scrollEl.insertBefore(note, selEl);
+    var note = $('stateNote'); if(note) scrollEl.insertBefore(note, selEl);
     var lb = $('listBody'); if(lb) scrollEl.appendChild(lb);
     var h2 = document.querySelector('.map-col h2'); if(h2) h2.textContent = 'On the map';
 

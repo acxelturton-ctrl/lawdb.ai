@@ -1,6 +1,6 @@
 // The "Firms to explore" strip on the home page, new every day.
 //
-// Each day (Toronto time) the Worker picks 12 firms from the best-looking, top-rated profiles and puts their cards into the home page, between the
+// Each day (Eastern time) the Worker picks 12 firms from the best-looking, top-rated profiles and puts their cards into the home page, between the
 // <!--more-firms--> markers. The pick is "random" but fixed for the day (seeded by the date), so every visitor and every server sees the same strip, and
 // tomorrow's is different. The cards saved in index.html (data/home-firms.json) are only the fallback if the database cannot answer.
 //
@@ -10,14 +10,14 @@
 //   - a real description (40 words or more, the same bar as the Google sitemap) and a phone number for the Call button.
 // "Best-looking": the eligible profiles are ranked by rating weighted by number of reviews, plus how complete the profile is (profile strength:
 // hours, tagline, social profiles, languages and so on). The day's pick is drawn at random from the top 120, with at most 2 firms per city,
-// 3 per kind of practice and 4 per province, so the strip is a spread, not twelve Toronto injury firms.
+// 3 per kind of practice and 4 per state, so the strip is a spread, not twelve Miami injury firms.
 import { HOME_POOL } from '../render/home-pool.generated.js';
 import { homeFirmCard } from '../render/home-cards.js';
 import { profileStrength } from '../lib/profile-strength.js';
 import { isIndexable } from '../lib/indexing.js';
-import { torontoDay } from '../lib/stats.js';
+import { easternDay } from '../lib/stats.js';
 
-export const SHOWN = 12, TOP = 120, PER_CITY = 2, PER_KIND = 3, PER_PROVINCE = 4;
+export const SHOWN = 12, TOP = 120, PER_CITY = 2, PER_KIND = 3, PER_STATE = 4;
 const POOL = new Set(HOME_POOL);
 
 // rating weighted by how many reviews it rests on (4.5 is the prior, worth 50 reviews), plus up to 0.2 for a complete profile
@@ -37,10 +37,10 @@ export function pickDaily(firms, day, { shown = SHOWN, top = TOP } = {}) {
   const rand = seeded(day);
   for (let i = best.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [best[i], best[j]] = [best[j], best[i]]; }
   const city = {}, kind = {}, prov = {}, out = [];
-  const take = (f) => { out.push(f); city[`${f.city}|${f.province}`] = (city[`${f.city}|${f.province}`] || 0) + 1; kind[(f.tags || [])[0]] = (kind[(f.tags || [])[0]] || 0) + 1; prov[f.province] = (prov[f.province] || 0) + 1; };
+  const take = (f) => { out.push(f); city[`${f.city}|${f.state}`] = (city[`${f.city}|${f.state}`] || 0) + 1; kind[(f.tags || [])[0]] = (kind[(f.tags || [])[0]] || 0) + 1; prov[f.state] = (prov[f.state] || 0) + 1; };
   for (const f of best) {
     if (out.length >= shown) break;
-    if ((city[`${f.city}|${f.province}`] || 0) >= PER_CITY || (kind[(f.tags || [])[0]] || 0) >= PER_KIND || (prov[f.province] || 0) >= PER_PROVINCE) continue;
+    if ((city[`${f.city}|${f.state}`] || 0) >= PER_CITY || (kind[(f.tags || [])[0]] || 0) >= PER_KIND || (prov[f.state] || 0) >= PER_STATE) continue;
     take(f);
   }
   for (const f of best) { if (out.length >= shown) break; if (!out.includes(f)) take(f); } // too few firms to keep every limit: fill up anyway
@@ -66,7 +66,7 @@ export async function eligibleFirms(env) {
 let memo = null; // { day, cards } kept by each server for the day, so the database is asked once a day, not once a visit
 let failedAt = 0;
 
-export async function dailyCards(env, day = torontoDay()) {
+export async function dailyCards(env, day = easternDay()) {
   if (memo && memo.day === day) return memo.cards;
   if (Date.now() - failedAt < 60000) return '';
   try {

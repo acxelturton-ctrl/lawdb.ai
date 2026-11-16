@@ -2,7 +2,7 @@
    becomes a Save button. Signed-in people toggle them in place; everyone else is taken to sign in and the action is finished when they come back. */
 (function () {
   if (window.lawdbSocial) return;
-  // Follow is plain text in the site's link colour, like on other social platforms (no box). Save keeps its pill.
+  // Follow is plain text in the site's link color, like on other social platforms (no box). Save keeps its pill.
   var css = '.lw-sbtn{font:600 13px Inter,system-ui,sans-serif;border:1.5px solid #142434;background:#fff;color:#142434;border-radius:999px;padding:6px 14px;cursor:pointer;line-height:1.2;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px}' +
     '.lw-sbtn:hover{background:#f4ecd8;border-color:#c9a050}.lw-sbtn[disabled]{opacity:.6;cursor:wait}' +
     '.lw-fbtn{font:700 14px Inter,system-ui,sans-serif;border:0;background:none;color:#e2bd6a;padding:2px 0;margin:0;cursor:pointer;line-height:1.2;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;text-decoration:none}' +
@@ -47,7 +47,7 @@
     });
     all(root, '[data-fcount]').forEach(function (el) {
       var s = state.follows[el.getAttribute('data-fcount')];
-      el.textContent = s && s.followers > 0 ? s.followers.toLocaleString('en-CA') + (s.followers === 1 ? ' follower' : ' followers') : '';
+      el.textContent = s && s.followers > 0 ? s.followers.toLocaleString('en-US') + (s.followers === 1 ? ' follower' : ' followers') : '';
     });
     all(root, '[data-save]').forEach(function (b) {
       var on = !!state.saved[b.getAttribute('data-save')];
@@ -104,7 +104,7 @@
     location.href = '/account/' + (join ? '?join=1' : '');
   }
 
-  // Signed-out people who tap Follow or Save get a centred sign-in popup instead of being thrown to another page.
+  // Signed-out people who tap Follow or Save get a centerd sign-in popup instead of being thrown to another page.
   var gcss = '.lw-gate{position:fixed;inset:0;z-index:2000;background:rgba(27,36,45,0.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Inter,system-ui,sans-serif}' +
     '.lw-gate-card{position:relative;background:#fff;border-radius:16px;width:100%;max-width:440px;padding:56px 28px 32px;text-align:center;box-shadow:0 24px 60px rgba(20,36,52,0.28);color:#142434}' +
     '.lw-gate-x{position:absolute;top:10px;left:10px;width:40px;height:40px;border:0;background:none;font-size:28px;line-height:1;color:#586170;cursor:pointer;border-radius:50%}.lw-gate-x:hover{background:#edeae1;color:#142434}' +

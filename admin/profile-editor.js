@@ -3,20 +3,20 @@
 // until something changes. One editor for three jobs:
 //   mode 'admin'  the admin edits any firm (every field);
 //   mode 'owner'  an approved owner edits their own firm: the facts, the description and the tagline always, and what is a Featured benefit (booking
-//                 link, second enquiry email, pictures) only on a Featured plan; the city, map position, status and plan are shown but not editable;
+//                 link, second inquiry email, pictures) only on a Featured plan; the city, map position, status and plan are shown but not editable;
 //   mode 'new'    the admin adds a firm.
 // Only the fields that changed are sent, so an owner on the Basic plan never trips over a locked field they did not touch.
 // SECURITY: every value is put in with text nodes or element properties, never innerHTML.
 
 import { verificationPanel } from './verification-panel.js';
-import { h, api, when, note, hoursEditor, categoryChecks, splitTags, picturesPanel, feedPanel, planPanel, startFreeMonth, PROVINCES } from './ui.js';
+import { h, api, when, note, hoursEditor, categoryChecks, splitTags, picturesPanel, feedPanel, planPanel, startFreeMonth, STATES } from './ui.js';
 
 // The languages an owner can pick, and the availability choices. Kept in step with src/lib/details.js (LANGUAGES) and src/lib/profile-strength.js
 // (AVAILABILITY) by scripts/test-profile-strength.mjs.
 export const LANGUAGES = ['English', 'French', 'Spanish', 'Punjabi', 'Hindi', 'Urdu', 'Gujarati', 'Tamil', 'Bengali', 'Arabic', 'Persian', 'Farsi', 'Mandarin', 'Cantonese', 'Korean', 'Vietnamese', 'Tagalog', 'Portuguese', 'Italian', 'Polish', 'Russian', 'Ukrainian', 'Greek', 'German', 'Dutch', 'Turkish', 'Japanese', 'Hebrew', 'Somali', 'Amharic', 'Swahili'];
 export const AVAILABILITY = { accepting: 'Accepting new clients', limited: 'Limited availability', closed: 'Not accepting new clients' };
 export const SOCIALS = [['facebook', 'Facebook'], ['instagram', 'Instagram'], ['linkedin', 'LinkedIn'], ['x', 'X'], ['youtube', 'YouTube']];
-const PROV_SLUG = { ON: 'ontario', QC: 'quebec', BC: 'british-columbia', AB: 'alberta', MB: 'manitoba' };
+const PROV_SLUG = new Proxy({}, { get: (_, code) => (STATES[code] ? String(STATES[code]).toLowerCase().replace(/ /g, '-') : undefined) }); // FL -> florida
 export const citySlug = (c) => String(c).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 // Small line icons for the card headings (drawn with createElementNS, not innerHTML).
@@ -55,7 +55,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
   const admin = mode === 'admin' || isNew;
   const firm = data.firm || {};
   const slug = data.slug || '';
-  // Owners: a Basic firm writes its own description and tagline and keeps its facts up to date. A booking link, a second enquiry email and
+  // Owners: a Basic firm writes its own description and tagline and keeps its facts up to date. A booking link, a second inquiry email and
   // pictures are Featured benefits, shown here greyed out with the reason.
   const locked = mode === 'owner' && !firm.featured;
   // Opens "Your plan" at the top, which has the free-month and upgrade buttons.
@@ -76,11 +76,11 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     website: text(firm.website, { maxlength: 300, placeholder: 'https://' }),
     bookingUrl: text(firm.bookingUrl, { maxlength: 500, placeholder: locked ? 'https://calendly.com/your-firm' : 'https://', disabled: locked }),
     about: h('textarea', { class: 'tall', maxlength: 2000, placeholder: 'Tell clients about your firm, who you help and how you work.' }, firm.about || ''),
-    enquiryEmail: h('input', { type: 'email', value: data.enquiryEmail || '', maxlength: 254, placeholder: locked ? 'intake@your-firm.ca' : 'intake@yourfirm.ca', disabled: locked, autocomplete: 'off', 'aria-label': 'Send enquiries to' }),
+    inquiryEmail: h('input', { type: 'email', value: data.inquiryEmail || '', maxlength: 254, placeholder: locked ? 'intake@your-firm.ca' : 'intake@yourfirm.ca', disabled: locked, autocomplete: 'off', 'aria-label': 'Send inquiries to' }),
     address: text(firm.address, { maxlength: 300 }),
     phone: text(firm.phone, { maxlength: 30 }),
     city: text(firm.city, { maxlength: 80, disabled: !admin }),
-    province: h('select', { disabled: !admin }, Object.entries(PROVINCES).map(([code, name]) => h('option', { value: code, selected: code === (firm.province || 'ON') }, name))),
+    state: h('select', { disabled: !admin }, Object.entries(STATES).map(([code, name]) => h('option', { value: code, selected: code === (firm.state || 'FL') }, name))),
     lat: text(firm.lat ?? '', { inputmode: 'decimal', disabled: !admin, placeholder: isNew ? 'Optional' : '' }),
     lng: text(firm.lng ?? '', { inputmode: 'decimal', disabled: !admin, placeholder: isNew ? 'Optional' : '' }),
     status: h('select', { disabled: !admin || data.status === 'pending' }, [['live', 'Live'], ['hidden', 'Hidden (shown nowhere)']].concat(data.status === 'pending' ? [['pending', 'Awaiting approval']] : [])
@@ -104,7 +104,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
   const officeRows = [];
   function addOffice(o = { name: '', address: '' }) {
     const name = text(o.name, { placeholder: 'Name (optional)', maxlength: 80, 'aria-label': 'Office name' });
-    const address = text(o.address, { placeholder: 'Street address, city, province', maxlength: 300, 'aria-label': 'Office address' });
+    const address = text(o.address, { placeholder: 'Street address, city, state', maxlength: 300, 'aria-label': 'Office address' });
     const row = { name, address, el: null };
     const remove = h('button', { type: 'button', class: 'ed-x', 'aria-label': 'Remove this office', onclick: () => { officeRows.splice(officeRows.indexOf(row), 1); row.el.remove(); changed(); } }, '×');
     row.el = h('div', { class: 'office-row' }, name, address, remove);
@@ -124,14 +124,14 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     put('phone', c.phone.value.trim(), firm.phone || '');
     put('website', c.website.value.trim(), firm.website || '');
     if (!isNew) put('bookingUrl', c.bookingUrl.value.trim(), firm.bookingUrl || '');
-    if (!isNew) put('enquiryEmail', c.enquiryEmail.value.trim().toLowerCase(), (data.enquiryEmail || '').toLowerCase());
+    if (!isNew) put('inquiryEmail', c.inquiryEmail.value.trim().toLowerCase(), (data.inquiryEmail || '').toLowerCase());
     put('address', c.address.value.trim(), firm.address || '');
     const tags = splitTags(c.tags.value); if (!sameList(tags, firm.tags || []) || (isNew && tags.length)) p.tags = tags;
     const cs = cats.get(); if (!sameList(cs, firm.caseTypes || []) || (isNew && cs.length)) p.caseTypes = cs;
     if (admin) {
       put('city', c.city.value.trim(), firm.city || '');
-      put('province', c.province.value, firm.province || (isNew ? 'ON' : ''));
-      if (isNew) { if (c.status.value !== 'live') p.status = c.status.value; p.province = c.province.value; }
+      put('state', c.state.value, firm.state || (isNew ? 'FL' : ''));
+      if (isNew) { if (c.status.value !== 'live') p.status = c.status.value; p.state = c.state.value; }
       else if (c.status.value !== (data.status || 'live') && c.status.value !== 'pending') p.status = c.status.value;
       if (!isNew) {
         put('featured', c.featured.value === 'true', !!firm.featured);
@@ -219,9 +219,9 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     let loaded = false;
     const addForm = () => {
       const f = { name: h('input', { type: 'text', maxlength: 200, placeholder: firm.name || '', 'aria-label': 'Office name' }),
-        city: h('input', { type: 'text', maxlength: 80, placeholder: 'Toronto', 'aria-label': 'City' }),
-        province: h('select', { 'aria-label': 'Province' }, Object.entries(PROVINCES).map(([code, name]) => h('option', { value: code, selected: code === (firm.province || 'ON') }, name))),
-        address: h('input', { type: 'text', maxlength: 200, placeholder: '151 Eglinton Ave W, Toronto, ON', 'aria-label': 'Street address' }),
+        city: h('input', { type: 'text', maxlength: 80, placeholder: 'Miami', 'aria-label': 'City' }),
+        state: h('select', { 'aria-label': 'State' }, Object.entries(STATES).map(([code, name]) => h('option', { value: code, selected: code === (firm.state || 'FL') }, name))),
+        address: h('input', { type: 'text', maxlength: 200, placeholder: '151 Brickell Ave, Miami, FL', 'aria-label': 'Street address' }),
         phone: h('input', { type: 'text', maxlength: 40, placeholder: '(416) 555-0100', 'aria-label': 'Phone' }),
         website: h('input', { type: 'text', maxlength: 300, placeholder: firm.website || 'https://', 'aria-label': 'Website of this office' }) };
       const msg = h('div', { class: 'ed-out' });
@@ -229,14 +229,14 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
       go.addEventListener('click', async () => {
         go.disabled = true; msg.replaceChildren();
         try {
-          await api('POST', `${base}/locations`, { name: f.name.value, city: f.city.value, province: f.province.value, address: f.address.value, phone: f.phone.value, website: f.website.value });
+          await api('POST', `${base}/locations`, { name: f.name.value, city: f.city.value, state: f.state.value, address: f.address.value, phone: f.phone.value, website: f.website.value });
           body.replaceChildren(note('msg-ok', 'Thank you. We check each new office page before it goes live; once it does it appears under your firms and in that city\'s list. It is Featured, like this page.'));
         } catch (err) { msg.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
       });
       const row = (label, el, hint) => h('div', { class: 'ed-field' }, h('label', null, label), el, hint && h('p', { class: 'ed-hint' }, hint));
       return h('div', { class: 'ed-locform' },
         h('h3', null, 'Add an office page'),
-        row('City', f.city), row('Province', f.province), row('Street address', f.address, 'The address of this office. It places the pin on the map.'),
+        row('City', f.city), row('State', f.state), row('Street address', f.address, 'The address of this office. It places the pin on the map.'),
         row('Phone', f.phone), row('Website (if this office has its own)', f.website, 'Leave blank to use your main website.'),
         row('Name (optional)', f.name, 'Leave blank to use your firm name. The city makes the page address.'),
         h('div', { class: 'row' }, go), msg);
@@ -244,7 +244,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     const draw = (st) => {
       if (st.isLocation) { body.replaceChildren(h('p', null, 'This page is an office of ', h('b', null, st.main.name), '. It is Featured whenever that listing is, and its plan and billing are managed there.')); return; }
       const kids = [h('p', { class: 'ed-hint' }, 'A firm with offices in several cities gets a page for each office, so each shows in its own city\'s list and on the map, with its own address, phone number and website. One Featured plan covers all of them.')];
-      if (st.items.length) kids.push(h('ul', { class: 'ed-loc-list' }, st.items.map((l) => h('li', null, h('b', null, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.province}`), ' ',
+      if (st.items.length) kids.push(h('ul', { class: 'ed-loc-list' }, st.items.map((l) => h('li', null, h('b', null, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.state}`), ' ',
         l.status === 'live' ? h('a', { href: `/firms/${l.slug}`, target: '_blank', rel: 'noopener' }, 'View page') : h('span', { class: 'badge new' }, 'Awaiting approval')))));
       if (st.canAdd) kids.push(addForm());
       else kids.push(locked ? lockNote(st.reason) : h('p', { class: 'muted' }, st.reason));
@@ -270,8 +270,8 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
       } catch (err) { msg.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
     });
     return h('details', { class: 'ed-addr' }, h('summary', null, 'Change the page address'),
-      h('p', { class: 'ed-hint' }, 'Lowercase letters, digits and dashes. The old address keeps working: it redirects to the new one for good, for the page and for its stories. The owner, enquiries, ratings, followers and numbers all stay with the firm.'),
-      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ca/firms/'), input),
+      h('p', { class: 'ed-hint' }, 'Lowercase letters, digits and dashes. The old address keeps working: it redirects to the new one for good, for the page and for its stories. The owner, inquiries, ratings, followers and numbers all stay with the firm.'),
+      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input),
       h('div', { class: 'row' }, go), msg);
   }
 
@@ -290,8 +290,8 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
       try {
         const r = await api('GET', `/api/admin/firms/${encodeURIComponent(into)}`);
         keep = into;
-        msg.replaceChildren(h('p', { class: 'ed-hint' }, 'Keep: ', h('b', null, r.firm.name || into), ` (${[r.firm.city, r.firm.province].filter(Boolean).join(', ')}, ${r.status}). `,
-          h('b', null, '@' + slug), ' will be deleted. Its owners, enquiries, followers, ratings, blog feed and numbers move to the kept listing, and ',
+        msg.replaceChildren(h('p', { class: 'ed-hint' }, 'Keep: ', h('b', null, r.firm.name || into), ` (${[r.firm.city, r.firm.state].filter(Boolean).join(', ')}, ${r.status}). `,
+          h('b', null, '@' + slug), ' will be deleted. Its owners, inquiries, followers, ratings, blog feed and numbers move to the kept listing, and ',
           h('b', null, `/firms/${slug}`), ' redirects there for good. This cannot be undone.'));
         go.hidden = false;
       } catch (err) { msg.replaceChildren(note('msg-err', err.status === 404 ? `There is no listing at /firms/${into}.` : err.message)); }
@@ -308,7 +308,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     });
     return h('details', { class: 'ed-addr' }, h('summary', null, 'Merge into another listing (duplicate)'),
       h('p', { class: 'ed-hint' }, 'Use this when the same firm is listed twice. Enter the address of the listing to KEEP; this one is removed.'),
-      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ca/firms/'), input, look),
+      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input, look),
       msg, h('div', { class: 'row' }, go));
   }
 
@@ -337,9 +337,9 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     });
     const pages = Array.isArray(data.locations) ? data.locations : [];
     return h('details', { class: 'ed-addr', open: pages.length > 0 }, h('summary', null, pages.length ? `Offices of this firm (${pages.length})` : 'Offices in other cities (one plan)'),
-      pages.length ? h('ul', { class: 'ed-loc-list' }, pages.map((l) => h('li', null, h('a', { href: `#firms/edit/${l.slug}` }, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.province}${l.status !== 'live' ? ' (' + l.status + ')' : ''}`)))) : null,
+      pages.length ? h('ul', { class: 'ed-loc-list' }, pages.map((l) => h('li', null, h('a', { href: `#firms/edit/${l.slug}` }, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.state}${l.status !== 'live' ? ' (' + l.status + ')' : ''}`)))) : null,
       h('p', { class: 'ed-hint' }, pages.length ? 'Each office page is Featured whenever this listing is. To add another existing listing as an office page, enter this listing\'s address on that listing\'s page.' : 'If this page is another office of a firm that already has a main listing, enter that listing\'s address. This page then follows the main listing\'s Featured plan.'),
-      pages.length ? null : h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ca/firms/'), input, go), msg);
+      pages.length ? null : h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input, go), msg);
   }
 
   // ---- Basic Information
@@ -350,7 +350,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
         fld('Profile Status', c.status, data.status === 'pending' ? 'Approve it under Approvals.' : null),
         fld('Plan', c.featured, mode === 'owner' ? 'Managed by LawDB (see Your plan)' : null)),
     fld('Official Firm Name', c.name),
-    !isNew && fld('Username', text('@' + slug, { readonly: true, 'aria-label': 'Username' }), 'The address of the page: lawdb.ca/firms/' + slug + (admin ? '' : '. To change it, write to info@lawdb.ca.')),
+    !isNew && fld('Username', text('@' + slug, { readonly: true, 'aria-label': 'Username' }), 'The address of the page: lawdb.ai/firms/' + slug + (admin ? '' : '. To change it, write to info@lawdb.ai.')),
     admin && !isNew && addressControl(),
     admin && !isNew && mergeControl(),
     admin && !isNew && locationControl(),
@@ -377,13 +377,13 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     !isNew && feedPanel(`${base}/feed`));
 
   // ---- Location
-  const cityPath = () => `/${PROV_SLUG[c.province.value] || ''}/${citySlug(c.city.value)}/`;
+  const cityPath = () => `/${PROV_SLUG[c.state.value] || ''}/${citySlug(c.city.value)}/`;
   const cityLine = h('p', { class: 'ed-hint' });
   let cityTimer;
   function checkCity() {
     clearTimeout(cityTimer);
     cityTimer = setTimeout(async () => {
-      if (!PROV_SLUG[c.province.value] || !citySlug(c.city.value)) return cityLine.replaceChildren('');
+      if (!PROV_SLUG[c.state.value] || !citySlug(c.city.value)) return cityLine.replaceChildren('');
       const path = cityPath();
       try {
         const r = await fetch(path, { method: 'HEAD' });
@@ -391,12 +391,12 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
       } catch { cityLine.replaceChildren(''); }
     }, 350);
   }
-  c.city.addEventListener('input', checkCity); c.province.addEventListener('change', checkCity);
+  c.city.addEventListener('input', checkCity); c.state.addEventListener('change', checkCity);
   const mapOut = h('p', { class: 'ed-hint' });
   const find = h('button', { type: 'button', onclick: async () => {
     find.disabled = true; mapOut.replaceChildren('Looking…');
     try {
-      const r = await api('GET', `/api/admin/geocode?address=${encodeURIComponent(c.address.value)}&city=${encodeURIComponent(c.city.value)}&province=${encodeURIComponent(c.province.value)}`);
+      const r = await api('GET', `/api/admin/geocode?address=${encodeURIComponent(c.address.value)}&city=${encodeURIComponent(c.city.value)}&state=${encodeURIComponent(c.state.value)}`);
       if (!r.found) mapOut.replaceChildren('Nothing found. Type the numbers in by hand.');
       else {
         c.lat.value = String(Math.round(r.lat * 1e7) / 1e7); c.lng.value = String(Math.round(r.lng * 1e7) / 1e7); changed();
@@ -406,8 +406,8 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     find.disabled = false;
   } }, 'Find on map');
   const loc = card('Location', 'pin',
-    fld('Country', h('select', { disabled: true }, h('option', null, 'Canada'))),
-    fld('Province', c.province, !admin ? 'To move your firm, write to info@lawdb.ca.' : null),
+    fld('Country', h('select', { disabled: true }, h('option', null, 'United States'))),
+    fld('State', c.state, !admin ? 'To move your firm, write to info@lawdb.ai.' : null),
     fld('City', c.city), cityLine,
     h('div', { class: 'ed-row' }, fld('Latitude', c.lat), fld('Longitude', c.lng)),
     admin && h('div', { class: 'row' }, find), mapOut,
@@ -423,9 +423,9 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
   const addr = card('Address', 'home',
     fld('Street address', c.address, 'The map pin and the directions link follow this.'),
     fld('Phone', c.phone),
-    !isNew && fld('Send enquiries to', c.enquiryEmail,
-      locked ? 'Never shown on your page.' : 'Enquiries from your page are emailed to the address you sign in with, and also to this one, for example your intake desk. Never shown on your page.',
-      locked ? lockNote('On Basic, enquiries go only to the email you sign in with. Featured lets you add a second address, like your intake desk.') : null),
+    !isNew && fld('Send inquiries to', c.inquiryEmail,
+      locked ? 'Never shown on your page.' : 'Inquiries from your page are emailed to the address you sign in with, and also to this one, for example your intake desk. Never shown on your page.',
+      locked ? lockNote('On Basic, inquiries go only to the email you sign in with. Featured lets you add a second address, like your intake desk.') : null),
     !isNew && h('div', { class: 'ed-sub-h' }, 'Other offices'),
     !isNew && officeList,
     !isNew && h('div', { class: 'row' }, h('button', { type: 'button', onclick: () => { addOffice(); changed(); } }, 'Add an office')),
@@ -445,7 +445,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     const item = (t) => h('li', null, icon('lock'), t);
     return h('div', { class: 'ed-unlock' },
       h('div', null, h('b', null, 'Locked on the Basic plan'), h('p', { class: 'muted' }, 'On Basic you write your own description and tagline and keep your facts up to date here: name, phone, address, website, practice areas, opening hours and social profiles. Featured unlocks:')),
-      h('ul', null, ['A booking link and the Book a call button', 'Profile pictures: logo, cover and photos', 'Sending enquiries to a second email address', 'The analytics dashboard', 'The enquiries inbox, with notes and export', 'A page for every office, with one plan'].map(item)),
+      h('ul', null, ['A booking link and the Book a call button', 'Profile pictures: logo, cover and photos', 'Sending inquiries to a second email address', 'The analytics dashboard', 'The inquiries inbox, with notes and export', 'A page for every office, with one plan'].map(item)),
       cta);
   })();
 

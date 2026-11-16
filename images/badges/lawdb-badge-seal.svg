@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 148" width="132" height="148" role="img" aria-label="Listed on LawDB.ca">
-<title>Listed on LawDB.ca</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 148" width="132" height="148" role="img" aria-label="Listed on LawDB.ai">
+<title>Listed on LawDB.ai</title>
 <rect x="1.5" y="1.5" width="129" height="145" rx="16" fill="#142434" stroke="#c9a050" stroke-width="3"/>
 <defs>
 <linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="190"><stop offset="0" stop-color="#e6d4a4"/><stop offset=".45" stop-color="#e2bd6a"/><stop offset="1" stop-color="#c9a050"/></linearGradient>
@@ -13,5 +13,5 @@
 </defs><g transform="translate(36 16) scale(0.3141)"><ellipse cx="97.5" cy="37.3" rx="97.2" ry="37.3" fill="url(#sd)"/>
 <rect x="-5" y="-5" width="205" height="201" fill="url(#sg)" mask="url(#sm)"/></g>
 <text x="66" y="112" text-anchor="middle" font-family="Inter,Arial,Helvetica,sans-serif" font-size="10" font-weight="600" letter-spacing="1.6" fill="#b4bac4">LISTED ON</text>
-<text x="66" y="134" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="700" fill="#ffffff">Law<tspan fill="#e2bd6a">DB</tspan><tspan font-size="12" font-weight="400" fill="#b4bac4">.ca</tspan></text>
+<text x="66" y="134" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="700" fill="#ffffff">Law<tspan fill="#e2bd6a">DB</tspan><tspan font-size="12" font-weight="400" fill="#b4bac4">.ai</tspan></text>
 </svg>

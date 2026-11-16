@@ -1,8 +1,8 @@
-// Builds the national case-type guide pages (/family-lawyers, /criminal-defence-lawyers ... ten of them) from data/case-types.json, the
+// Builds the national case-type guide pages (/family-lawyers, /criminal-defense-lawyers ... ten of them) from data/case-types.json, the
 // case-type tiles in the hero of /find-lawyers (between <!--case-cards--> markers) and the "Or pick a case type" list on the
 // home page (index.html, between <!--home-cases--> markers; the icons are symbols in the page's own sprite). Each guide is answer-first, general
-// information about one kind of case, with plain links down to every province page and city page that exists for it, so the national page,
-// the province page and the city page of a case type form one chain: /family-lawyers -> /ontario/family-lawyers -> /ontario/toronto/family-lawyers.
+// information about one kind of case, with plain links down to every state page and city page that exists for it, so the national page,
+// the state page and the city page of a case type form one chain: /family-lawyers -> /florida/family-lawyers -> /florida/miami/family-lawyers.
 //   node scripts/build-case-pages.mjs          rewrites the pages and the cards
 //   node scripts/build-case-pages.mjs --check  fails if anything is out of date
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
@@ -11,18 +11,19 @@ const CHECK = process.argv.includes('--check');
 const DATA = JSON.parse(readFileSync('data/case-types.json', 'utf8'));
 const TYPES = Object.entries(DATA.types);
 const SHELL = readFileSync('scripts/case-page.shell.html', 'utf8');
-const SITE = 'https://lawdb.ca';
-const PROVINCES = [['ontario', 'Ontario'], ['quebec', 'Quebec'], ['british-columbia', 'British Columbia'], ['alberta', 'Alberta'], ['manitoba', 'Manitoba']];
+const SITE = 'https://lawdb.ai';
+import { STATES as US_STATES, STATE_SLUG } from '../src/lib/us.js';
+const STATES = Object.entries(US_STATES).map(([code, name]) => [STATE_SLUG[code], name]);
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 const unesc = (s) => s.replace(/&#x27;/g, "'").replace(/&amp;/g, '&');
 const indexable = (html) => !/<meta[^>]+name="robots"[^>]+noindex/i.test(html);
-const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 
-// the province pages and city pages that exist (and are indexable) for one case type, with the heading each page uses
+// the state pages and city pages that exist (and are indexable) for one case type, with the heading each page uses
 function pagesFor(slug) {
   const out = [];
-  for (const [dir, name] of PROVINCES) {
+  for (const [dir, name] of STATES) {
     const h1Of = (file) => {
       if (!existsSync(file)) return null;
       const html = readFileSync(file, 'utf8');
@@ -46,7 +47,7 @@ function pagesFor(slug) {
 }
 
 const EXTRA_CSS = `<style>
-  /* the guide reads like a blog post: a headline, a photo, one readable column and a sticky side card (palette colours only) */
+  /* the guide reads like a blog post: a headline, a photo, one readable column and a sticky side card (palette colors only) */
   .cg-wrap{ max-width:1100px; margin:0 auto; padding:0 20px; }
   .cg-top{ background:#f5f3ec; padding:26px 0 0; }
   .cg-crumb{ margin:0 0 18px; font-size:12.5px; color:#586170; }
@@ -126,11 +127,11 @@ const EXTRA_CSS = `<style>
 
 function pageHtml([id, t]) {
   const url = `${SITE}/${t.slug}`;
-  const title = `${t.h1} | LawDB.ca`;
+  const title = `${t.h1} | LawDB.ai`;
   const pages = pagesFor(t.slug);
   const crumbName = `${t.name} Lawyers`;
   const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: t.faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
-  const pageLd = { '@context': 'https://schema.org', '@type': 'WebPage', name: title, url, description: t.description, dateModified: DATA.updated, isPartOf: { '@type': 'WebSite', name: 'LawDB.ca', url: `${SITE}/` } };
+  const pageLd = { '@context': 'https://schema.org', '@type': 'WebPage', name: title, url, description: t.description, dateModified: DATA.updated, isPartOf: { '@type': 'WebSite', name: 'LawDB.ai', url: `${SITE}/` } };
   const crumbLd = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
     { '@type': 'ListItem', position: 2, name: 'Find a lawyer', item: `${SITE}/find-lawyers` },
@@ -141,13 +142,13 @@ function pageHtml([id, t]) {
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(t.description)}">`,
     `<link rel="canonical" href="${url}">`,
-    `<meta property="og:type" content="website"><meta property="og:url" content="${url}"><meta property="og:site_name" content="LawDB.ca"><meta property="og:locale" content="en_CA">`,
+    `<meta property="og:type" content="website"><meta property="og:url" content="${url}"><meta property="og:site_name" content="LawDB.ai"><meta property="og:locale" content="en_US">`,
     `<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(t.description)}">`,
     `<meta property="og:image" content="${SITE}/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">`,
     ld, EXTRA_CSS].join('\n');
 
   const list = (items, tag = 'ul') => `<${tag} class="cg-list">${items.map((i) => `<li>${esc(i)}</li>`).join('')}</${tag}>`;
-  // one block per province: the province page (full descriptive link) and a pill for each city page
+  // one block per state: the state page (full descriptive link) and a pill for each city page
   const where = pages.filter((p) => p.prov || p.cities.length).map((p) => `<div class="cg-prov"><h3>${p.prov ? `<a href="${p.prov.href}">${esc(p.prov.label)}</a>` : esc(p.name)}</h3>${p.cities.length ? `<div class="cg-pills">${p.cities.map((c) => `<a href="${c.href}" title="${esc(c.label)}">${esc(c.city)}</a>`).join('')}</div>` : ''}</div>`).join('');
   const others = TYPES.filter(([k]) => k !== id).map(([, o]) => `<a href="/${o.slug}">${esc(o.name)}</a>`).join('');
   const faq = t.faqs.map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
@@ -160,8 +161,8 @@ function pageHtml([id, t]) {
   const extra = figure(t.photos && t.photos.extra); // an optional third photo, after the questions to ask
   const words = [t.lede, t.differ, ...t.when, ...t.does, ...t.ask, ...t.faqs.flatMap((f) => [f.q, f.a])].join(' ').split(/\s+/).length;
   const minutes = Math.max(2, Math.round(words / 200));
-  const heads = { when: `When to speak to a ${t.noun}`, does: `What a ${t.noun} does`, rules: 'How the rules differ across Canada', ask: `Questions to ask before you hire a ${t.noun}`, faq: 'Frequently asked questions' };
-  const toc = Object.entries(heads).map(([k, h]) => `<li><a href="#${k}">${esc(h)}</a></li>`).join('') + `<li><a href="#where">${esc(t.name)} lawyers by province and city</a></li>`;
+  const heads = { when: `When to speak to a ${t.noun}`, does: `What a ${t.noun} does`, rules: 'How the rules differ by state', ask: `Questions to ask before you hire a ${t.noun}`, faq: 'Frequently asked questions' };
+  const toc = Object.entries(heads).map(([k, h]) => `<li><a href="#${k}">${esc(h)}</a></li>`).join('') + `<li><a href="#where">${esc(t.name)} lawyers by state and city</a></li>`;
 
   const body = `
 <header class="cg-top">
@@ -176,7 +177,7 @@ function pageHtml([id, t]) {
   <article class="cg-article">
     ${feature}
     <p class="cg-lede">${esc(t.lede)}</p>
-    <div class="cg-cta"><a class="cg-btn" href="/find-lawyers?case=${id}">Find a ${esc(t.noun)}</a><a class="cg-jump" href="#where">Browse by province and city &darr;</a></div>
+    <div class="cg-cta"><a class="cg-btn" href="/find-lawyers?case=${id}">Find a ${esc(t.noun)}</a><a class="cg-jump" href="#where">Browse by state and city &darr;</a></div>
     <h2 id="when">${esc(heads.when)}</h2>
     ${list(t.when)}
     <h2 id="does">${esc(heads.does)}</h2>
@@ -189,14 +190,14 @@ function pageHtml([id, t]) {
     <section class="cg-faq" id="faq"><h2>${esc(heads.faq)}</h2>${faq}</section>
   </article>
   <aside class="cg-side" aria-label="About this guide">
-    <div class="cg-card"><h2>Find a ${esc(t.noun)}</h2><p>Search by city and see public Google ratings. Firms cannot pay to change them.</p><a class="cg-btn" href="/find-lawyers?case=${id}">Start your search</a></div>
+    <div class="cg-card"><h2>Find a ${esc(t.noun)}</h2><p>Search by state or city to find firms near you, with their address, phone and practice areas.</p><a class="cg-btn" href="/find-lawyers?case=${id}">Start your search</a></div>
     <div class="cg-card"><h2>In this guide</h2><ul class="cg-toc">${toc}</ul></div>
   </aside>
 </div>
 <div class="cg-after">
-  <section class="cg-where" id="where"><h2>${esc(t.name)} lawyers by province and city</h2><p>Pick a province for every firm we list there, or a city to go straight to its lawyers.</p><div class="cg-provs">${where}</div></section>
+  <section class="cg-where" id="where"><h2>${esc(t.name)} lawyers by state and city</h2><p>Pick a state for every firm we list there, or a city to go straight to its lawyers.</p><div class="cg-provs">${where}</div></section>
   <section class="cg-more"><h2>Other practice areas</h2><div class="cg-chips">${others}</div></section>
-  <p class="cg-small">This page is general information about legal topics in Canada, not legal advice. Laws change and differ by province, so speak to a licensed lawyer about your situation. LawDB is an independent directory: ratings shown are public Google ratings, and a firm cannot pay to change them. <a href="/find-lawyers">Search by city or case type</a>.</p>
+  <p class="cg-small">This page is general information about legal topics in the United States, not legal advice. Laws change and differ by state, so speak to a licensed lawyer about your situation. LawDB is an independent directory. A listing is not an endorsement or a recommendation. <a href="/find-lawyers">Search by city or case type</a>.</p>
 </div>`;
   return SHELL.replace('%%HEAD%%', () => head).replace('%%BODY%%', () => body);
 }

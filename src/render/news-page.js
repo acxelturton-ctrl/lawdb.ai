@@ -3,6 +3,7 @@
 import * as C from './firm-chunks.generated.js';
 import { esc, safeUrl } from './firm-page.js';
 import { BLOG_CSS, cardHtml, safePostUrl } from './blog-cards.js';
+import { STATES } from '../lib/us.js';
 import { ICON as SOCIAL_ICON } from './story-page.js';
 import { NETWORKS, cleanSocial } from '../lib/social.js';
 
@@ -148,14 +149,13 @@ const avatarOf = (logo, name) => {
   const l = safeUrl(logo);
   return l ? `<img src="${esc(/^https:/.test(l) || l.startsWith('/') ? l : '/' + l)}" alt="" loading="lazy" width="44" height="44">` : initial(name);
 };
-const PROVINCE = { AB: 'Alberta', BC: 'British Columbia', MB: 'Manitoba', NB: 'New Brunswick', NL: 'Newfoundland and Labrador', NS: 'Nova Scotia', NT: 'Northwest Territories', NU: 'Nunavut', ON: 'Ontario', PE: 'Prince Edward Island', QC: 'Quebec', SK: 'Saskatchewan', YT: 'Yukon' };
 // A post's header on a card: the firm's logo (or initial), its name with the Featured badge, where the firm is, and a Follow button for the menu.
 const headOf = (p) => ({
   avatar: avatarOf(p.logo, p.firmName),
   name: p.firmName,
   href: `/firms/${p.firmSlug}`,
   featured: !!p.featured,
-  place: [p.city, PROVINCE[p.province] || p.province].filter(Boolean).join(', '),
+  place: [p.city, STATES[p.state] || p.state].filter(Boolean).join(', '),
   follow: `<button class="lw-fbtn" type="button" data-follow="${esc(p.firmSlug)}">Follow</button>`,
 });
 
@@ -175,7 +175,7 @@ const TOPICS = [
   ['Criminal', /criminal|police|arrest|bail\b|impaired|\bdui\b|assault|charged|\bcharges\b|search your/i],
   ['Injury', /injur|accident|collision|rear-ended|icbc|slip and fall|whiplash|disabilit|insurer/i],
   ['Immigration', /immigra|visa\b|citizenship|express entry|permanent resident|refugee|work permit|study permit|sponsor/i],
-  ['Employment', /employ|fired|terminat|severance|dismissal|workplace|labour/i],
+  ['Employment', /employ|fired|terminat|severance|dismissal|workplace|labor/i],
   ['Real estate', /real estate|\bhome\b|house|condo|mortgage|landlord|tenant|lease|closing|propert|title insurance/i],
   ['Wills & estates', /\bwills?\b|estate|probate|power of attorney|executor|inherit/i],
   ['Business', /business|corporat|shareholder|commercial|startup|incorporat|partnership/i],
@@ -190,7 +190,7 @@ export const topicOf = (p) => {
 // The top story banner: shows one story with its picture, headline and firm; the page script shuffles the stories and switches every 3 seconds.
 const heroItem = (p) => ({
   t: p.title, x: String(p.excerpt || '').replace(/\s+/g, ' ').slice(0, 170), i: p.image, h: p.storyHref || p.url, s: p.storyHref ? 1 : 0,
-  f: p.firmName, p: [p.city, PROVINCE[p.province] || p.province].filter(Boolean).join(', '), l: p.logo ? avatarOf(p.logo, p.firmName) : '', c: topicOf(p),
+  f: p.firmName, p: [p.city, STATES[p.state] || p.state].filter(Boolean).join(', '), l: p.logo ? avatarOf(p.logo, p.firmName) : '', c: topicOf(p),
 });
 export const HERO_JS = `(function(){var el=document.getElementById('news-hero'),d=document.getElementById('news-hero-data');if(!el||!d)return;var items;try{items=JSON.parse(d.textContent)}catch(e){return}
 if(!items||items.length<2)return;for(var i=items.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=items[i];items[i]=items[j];items[j]=t}
@@ -221,7 +221,7 @@ function footHtml(p) {
 
 const fmtDay = (d) => {
   const t = d ? new Date(String(d).replace(' ', 'T') + 'Z') : null;
-  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
+  return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
 };
 
 // posts: [{ firmSlug, firmName, featured, logo, title, url, publishedAt, excerpt, image }]; firms: [{ slug, name, logo }] (people strip and filter chips)
@@ -266,18 +266,18 @@ export function renderNewsPage({ posts, firms, people: strip = null, selected = 
       ${step(2, '#news-firm', '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c2.9.3 5 2.6 5 5.8"/>', 'Firm updates', 'We bring it together', 'LawDB collects each new headline, date and short preview and keeps them in one feed, so you don\'t have to visit ten websites.')}
       ${step(3, '#feed', '<path d="M3 5.5C5 4.4 8 4.4 12 6.5c4-2.1 7-2.1 9-1v13c-2-1.1-5-1.1-9 1-4-2.1-7-2.1-9-1z"/><path d="M12 6.5v13"/>', 'Read &amp; learn', 'You read the real thing', 'Tap any story to read the full article on the firm\'s own site, and contact the firm directly if it speaks to your situation.')}
     </div>`;
-  const desc = 'Articles from Canadian law firms listed on LawDB: short previews with a link to read the full article on each firm\'s own website.';
+  const desc = 'Articles from US law firms listed on LawDB: short previews with a link to read the full article on each firm\'s own website.';
   const ld = {
-    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'LawDB News', url: 'https://lawdb.ca/news', description: desc,
-    isPartOf: { '@type': 'WebSite', name: 'LawDB', url: 'https://lawdb.ca/' },
-    mainEntity: { '@type': 'ItemList', itemListElement: shown.filter((p) => p.storyHref && p.indexable !== false).slice(0, 20).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `https://lawdb.ca${p.storyHref}`, name: p.title })) },
+    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'LawDB News', url: 'https://lawdb.ai/news', description: desc,
+    isPartOf: { '@type': 'WebSite', name: 'LawDB', url: 'https://lawdb.ai/' },
+    mainEntity: { '@type': 'ItemList', itemListElement: shown.filter((p) => p.storyHref && p.indexable !== false).slice(0, 20).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `https://lawdb.ai${p.storyHref}`, name: p.title })) },
   };
   return [
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-    '<title>LawDB News | Articles from Canadian Law Firms | LawDB.ca</title>',
+    '<title>LawDB News | Articles from US Law Firms | LawDB.ai</title>',
     `<meta name="description" content="${esc(desc)}">`,
-    '<link rel="canonical" href="https://lawdb.ca/news">',
-    '<meta property="og:title" content="LawDB News"><meta property="og:type" content="website"><meta property="og:url" content="https://lawdb.ca/news">' + `<meta property="og:description" content="${esc(desc)}">`,
+    '<link rel="canonical" href="https://lawdb.ai/news">',
+    '<meta property="og:title" content="LawDB News"><meta property="og:type" content="website"><meta property="og:url" content="https://lawdb.ai/news">' + `<meta property="og:description" content="${esc(desc)}">`,
     '<script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, '\\u003c') + '</script>',
     C.STYLE + BLOG_CSS + CSS + DIALOG_CSS + '\n<link rel="stylesheet" href="/desktop.css">\n<link rel="stylesheet" href="/site.css">\n</head>',
     '<body>\n  ' + C.HEADER.replace(/<a[^>]*>Back to results<\/a>/, ''),

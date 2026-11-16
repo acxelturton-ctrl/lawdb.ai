@@ -82,7 +82,7 @@ export async function unfollow({ request, env, params }) {
 export async function following({ request, env }) {
   const user = await requireUser(env, request);
   const { results } = await env.DB.prepare(
-    `SELECT f.slug, f.name, f.city, f.province, f.featured, (SELECT COUNT(*) FROM follows x WHERE x.firm_slug = f.slug) AS followers
+    `SELECT f.slug, f.name, f.city, f.state, f.featured, (SELECT COUNT(*) FROM follows x WHERE x.firm_slug = f.slug) AS followers
      FROM follows w JOIN firms f ON f.slug = w.firm_slug AND f.status = 'live' WHERE w.user_id = ? ORDER BY w.created_at DESC, f.name`
   ).bind(user.id).all();
   return reply({ firms: results.map((r) => ({ ...r, featured: !!r.featured })) });
@@ -139,28 +139,28 @@ export async function unsave({ request, env, params }) {
 
 // ---- My network: who you follow, who you might follow next, and whether the firms you follow have posted anything new.
 const LOGO = "json_extract(f.data, '$.src')";
-const cardOf = (r, extra = {}) => ({ slug: r.slug, name: r.name, city: r.city, province: r.province, featured: !!r.featured, followers: r.followers, rating: r.rating, reviews: r.reviews, logo: r.logo || '', ...extra });
+const cardOf = (r, extra = {}) => ({ slug: r.slug, name: r.name, city: r.city, state: r.state, featured: !!r.featured, followers: r.followers, rating: r.rating, reviews: r.reviews, logo: r.logo || '', ...extra });
 
 export async function network({ request, env }) {
   const user = await requireUser(env, request);
   const mine = (await env.DB.prepare(
-    `SELECT f.slug, f.name, f.city, f.province, f.featured, f.rating, f.review_count AS reviews, ${LOGO} AS logo, (SELECT COUNT(*) FROM follows x WHERE x.firm_slug = f.slug) AS followers
+    `SELECT f.slug, f.name, f.city, f.state, f.featured, f.rating, f.review_count AS reviews, ${LOGO} AS logo, (SELECT COUNT(*) FROM follows x WHERE x.firm_slug = f.slug) AS followers
      FROM follows w JOIN firms f ON f.slug = w.firm_slug AND f.status = 'live' WHERE w.user_id = ? ORDER BY w.created_at DESC, f.name LIMIT 200`
   ).bind(user.id).all()).results;
-  const profile = await env.DB.prepare('SELECT city, province FROM users WHERE id = ?').bind(user.id).first();
+  const profile = await env.DB.prepare('SELECT city, state FROM users WHERE id = ?').bind(user.id).first();
   const cities = [...new Set([profile?.city, ...mine.map((m) => m.city)].filter(Boolean))].slice(0, 10);
-  const provinces = [...new Set([profile?.province, ...mine.map((m) => m.province)].filter(Boolean))].slice(0, 10);
+  const states = [...new Set([profile?.state, ...mine.map((m) => m.state)].filter(Boolean))].slice(0, 10);
   const cm = cities.length ? marks(cities.length) : "''";
-  const pm = provinces.length ? marks(provinces.length) : "''";
-  // Nearer firms first (same city as something you follow or your own city, then same province), then the best rated. Paid placement does not change the order.
+  const pm = states.length ? marks(states.length) : "''";
+  // Nearer firms first (same city as something you follow or your own city, then same state), then the best rated. Paid placement does not change the order.
   const { results } = await env.DB.prepare(
-    `SELECT f.slug, f.name, f.city, f.province, f.featured, f.rating, f.review_count AS reviews, ${LOGO} AS logo,
+    `SELECT f.slug, f.name, f.city, f.state, f.featured, f.rating, f.review_count AS reviews, ${LOGO} AS logo,
        (SELECT COUNT(*) FROM follows x WHERE x.firm_slug = f.slug) AS followers,
-       (CASE WHEN f.city IN (${cm}) THEN 2 ELSE 0 END + CASE WHEN f.province IN (${pm}) THEN 1 ELSE 0 END) AS near
+       (CASE WHEN f.city IN (${cm}) THEN 2 ELSE 0 END + CASE WHEN f.state IN (${pm}) THEN 1 ELSE 0 END) AS near
      FROM firms f WHERE f.status = 'live' AND f.slug NOT IN (SELECT firm_slug FROM follows WHERE user_id = ?)
      ORDER BY near DESC, COALESCE(f.review_count, 0) >= 10 DESC, f.rating DESC, f.review_count DESC, f.name LIMIT 12`
-  ).bind(...cities, ...provinces, user.id).all();
-  return reply({ following: mine.map((m) => cardOf(m)), suggestions: results.map((r) => cardOf(r, { why: r.near >= 2 ? `In ${r.city}` : r.near === 1 ? 'In your province' : 'Top rated' })) });
+  ).bind(...cities, ...states, user.id).all();
+  return reply({ following: mine.map((m) => cardOf(m)), suggestions: results.map((r) => cardOf(r, { why: r.near >= 2 ? `In ${r.city}` : r.near === 1 ? 'In your state' : 'Top rated' })) });
 }
 
 // A dot on the Feed tab: stories from followed firms newer than the last time the feed was opened.

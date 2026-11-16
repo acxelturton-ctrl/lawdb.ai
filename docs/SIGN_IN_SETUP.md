@@ -5,10 +5,10 @@ The buttons appear on the sign-in page by themselves as soon as a provider's two
 
 ## Google (about 10 minutes)
 1. console.cloud.google.com → your **LawDB** project (the same one used for Search Console) → *APIs & Services* → **OAuth consent screen**.
-   User type **External**; app name "LawDB"; support email info@lawdb.ca; authorised domain `lawdb.ca`. Scopes: `openid`, `email`, `profile` (nothing else).
+   User type **External**; app name "LawDB"; support email info@lawdb.ai; authorized domain `lawdb.ai`. Scopes: `openid`, `email`, `profile` (nothing else).
    Then press **Publish app** (Testing mode only allows named test users).
 2. *APIs & Services* → **Credentials** → **Create credentials** → **OAuth client ID** → type **Web application**.
-   **Authorised redirect URI:** `https://lawdb.ca/api/auth/google/callback` (exactly).
+   **Authorised redirect URI:** `https://lawdb.ai/api/auth/google/callback` (exactly).
 3. Copy the **Client ID** and **Client secret**. In Cloudflare add:
    - `GOOGLE_CLIENT_ID` (type **Secret** is simplest)
    - `GOOGLE_CLIENT_SECRET` (type **Secret**)
@@ -16,11 +16,11 @@ The buttons appear on the sign-in page by themselves as soon as a provider's two
 ## LinkedIn (about 10 minutes)
 1. linkedin.com/developers → **Create app** (name "LawDB", a LinkedIn Page for LawDB is required; logo; accept terms).
 2. *Products* tab → request **Sign In with LinkedIn using OpenID Connect** (approved instantly).
-3. *Auth* tab → **Authorized redirect URLs for your app:** `https://lawdb.ca/api/auth/linkedin/callback` (exactly).
+3. *Auth* tab → **Authorized redirect URLs for your app:** `https://lawdb.ai/api/auth/linkedin/callback` (exactly).
 4. Copy the **Client ID** and **Primary Client Secret**. In Cloudflare add `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` (**Secret**).
 
 ## Check it
-Open `https://lawdb.ca/account/` in a private window. The buttons show. Press one, choose an account: you land on your dashboard ("Welcome, <first name>!") and receive the welcome email.
+Open `https://lawdb.ai/account/` in a private window. The buttons show. Press one, choose an account: you land on your dashboard ("Welcome, <first name>!") and receive the welcome email.
 
 ## How it stays safe
 - Standard OpenID Connect (authorization code + PKCE) done on the server; the secret never reaches the browser.
@@ -30,7 +30,7 @@ Open `https://lawdb.ca/account/` in a private window. The buttons show. Press on
 
 ## If LinkedIn shows "Bummer, something went wrong"
 LinkedIn shows that page when it rejects the sign-in request before the person logs in. Check, in this order:
-1. **Auth tab, Authorized redirect URLs:** exactly `https://lawdb.ca/api/auth/linkedin/callback` (https, no `www`, no trailing slash, no spaces).
+1. **Auth tab, Authorized redirect URLs:** exactly `https://lawdb.ai/api/auth/linkedin/callback` (https, no `www`, no trailing slash, no spaces).
 2. **Products tab:** "Sign In with LinkedIn using OpenID Connect" must say it is added (not "Requested").
 3. **Client ID** in Cloudflare must be the one on that same app's Auth tab, and the Client Secret its Primary Client Secret.
 LawDB does not send PKCE parameters to LinkedIn (its web sign-in does not accept them); Google does use PKCE.

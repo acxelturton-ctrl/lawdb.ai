@@ -3,7 +3,8 @@
 //
 // Nothing here knows a person: views and clicks are counted, never who clicked. A "visitor" is one browser-tab visit that looked at the page
 // (the page script remembers it in a note that disappears when the tab closes), so it is a good measure of people, but not a head count.
-import { torontoDay, FIRM_ACTIONS } from './stats.js';
+import { STATES } from './us.js';
+import { easternDay, FIRM_ACTIONS } from './stats.js';
 
 export const RANGES = [7, 30, 90];
 
@@ -16,20 +17,19 @@ export const ACTION_LABELS = {
 // The clicks that show someone wants to reach the firm. They count towards the "contact actions" headline.
 export const CONTACT_ACTIONS = ['call', 'message', 'email', 'website', 'directions', 'book'];
 
-const PROVINCES = { AB: 'Alberta', BC: 'British Columbia', MB: 'Manitoba', NB: 'New Brunswick', NL: 'Newfoundland and Labrador', NS: 'Nova Scotia', NT: 'Northwest Territories', NU: 'Nunavut', ON: 'Ontario', PE: 'Prince Edward Island', QC: 'Quebec', SK: 'Saskatchewan', YT: 'Yukon' };
 const SOURCE_NAMES = { direct: 'Direct (typed or bookmarked)', lawdb: 'Browsing LawDB', google: 'Google', bing: 'Bing', duckduckgo: 'DuckDuckGo', yahoo: 'Yahoo', facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', x: 'X', reddit: 'Reddit', youtube: 'YouTube' };
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export const regionName = (k) => {
   const [country, region] = String(k).split('|');
-  if (country === 'CA') return region ? PROVINCES[region] || `Canada (${region})` : 'Canada';
+  if (country === 'US') return region ? STATES[region] || `United States (${region})` : 'United States';
   if (country === '??' || !country) return 'Somewhere else';
-  return country === 'US' ? 'United States' : country;
+  return country;
 };
 
-const addDays = (day, n) => torontoDay(new Date(new Date(day + 'T12:00:00Z').getTime() + n * 86400000));
+const addDays = (day, n) => easternDay(new Date(new Date(day + 'T12:00:00Z').getTime() + n * 86400000));
 
-// Every Toronto day from `from` to `to`, oldest first.
+// Every Eastern day from `from` to `to`, oldest first.
 export function dayList(from, to) {
   const out = [];
   for (let d = from; d <= to && out.length < 400; d = addDays(d, 1)) out.push(d);
@@ -38,16 +38,16 @@ export function dayList(from, to) {
 
 const pct = (a, b) => (b > 0 ? Math.round(((a - b) / b) * 100) : null); // null: nothing to compare with
 
-// rows: [{ day, metric, k, n }] for the period and the one before it. leadDays: Toronto days of the enquiries received.
+// rows: [{ day, metric, k, n }] for the period and the one before it. leadDays: Eastern days of the inquiries received.
 export function buildReport({ rows, leadDays = [], from, to, days }) {
   const prevTo = addDays(from, -1);
   const prevFrom = addDays(from, -days);
   const list = dayList(from, to);
-  const cur = { views: 0, visitors: 0, clicks: 0, contact: 0, enquiries: 0 };
-  const prev = { views: 0, visitors: 0, clicks: 0, contact: 0, enquiries: 0 };
-  const byDay = new Map(list.map((d) => [d, { day: d, views: 0, visitors: 0, clicks: 0, enquiries: 0 }]));
+  const cur = { views: 0, visitors: 0, clicks: 0, contact: 0, inquiries: 0 };
+  const prev = { views: 0, visitors: 0, clicks: 0, contact: 0, inquiries: 0 };
+  const byDay = new Map(list.map((d) => [d, { day: d, views: 0, visitors: 0, clicks: 0, inquiries: 0 }]));
   const prevList = dayList(prevFrom, prevTo);
-  const prevDay = new Map(prevList.map((d) => [d, { day: d, views: 0, visitors: 0, clicks: 0, enquiries: 0 }]));
+  const prevDay = new Map(prevList.map((d) => [d, { day: d, views: 0, visitors: 0, clicks: 0, inquiries: 0 }]));
   const actions = new Map(); // key -> { n, prev }
   const labels = { ref: new Map(), dev: new Map(), geo: new Map(), utm: new Map() };
   let first = null;
@@ -71,8 +71,8 @@ export function buildReport({ rows, leadDays = [], from, to, days }) {
     } else if (inCur && labels[r.metric]) labels[r.metric].set(r.k, (labels[r.metric].get(r.k) || 0) + r.n);
   }
   for (const d of leadDays) {
-    if (d >= from && d <= to) { cur.enquiries++; byDay.get(d).enquiries++; }
-    else if (d >= prevFrom && d <= prevTo) { prev.enquiries++; prevDay.get(d).enquiries++; }
+    if (d >= from && d <= to) { cur.inquiries++; byDay.get(d).inquiries++; }
+    else if (d >= prevFrom && d <= prevTo) { prev.inquiries++; prevDay.get(d).inquiries++; }
   }
 
   const ranked = (map, name, limit = 8) => {
@@ -102,7 +102,7 @@ export function buildReport({ rows, leadDays = [], from, to, days }) {
   const report = {
     from, to, days, since: first,
     totals, previous: prev,
-    change: { views: pct(cur.views, prev.views), visitors: pct(cur.visitors, prev.visitors), clicks: pct(cur.clicks, prev.clicks), contact: pct(cur.contact, prev.contact), enquiries: pct(cur.enquiries, prev.enquiries) },
+    change: { views: pct(cur.views, prev.views), visitors: pct(cur.visitors, prev.visitors), clicks: pct(cur.clicks, prev.clicks), contact: pct(cur.contact, prev.contact), inquiries: pct(cur.inquiries, prev.inquiries) },
     series,
     previousSeries: prevList.map((d) => prevDay.get(d)), // same length as `series`, day for day, for the dashed comparison line
     actions: actionList,
@@ -138,32 +138,32 @@ export function insightsFor(r) {
 
 // The numbers a Basic firm sees: the last 30 days in three figures, enough to show what it is missing, none of the detail.
 export async function lockedSummary(env, slug) {
-  const from = torontoDay(new Date(Date.now() - 29 * 86400000));
+  const from = easternDay(new Date(Date.now() - 29 * 86400000));
   const rows = (await env.DB.prepare("SELECT metric, SUM(n) AS n FROM firm_stats_daily WHERE firm_slug = ? AND day >= ? AND metric IN ('pv', 'visitor', 'ev') GROUP BY metric").bind(slug, from).all()).results;
   const get = (m) => rows.find((r) => r.metric === m)?.n || 0;
   const leads = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE firm_slug = ? AND status != 'spam' AND created_at >= datetime('now', '-30 days')").bind(slug).first();
-  return { days: 30, views: get('pv'), visitors: get('visitor'), clicks: get('ev'), enquiries: leads?.n || 0 };
+  return { days: 30, views: get('pv'), visitors: get('visitor'), clicks: get('ev'), inquiries: leads?.n || 0 };
 }
 
 // Reads the rows and builds the report.
 export async function firmAnalytics(env, slug, days) {
   if (!RANGES.includes(days)) days = 30;
-  const to = torontoDay();
+  const to = easternDay();
   const from = addDays(to, -(days - 1));
   const prevFrom = addDays(from, -days);
   const [stats, leads] = await env.DB.batch([
     env.DB.prepare('SELECT day, metric, k, n FROM firm_stats_daily WHERE firm_slug = ? AND day >= ? AND day <= ?').bind(slug, prevFrom, to),
     env.DB.prepare("SELECT created_at FROM leads WHERE firm_slug = ? AND status != 'spam' AND created_at >= datetime('now', ?) LIMIT 5000").bind(slug, `-${days * 2 + 1} days`),
   ]);
-  const leadDays = leads.results.map((l) => torontoDay(new Date(l.created_at.replace(' ', 'T') + 'Z')));
+  const leadDays = leads.results.map((l) => easternDay(new Date(l.created_at.replace(' ', 'T') + 'Z')));
   return buildReport({ rows: stats.results, leadDays, from, to, days });
 }
 
-// A spreadsheet opens "=cmd..." cells as formulas; nothing here starts like one, but the labels go through the same guard as the enquiries export.
+// A spreadsheet opens "=cmd..." cells as formulas; nothing here starts like one, but the labels go through the same guard as the inquiries export.
 const cell = (v) => { let s = v == null ? '' : String(v); if (/^[=+\-@\t]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
 export function analyticsCsv(report, firmName) {
-  const head = ['Day', 'Page views', 'Visitors', 'Button clicks', 'Enquiries'];
-  const lines = report.series.map((s) => [s.day, s.views, s.visitors, s.clicks, s.enquiries].map(cell).join(','));
+  const head = ['Day', 'Page views', 'Visitors', 'Button clicks', 'Inquiries'];
+  const lines = report.series.map((s) => [s.day, s.views, s.visitors, s.clicks, s.inquiries].map(cell).join(','));
   const buttons = ['', '"Button"', '"Clicks"', '"Share of clicks"'].join(',');
   const acts = report.actions.filter((a) => a.n > 0).map((a) => ['', a.label, a.n, a.share + '%'].map(cell).join(','));
   return '﻿' + [`${cell(firmName)},${cell(`${report.from} to ${report.to}`)}`, head.map(cell).join(','), ...lines, '', buttons, ...acts].join('\r\n') + '\r\n';

@@ -1,4 +1,4 @@
-// Changing a firm's page address (its slug): lawdb.ca/firms/<slug>. Admin only.
+// Changing a firm's page address (its slug): lawdb.ai/firms/<slug>. Admin only.
 //
 // The slug is the firm's key in many tables, so a change has to move every one of them in one step, and the old address must keep working:
 // it becomes a permanent redirect (firm_redirects), for the page and for the firm's story pages, so no link or search result breaks.
@@ -17,7 +17,7 @@ export const SLUG_TABLES = ['firm_members', 'firm_images', 'firm_feeds', 'firm_p
 export function cleanSlug(v) {
   const s = typeof v === 'string' ? v.trim().toLowerCase() : '';
   if (s.length < SLUG_MIN || s.length > SLUG_MAX || !SLUG_RE.test(s)) {
-    throw new HttpError(422, `The address can have lowercase letters, digits and single dashes, ${SLUG_MIN} to ${SLUG_MAX} characters (for example preszler-injury-lawyers-toronto).`);
+    throw new HttpError(422, `The address can have lowercase letters, digits and single dashes, ${SLUG_MIN} to ${SLUG_MAX} characters (for example smith-injury-lawyers-miami).`);
   }
   return s;
 }

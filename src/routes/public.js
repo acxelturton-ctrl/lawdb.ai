@@ -8,7 +8,7 @@ export async function listFirms({ url, env }) {
   const p = url.searchParams;
   const where = ["status = 'live'"];
   const args = [];
-  if (p.get('province')) { where.push('province = ?'); args.push(p.get('province').toUpperCase()); }
+  if (p.get('state')) { where.push('state = ?'); args.push(p.get('state').toUpperCase()); }
   if (p.get('city')) { where.push('city = ? COLLATE NOCASE'); args.push(p.get('city')); }
   if (p.get('region')) { where.push('region = ?'); args.push(p.get('region')); }
   if (p.get('featured') === '1') where.push('featured = 1');
@@ -26,10 +26,10 @@ export async function listFirms({ url, env }) {
   return cached(results.map((r) => JSON.parse(r.data)));
 }
 
-// The live numbers for the sign-in page: how many firms, cities and provinces are listed, and how many practice areas the site covers.
+// The live numbers for the sign-in page: how many firms, cities and states are listed, and how many practice areas the site covers.
 export async function totals({ env }) {
-  const row = await env.DB.prepare("SELECT COUNT(*) AS firms, COUNT(DISTINCT province || '|' || city) AS cities, COUNT(DISTINCT province) AS provinces FROM firms WHERE status = 'live'").first();
-  return cached({ firms: row.firms, cities: row.cities, provinces: row.provinces, practiceAreas: Object.keys(PRACTICE).length }, 300);
+  const row = await env.DB.prepare("SELECT COUNT(*) AS firms, COUNT(DISTINCT state || '|' || city) AS cities, COUNT(DISTINCT state) AS states FROM firms WHERE status = 'live'").first();
+  return cached({ firms: row.firms, cities: row.cities, states: row.states, practiceAreas: Object.keys(PRACTICE).length }, 300);
 }
 
 export async function getFirm({ params, env }) {
@@ -39,9 +39,9 @@ export async function getFirm({ params, env }) {
 }
 
 export async function listBlog({ url, env }) {
-  const province = url.searchParams.get('province');
-  const stmt = province
-    ? env.DB.prepare('SELECT data FROM blog_posts WHERE province = ? ORDER BY sort_order').bind(province.toUpperCase())
+  const state = url.searchParams.get('state');
+  const stmt = state
+    ? env.DB.prepare('SELECT data FROM blog_posts WHERE state = ? ORDER BY sort_order').bind(state.toUpperCase())
     : env.DB.prepare('SELECT data FROM blog_posts ORDER BY sort_order');
   const { results } = await stmt.all();
   return cached(results.map((r) => JSON.parse(r.data)));
@@ -93,9 +93,9 @@ export async function createLead({ request, env, url, exec }) {
     .first();
   if (recent && recent.n >= 5) throw new HttpError(429, 'Too many submissions, please try again later');
 
-  // A form on a firm's own profile page names that firm: route the enquiry to it.
+  // A form on a firm's own profile page names that firm: route the inquiry to it.
   const firmSlug = str(input.firm, 100);
-  const firm = firmSlug ? await env.DB.prepare("SELECT slug, name, featured, enquiry_email FROM firms WHERE slug = ? AND status = 'live'").bind(firmSlug).first() : null;
+  const firm = firmSlug ? await env.DB.prepare("SELECT slug, name, featured, inquiry_email FROM firms WHERE slug = ? AND status = 'live'").bind(firmSlug).first() : null;
 
   await env.DB.prepare('INSERT INTO leads (form,name,email,phone,message,payload,page,firm_slug,ip_hash) VALUES (?,?,?,?,?,?,?,?,?)')
     .bind(form, name, email, phone || null, message || null, JSON.stringify(extra), page || null, firm ? firm.slug : null, ipHash)
@@ -109,14 +109,14 @@ export async function createLead({ request, env, url, exec }) {
   }
 
   // Tell the firm's approved owners right away. Capped per firm per hour so a flood of fake
-  // enquiries cannot turn into a flood of email (every enquiry is still saved and shown in the dashboard).
+  // inquiries cannot turn into a flood of email (every inquiry is still saved and shown in the dashboard).
   if (firm) {
     const [owners, sent] = await Promise.all([
       env.DB.prepare("SELECT u.email FROM firm_members m JOIN users u ON u.id = m.user_id WHERE m.firm_slug = ? AND m.status = 'approved' AND u.disabled = 0").bind(firm.slug).all(),
       env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE firm_slug = ? AND created_at > datetime('now','-1 hour')").bind(firm.slug).first(),
     ]);
-    // The people who manage the listing, plus (a Featured benefit) the one address the firm chose for its enquiries, each only once.
-    const to = [...new Set([...owners.results.map((o) => o.email), ...(firm.featured && firm.enquiry_email ? [firm.enquiry_email] : [])].map((e) => e.toLowerCase()))];
+    // The people who manage the listing, plus (a Featured benefit) the one address the firm chose for its inquiries, each only once.
+    const to = [...new Set([...owners.results.map((o) => o.email), ...(firm.featured && firm.inquiry_email ? [firm.inquiry_email] : [])].map((e) => e.toLowerCase()))];
     if (to.length && sent.n <= MAX_LEAD_EMAILS_PER_FIRM_HOUR) {
       mailInBackground(env, exec, { to, ...leadEmail(env.SITE_ORIGIN || url.origin, firm.name, { name, email, phone, message }) });
     }

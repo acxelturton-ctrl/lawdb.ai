@@ -31,7 +31,7 @@ const ITEMS = [
   ['languages', 'Say which languages you serve clients in', 5, (f) => !!(cleanDetails(f.details) || {}).languages, () => 'Many clients search for a lawyer who speaks their language.'],
   ['founded', 'Add the year you started practising', 3, (f) => !!(cleanDetails(f.details) || {}).founded, () => 'Shown under "At a glance".'],
   ['availability', 'Say whether you are accepting new clients', 7, (f) => Object.hasOwn(AVAILABILITY, f.availability), () => 'Clients can see it before they contact you.'],
-  ['verified', 'Get verified by LawDB', 10, (f, x) => x.verified === true, () => 'Ask for it from this page: we check your law society registration and show a Verified badge.'],
+  ['verified', 'Get verified by LawDB', 10, (f, x) => x.verified === true, () => 'Ask for it from this page: we check your state bar registration and show a Verified badge.'],
 ];
 export const STRENGTH_TOTAL = ITEMS.reduce((n, i) => n + i[2], 0);
 

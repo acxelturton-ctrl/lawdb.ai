@@ -28,7 +28,7 @@ async function nearbyFirms(env, f) {
     }
   };
   const order = 'ORDER BY featured DESC, rating DESC, review_count DESC, name';
-  take((await env.DB.prepare(`SELECT ${cols} FROM firms WHERE status = 'live' AND city = ? AND province = ? AND slug != ? ${order} LIMIT 10`).bind(f.city, f.province, f.slug).all()).results);
+  take((await env.DB.prepare(`SELECT ${cols} FROM firms WHERE status = 'live' AND city = ? AND state = ? AND slug != ? ${order} LIMIT 10`).bind(f.city, f.state, f.slug).all()).results);
   if (out.length < 6 && f.region) {
     take((await env.DB.prepare(`SELECT ${cols} FROM firms WHERE status = 'live' AND region = ? AND slug != ? ${order} LIMIT 10`).bind(f.region, f.slug).all()).results);
   }

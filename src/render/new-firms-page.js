@@ -1,7 +1,7 @@
 // New listed firms: the most recently added firms on LawDB that have a logo and a cover, newest first. Each card shows the cover,
 // the firm's logo on it, the name, the place and its practice areas, and opens the firm's profile. Text is always escaped.
 import * as C from './firm-chunks.generated.js';
-import { esc, PROVINCES } from './firm-page.js';
+import { esc, STATES } from './firm-page.js';
 
 const CSS = `<style>
 .nf-band{max-width:1120px;margin:0 auto;padding:clamp(28px,5vw,56px) clamp(16px,4vw,40px) 10px;box-sizing:border-box;color:#142434}
@@ -42,7 +42,7 @@ const card = (f) => {
     '<span class="nf-body">' +
     `<span class="nf-logo"><img src="${esc(picUrl(f.logo))}" alt="${esc(f.name)} logo" loading="lazy" decoding="async"${/^https:/.test(f.logo) ? ' referrerpolicy="no-referrer" onerror="this.remove()"' : ''}></span>` +
     `<span class="nf-name">${esc(f.name)}</span>` +
-    `<span class="nf-place">${esc(f.city)}, ${esc(PROVINCES[f.province] || f.province)}</span>` +
+    `<span class="nf-place">${esc(f.city)}, ${esc(STATES[f.state] || f.state)}</span>` +
     (tags ? `<span class="nf-tags">${tags}</span>` : '') +
     `<span class="nf-go">View profile ${ARROW}</span>` +
     '</span></a>';
@@ -55,10 +55,10 @@ export function renderNewFirmsPage({ firms }) {
     : '<p class="nf-empty">No firms are listed yet. Check back soon.</p>';
   return [
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-    '<title>New listed firms | LawDB.ca</title>',
+    '<title>New listed firms | LawDB.ai</title>',
     `<meta name="description" content="${esc(desc)}">`,
-    '<link rel="canonical" href="https://lawdb.ca/new-firms">',
-    '<meta property="og:title" content="New listed firms | LawDB.ca"><meta property="og:type" content="website"><meta property="og:url" content="https://lawdb.ca/new-firms">' + `<meta property="og:description" content="${esc(desc)}">`,
+    '<link rel="canonical" href="https://lawdb.ai/new-firms">',
+    '<meta property="og:title" content="New listed firms | LawDB.ai"><meta property="og:type" content="website"><meta property="og:url" content="https://lawdb.ai/new-firms">' + `<meta property="og:description" content="${esc(desc)}">`,
     C.STYLE + CSS + '\n<link rel="stylesheet" href="/desktop.css">\n<link rel="stylesheet" href="/site.css">\n</head>',
     '<body>\n  ' + C.HEADER.replace(/<a[^>]*>Back to results<\/a>/, ''),
     '  <header class="nf-band"><p class="nf-eyebrow">Newest on LawDB</p><h1>New listed firms</h1>' +

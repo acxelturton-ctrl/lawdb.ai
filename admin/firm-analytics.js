@@ -13,9 +13,9 @@ const sv = (tag, attrs, ...kids) => {
 
 // The site's content-security policy refuses style="..." attributes, so sizes are set through the style API instead.
 const sized = (el, prop, value) => { el.style[prop] = value; return el; };
-const num = (n) => Number(n || 0).toLocaleString('en-CA');
-const dayText = (d, opts = { month: 'short', day: 'numeric' }) => new Date(d + 'T12:00:00').toLocaleDateString('en-CA', opts);
-const fmtEnd = (t) => new Date(t.replace(' ', 'T') + 'Z').toLocaleDateString('en-CA', { dateStyle: 'long' });
+const num = (n) => Number(n || 0).toLocaleString('en-US');
+const dayText = (d, opts = { month: 'short', day: 'numeric' }) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', opts);
+const fmtEnd = (t) => new Date(t.replace(' ', 'T') + 'Z').toLocaleDateString('en-US', { dateStyle: 'long' });
 // The top of the chart: four equal steps, each a round whole number, as close above the biggest value as possible (55 gives 60, not 100).
 const niceMax = (v) => {
   const p = Math.max(1, 10 ** Math.floor(Math.log10(Math.max(v, 1) / 4)));
@@ -27,7 +27,7 @@ const METRICS = [
   { key: 'views', label: 'Page views', hint: 'Every time your page was opened', tone: 'ink' },
   { key: 'visitors', label: 'Visitors', hint: 'Separate visits to your page (one per browser tab)', tone: 'ink' },
   { key: 'clicks', label: 'Button clicks', hint: 'Calls, messages, website, directions and every other button', tone: 'gold' },
-  { key: 'enquiries', label: 'Enquiries', hint: 'Messages sent to you through your LawDB page', tone: 'gold' },
+  { key: 'inquiries', label: 'Inquiries', hint: 'Messages sent to you through your LawDB page', tone: 'gold' },
 ];
 
 const skipState = () => { try { return localStorage.getItem('lawdb_skip'); } catch (e) { return null; } };
@@ -151,17 +151,17 @@ function mountChart(box, report, metric, resizeRef) {
 
 // Made-up numbers with the same shape as a real report, so the preview is drawn by the very same code as the real dashboard.
 export function sampleReport(days = 30) {
-  const iso = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  const iso = (d) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
   const at = (i) => iso(new Date(Date.now() - i * 86400000));
   const mk = (offset, scale) => Array.from({ length: days }, (_, k) => {
     const i = days - 1 - k + offset, dow = new Date(at(i) + 'T12:00:00Z').getUTCDay();
     const views = Math.max(3, Math.round((16 + 6 * Math.sin(i / 3.3) + (days - k) * -0.1) * scale * (dow === 0 || dow === 6 ? 0.55 : 1)));
-    return { day: at(i), views, visitors: Math.round(views * 0.62), clicks: Math.round(views * 0.21), enquiries: i % 6 === 0 ? 1 : 0 };
+    return { day: at(i), views, visitors: Math.round(views * 0.62), clicks: Math.round(views * 0.21), inquiries: i % 6 === 0 ? 1 : 0 };
   });
   const series = mk(0, 1), previousSeries = mk(days, 0.86);
   const sum = (arr, k) => arr.reduce((a, b) => a + b[k], 0);
-  const totals = { views: sum(series, 'views'), visitors: sum(series, 'visitors'), clicks: sum(series, 'clicks'), enquiries: sum(series, 'enquiries') };
-  const previous = { views: sum(previousSeries, 'views'), visitors: sum(previousSeries, 'visitors'), clicks: sum(previousSeries, 'clicks'), enquiries: sum(previousSeries, 'enquiries') };
+  const totals = { views: sum(series, 'views'), visitors: sum(series, 'visitors'), clicks: sum(series, 'clicks'), inquiries: sum(series, 'inquiries') };
+  const previous = { views: sum(previousSeries, 'views'), visitors: sum(previousSeries, 'visitors'), clicks: sum(previousSeries, 'clicks'), inquiries: sum(previousSeries, 'inquiries') };
   const pct = (a, b) => (b > 0 ? Math.round(((a - b) / b) * 100) : null);
   const group = (items) => { const total = items.reduce((a, [, , n]) => a + n, 0); return { total, items: items.map(([key, label, n]) => ({ key, label, n, share: Math.round((n / total) * 100) })) }; };
   const acts = [['call', 'Called', .36, true], ['website', 'Visited your website', .23, true], ['message', 'Opened the message form', .18, true], ['directions', 'Got directions', .12, true], ['reviews', 'Read your Google reviews', .06, false], ['book', 'Booked a call', .03, true], ['email', 'Emailed', .02, true]]
@@ -171,11 +171,11 @@ export function sampleReport(days = 30) {
   const names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   return {
     from: series[0].day, to: series[series.length - 1].day, days, since: series[0].day, totals, previous,
-    change: { views: pct(totals.views, previous.views), visitors: pct(totals.visitors, previous.visitors), clicks: pct(totals.clicks, previous.clicks), enquiries: pct(totals.enquiries, previous.enquiries) },
+    change: { views: pct(totals.views, previous.views), visitors: pct(totals.visitors, previous.visitors), clicks: pct(totals.clicks, previous.clicks), inquiries: pct(totals.inquiries, previous.inquiries) },
     series, previousSeries, actions: acts,
     sources: group([['google', 'Google', 52], ['lawdb', 'Browsing LawDB', 21], ['direct', 'Direct (typed or bookmarked)', 16], ['facebook', 'Facebook', 6], ['bing', 'Bing', 5]]),
     devices: group([['mobile', 'Phone', 64], ['desktop', 'Computer or tablet', 36]]),
-    regions: group([['CA|ON', 'Ontario', 68], ['CA|QC', 'Quebec', 9], ['CA|BC', 'British Columbia', 7], ['US', 'United States', 6], ['CA|AB', 'Alberta', 4], ['??', 'Somewhere else', 6]]),
+    regions: group([['US|FL', 'Florida', 52], ['US|TX', 'Texas', 14], ['US|NY', 'New York', 11], ['US|CA', 'California', 9], ['US|GA', 'Georgia', 4], ['??', 'Somewhere else', 10]]),
     campaigns: { total: 0, items: [] },
     weekdays: [0, 1, 2, 3, 4, 5, 6].map((dow) => { const rows = series.filter((s) => new Date(s.day + 'T12:00:00Z').getUTCDay() === dow); return { dow, name: names[dow], views: sum(rows, 'views'), average: rows.length ? Math.round((sum(rows, 'views') / rows.length) * 10) / 10 : 0 }; }),
     insights: ['Called was the most common action (36% of clicks).', 'Google sent the most visitors (52%).', '64% of views were on a phone, so your phone number and the Message button are what most visitors see first.'],
@@ -239,16 +239,16 @@ export function analyticsView({ base, mode = 'owner', slug, name = '', onPlanCha
     const tile = (n, label) => h('div', { class: 'lx-tile' }, h('b', null, num(n)), h('span', null, label));
     const used = plan.trial && plan.trial.status !== 'active';
     return h('div', null,
-      h('div', { class: 'lx-tiles' }, tile(s.views, 'Page views, last 30 days'), tile(s.visitors, 'Visitors'), tile(s.clicks, 'Button clicks'), tile(s.enquiries, 'Enquiries')),
+      h('div', { class: 'lx-tiles' }, tile(s.views, 'Page views, last 30 days'), tile(s.visitors, 'Visitors'), tile(s.clicks, 'Button clicks'), tile(s.inquiries, 'Inquiries')),
       h('div', { class: 'card lx-locked' },
-        used ? h('p', { class: 'fa-banner ended' }, `Your free month ended on ${fmtEnd(plan.trial.endsAt)}.`, plan.trial.views != null ? ` During it your page had ${num(plan.trial.views)} views, ${num(plan.trial.actions)} button clicks and ${num(plan.trial.enquiries)} enquiries.` : '') : null,
+        used ? h('p', { class: 'fa-banner ended' }, `Your free month ended on ${fmtEnd(plan.trial.endsAt)}.`, plan.trial.views != null ? ` During it your page had ${num(plan.trial.views)} views, ${num(plan.trial.actions)} button clicks and ${num(plan.trial.inquiries)} inquiries.` : '') : null,
         h('div', { class: 'row spread' }, h('h2', null, 'See what your visitors do'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
         h('p', { class: 'muted' }, 'On the Basic plan you see these four totals. Featured opens the full dashboard:'),
         h('ul', { class: 'lx-perks' }, [
-          'A daily chart of page views, visitors, clicks and enquiries, compared with the period before',
+          'A daily chart of page views, visitors, clicks and inquiries, compared with the period before',
           'Every button counted: calls, messages, emails, website, directions, booking, social profiles and your articles',
           'Where visitors came from: Google, other sites, social networks or LawDB itself',
-          'Phone or computer, and which provinces your visitors are in',
+          'Phone or computer, and which states your visitors are in',
           'Your busiest days, a plain-language summary, a spreadsheet export and a weekly email',
         ].map((t) => h('li', null, t))),
         plan.trialAvailable ? h('div', null,

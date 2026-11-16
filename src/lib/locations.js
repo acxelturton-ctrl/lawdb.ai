@@ -3,7 +3,7 @@
 // Each office is an ordinary listing (its own address, phone, website and page, in its own city's list and on the map). What ties them together is a row in
 // firm_locations: the MAIN listing holds the plan, the LOCATIONS follow it. Whenever the main listing's Featured flag changes (a payment, the free month starting
 // or ending, a cancellation, the admin) syncLocationFeatured copies it to every location, so all the Featured benefits (badge, placement, pictures, booking link,
-// enquiries dashboard, analytics) apply to every office page with no second payment. A location never has a plan of its own: its plan card says so, a payment
+// inquiries dashboard, analytics) apply to every office page with no second payment. A location never has a plan of its own: its plan card says so, a payment
 // made from it is credited to the main listing, and its Featured flag cannot be set by hand.
 import { HttpError } from './http.js';
 import { audit } from './audit.js';
@@ -12,14 +12,14 @@ import { cleanSlug } from './firm-slug.js';
 export const MAX_LOCATIONS = 5; // extra office pages one firm may have (the admin can link more by hand)
 
 export async function mainOf(env, slug) {
-  const r = await env.DB.prepare('SELECT l.main_slug AS slug, f.name, f.city, f.province FROM firm_locations l JOIN firms f ON f.slug = l.main_slug WHERE l.location_slug = ?').bind(slug).first();
+  const r = await env.DB.prepare('SELECT l.main_slug AS slug, f.name, f.city, f.state FROM firm_locations l JOIN firms f ON f.slug = l.main_slug WHERE l.location_slug = ?').bind(slug).first();
   return r || null;
 }
 
 export async function locationsOf(env, mainSlug) {
   return (await env.DB.prepare(
-    `SELECT f.slug, f.name, f.city, f.province, f.status, f.featured FROM firm_locations l JOIN firms f ON f.slug = l.location_slug
-     WHERE l.main_slug = ? ORDER BY f.province, f.city, f.name`
+    `SELECT f.slug, f.name, f.city, f.state, f.status, f.featured FROM firm_locations l JOIN firms f ON f.slug = l.location_slug
+     WHERE l.main_slug = ? ORDER BY f.state, f.city, f.name`
   ).bind(mainSlug).all()).results.map((r) => ({ ...r, featured: !!r.featured }));
 }
 
@@ -28,9 +28,9 @@ export async function siblingsOf(env, slug) {
   const main = await mainOf(env, slug);
   const root = main ? main.slug : slug;
   return (await env.DB.prepare(
-    `SELECT slug, name, city, province FROM firms
+    `SELECT slug, name, city, state FROM firms
      WHERE status = 'live' AND slug != ? AND (slug = ? OR slug IN (SELECT location_slug FROM firm_locations WHERE main_slug = ?))
-     ORDER BY (slug = ?) DESC, province, city, name`
+     ORDER BY (slug = ?) DESC, state, city, name`
   ).bind(slug, root, root, root).all()).results;
 }
 

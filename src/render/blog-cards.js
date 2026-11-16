@@ -62,7 +62,7 @@ export const BLOG_CSS = `<style>
 const fmtDate = (d) => {
   if (!d) return '';
   const t = new Date(String(d).replace(' ', 'T') + 'Z');
-  return Number.isNaN(t.getTime()) ? '' : t.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return Number.isNaN(t.getTime()) ? '' : t.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 };
 const teaser = (s, max = 170) => {
   if (s.length <= max) return s;

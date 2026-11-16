@@ -10,7 +10,7 @@ import { audit } from './audit.js';
 import { HttpError } from './http.js';
 
 export const FEED_LIMITS = { posts: 20, excerpt: 600, title: 200, bytes: 1_500_000, pageBytes: 600_000, timeoutMs: 8000, redirects: 3, recheckMinutes: 5 };
-const UA = 'LawDB-FeedReader/1.0 (+https://lawdb.ca; info@lawdb.ca)';
+const UA = 'LawDB-FeedReader/1.0 (+https://lawdb.ai; info@lawdb.ai)';
 const COMMON_PATHS = ['/feed', '/feed/', '/blog/feed', '/blog/feed/', '/rss', '/rss.xml', '/feed.xml', '/atom.xml', '/index.xml', '/blog/rss.xml', '/news/feed', '/blog/index.xml'];
 
 // ---------------------------------------------------------------- safe fetching

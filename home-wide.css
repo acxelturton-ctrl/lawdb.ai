@@ -1,13 +1,13 @@
 /* LawDB home page on desktop screens: the layout fills the width the way LinkedIn Learning's home page does.
    Full-width bands, each with its content in one wide column (up to 1720px) instead of a narrow strip in the middle; the hero text, the "why" band,
    the case types, how it works, the sign-up and the For law firms bands are split in two; the news is a three-column feed (topics, stories, a side rail);
-   the cities are a directory with one column per province.
-   Only acts at 1100px and up. Phones and tablets keep the layout in index.html. Colours are the site palette (scripts/palette.mjs). */
+   the cities are a directory with one column per state.
+   Only acts at 1100px and up. Phones and tablets keep the layout in index.html. Colors are the site palette (scripts/palette.mjs). */
 
 /* things that only exist on a wide screen stay hidden below it */
 .hn-rail, .how-cta, .join-perks, .hz-mock { display: none; }
 
-/* the city directory on phones and tablets: province after province, two columns when there is room */
+/* the city directory on phones and tablets: state after state, two columns when there is room */
 .cd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 22px; max-width: 1100px; margin: 0 auto; }
 @media (max-width: 560px) { .cd-grid { grid-template-columns: minmax(0, 1fr); } }
 .cd-col h3 { margin: 0 0 8px; font: 700 21px/1.2 'Source Serif 4', serif; }
@@ -91,7 +91,7 @@
   body.pg-home .h4-banner b { font-size: 34px; }
   body.pg-home .h4-gavel { width: 210px; align-self: flex-end; margin: 12px -10px -8px 0; }
 
-  /* cities: a directory, one column per province */
+  /* cities: a directory, one column per state */
   body.pg-home section.citystrip { padding: 88px var(--hw-pad) 96px !important; background: #edeae1; }
   body.pg-home .cs-head { justify-content: flex-start; margin-bottom: 40px; text-align: left; }
   body.pg-home .cs-head h2 { font-size: clamp(34px, 2.6vw, 44px); }
