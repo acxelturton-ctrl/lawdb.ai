@@ -11,6 +11,35 @@ First state: **Florida**. Domain: **lawdb.ai** (redirect `www`). Separate Cloudf
   copy can never read or write the Canadian database. Create new ones in the Cloudflare account and fill them in.
 - `STRIPE_PAYMENT_LINK` was blanked. Make a new Stripe product and link for the US site.
 
+## Built to scale: what we do differently from lawdb.ca
+Each point below is something lawdb.ca had to work around (see its `docs/ARCHITECTURE.md`), and the US rule that avoids it.
+
+1. **One source of truth for firms: the database.** lawdb.ca keeps firm facts in JSON files, SQL update files and the
+   database, then runs a pile of `apply-*.mjs --check` scripts to keep them in step. US rule: firms exist **only in D1**.
+   Imports and enrichment are versioned import scripts that write to the database; no firm JSON or seed SQL in git.
+2. **No per-firm static pages.** lawdb.ca started with about 370 hand-built HTML firm pages and later moved every firm to
+   one dynamic template, keeping the old pages only as a fallback. US rule: every firm page is rendered from D1 from day
+   one and cached at the edge. Hosting thousands of generated files also runs into the per-deploy file limits on
+   Cloudflare static assets.
+3. **Regions are data, not code.** Provinces are hard-coded in 40+ files in lawdb.ca. US rule: a `regions` table
+   (country, state, city, slug, timezone, phone/ZIP rules) drives routes (`/{state}/{city}/{practice}`), the map and the
+   sitemaps. Adding a state is a data import, and a third country later is a config change, not another fork.
+4. **Sitemaps as an index from the start.** lawdb.ca's firm sitemap stops at 15,000 firms and needs a rewrite past that.
+   US rule: a sitemap index with chunked files (well under 50,000 URLs each) and an `indexable` flag stored on each firm,
+   so the sitemap never has to read page text.
+5. **Images live in R2 (resized), never in git.** lawdb.ca has about 100 MiB of git history, mostly firm logos, photos and
+   email previews. US rule: git holds code only; firm images go to R2 and are served resized through the image route.
+6. **Lean checks.** lawdb.ca's `npm run check` chains around 80 scripts. US rule: a small set of fast checks (syntax,
+   SEO rules, link integrity, unit tests) on every pull request, and slow data checks run on a schedule.
+7. **Generated pages are built, not committed.** City, practice and case pages are generated at build or render time from
+   the regions and case-types data, not checked in as thousands of near-identical files.
+8. **Capacity plan written down.** Per-firm daily counters (`firm_stats_daily`) are pruned at 400 days in lawdb.ca; keep that,
+   add D1 size alerts, and index the columns used by city, state and practice lookups from the first migration.
+9. **Search quality over page count.** A page with no real description is noindex and out of the sitemap (a rule lawdb.ca
+   already has). Keep it and never ship thin city or practice pages for states with few firms.
+10. **Environments.** A staging Worker and D1 database from day one, so data imports and migrations are tried before they touch
+    production.
+
 ## Phase 1: make it US
 1. **States, not provinces.** Replace the ON/QC/BC/AB/MB maps (`PROVINCES`, `PROV_SLUG`, `inCanada`, the home-page
    province chips, province hub pages) with US states. Start with Florida only, written so more states are a data change.
