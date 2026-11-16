@@ -38,22 +38,19 @@
     "STRIPE_PAYMENT_LINK": ""
   },
   // Nightly at 07:17 UTC: housekeeping (retention rules) and a backup of every table into the KV store below.
-  "triggers": { "crons": ["17 7 * * *", "37 7 * * *", "*/5 * * * *", "7 * * * *"] }
-  // ---- PREVIEW MODE: the three bindings below are switched off until the Cloudflare resources exist. ----
-  // Create a D1 database "lawdb-ai", a KV namespace and an R2 bucket "lawdb-ai-images", paste their ids in, then remove the leading "//" from every line.
-  // Without them the Worker serves the static pages only (see "Preview mode" in src/worker.js).
-  // "kv_namespaces": [
-  // { "binding": "BACKUPS", "id": "REPLACE_WITH_NEW_KV_NAMESPACE_ID" }
-  // ],
-  // // Firm pictures (private bucket; served to the public only through /img/<id>).
-  // "r2_buckets": [
-  // { "binding": "IMAGES", "bucket_name": "lawdb-ai-images" }
-  // ],
-  // "d1_databases": [
-  // {
-  // "binding": "DB",
-  // "database_name": "lawdb-ai",
-  // "database_id": "REPLACE_WITH_NEW_D1_DATABASE_ID"
-  // }
-  // ]
+  "triggers": { "crons": ["17 7 * * *", "37 7 * * *", "*/5 * * * *", "7 * * * *"] },
+  "kv_namespaces": [
+    { "binding": "BACKUPS", "id": "12ab185cedc943f7a7ab919710ef58db" }
+  ],
+  // Firm pictures (private bucket; served to the public only through /img/<id>).
+  "r2_buckets": [
+    { "binding": "IMAGES", "bucket_name": "lawdb-ai-images" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lawdb-ai",
+      "database_id": "63fd6523-e1f4-46ea-b4d5-1ea8a59fdc47"
+    }
+  ]
 }
