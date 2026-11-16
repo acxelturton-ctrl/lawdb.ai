@@ -1,3 +1,7 @@
+# Unfinished preview addresses must never be indexed by search engines.
+https://*.workers.dev/*
+  X-Robots-Tag: noindex, nofollow
+
 /admin/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
