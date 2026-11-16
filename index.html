@@ -796,44 +796,107 @@ section.citystrip{ padding:28px 20px 36px !important; }
   <div class="cs-head"><h2>Lawyers in your city</h2><span>or <a href="/find-lawyers">search any city</a></span></div>
   <!--home-dir--><div class="cd-grid"><div class="cd-col"><h3><a href="ontario/">Ontario</a></h3><ul><li><a href="ontario/toronto/">Toronto<span data-live="city:ON|Toronto">155</span></a></li><li><a href="ontario/ottawa/">Ottawa<span data-live="city:ON|Ottawa">68</span></a></li><li><a href="ontario/mississauga/">Mississauga<span data-live="city:ON|Mississauga">61</span></a></li><li><a href="ontario/north-york/">North York<span data-live="city:ON|North York">58</span></a></li><li><a href="ontario/brampton/">Brampton<span data-live="city:ON|Brampton">39</span></a></li><li><a href="ontario/london/">London<span data-live="city:ON|London">26</span></a></li><li><a href="ontario/hamilton/">Hamilton<span data-live="city:ON|Hamilton">21</span></a></li><li><a href="ontario/markham/">Markham<span data-live="city:ON|Markham">15</span></a></li></ul><a class="cd-all" href="ontario/">All Ontario cities &rarr;</a></div><div class="cd-col"><h3><a href="alberta/">Alberta</a></h3><ul><li><a href="alberta/calgary/">Calgary<span data-live="city:AB|Calgary">119</span></a></li><li><a href="alberta/edmonton/">Edmonton<span data-live="city:AB|Edmonton">81</span></a></li></ul><a class="cd-all" href="alberta/">All Alberta cities &rarr;</a></div><div class="cd-col"><h3><a href="quebec/">Quebec</a></h3><ul><li><a href="quebec/montreal/">Montreal<span data-live="city:QC|Montreal">62</span></a></li><li><a href="quebec/quebec-city/">Quebec City<span data-live="city:QC|Quebec City">16</span></a></li><li><a href="quebec/saint-jerome/">Saint-Jerome<span data-live="city:QC|Saint-Jerome">12</span></a></li><li><a href="quebec/laval/">Laval<span data-live="city:QC|Laval">10</span></a></li><li><a href="quebec/gatineau/">Gatineau<span data-live="city:QC|Gatineau">9</span></a></li><li><a href="quebec/drummondville/">Drummondville<span data-live="city:QC|Drummondville">8</span></a></li><li><a href="quebec/longueuil/">Longueuil<span data-live="city:QC|Longueuil">7</span></a></li><li><a href="quebec/sherbrooke/">Sherbrooke<span data-live="city:QC|Sherbrooke">6</span></a></li></ul><a class="cd-all" href="quebec/">All Quebec cities &rarr;</a></div><div class="cd-col"><h3><a href="british-columbia/">British Columbia</a></h3><ul><li><a href="british-columbia/vancouver/">Vancouver<span data-live="city:BC|Vancouver">63</span></a></li><li><a href="british-columbia/surrey/">Surrey<span data-live="city:BC|Surrey">29</span></a></li><li><a href="british-columbia/victoria/">Victoria<span data-live="city:BC|Victoria">16</span></a></li><li><a href="british-columbia/kelowna/">Kelowna<span data-live="city:BC|Kelowna">15</span></a></li><li><a href="british-columbia/burnaby/">Burnaby<span data-live="city:BC|Burnaby">11</span></a></li><li><a href="british-columbia/abbotsford/">Abbotsford<span data-live="city:BC|Abbotsford">10</span></a></li><li><a href="british-columbia/nanaimo/">Nanaimo<span data-live="city:BC|Nanaimo">7</span></a></li><li><a href="british-columbia/richmond/">Richmond<span data-live="city:BC|Richmond">6</span></a></li></ul><a class="cd-all" href="british-columbia/">All British Columbia cities &rarr;</a></div><div class="cd-col"><h3><a href="manitoba/">Manitoba</a></h3><ul><li><a href="manitoba/winnipeg/">Winnipeg<span data-live="city:MB|Winnipeg">52</span></a></li><li><a href="manitoba/brandon/">Brandon<span data-live="city:MB|Brandon">7</span></a></li></ul><a class="cd-all" href="manitoba/">All Manitoba cities &rarr;</a></div></div><!--/home-dir-->
 </section>
-<section class="hn" id="homeNews" hidden aria-label="LawDB News">
-  <div class="hn-head">
-    <div><p class="hn-eyebrow">LawDB News</p><h2>Straight from the firms</h2><p class="hn-sub">Articles from the firms in our directory, on the cases they handle. Tap one to read a preview here, or open it on the firm's own site.</p></div>
-    <div class="hn-tools"><div class="lw-car-nav hn-nav"><button type="button" class="hn-prev" aria-label="Previous articles">&#8249;</button><button type="button" class="hn-next" aria-label="Next articles">&#8250;</button></div><a class="hn-all" href="/news">All LawDB News &rarr;</a></div>
+<style>
+section.bsl{background:#1b242d;color:#fff;padding:64px 20px 72px}
+.bsl-in{max-width:1240px;margin:0 auto}
+.bsl-eyebrow{font:700 12px/1 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#e2bd6a;margin:0 0 12px}
+.bsl h2{font:700 clamp(28px,3.4vw,42px)/1.1 'Source Serif 4',serif;margin:0 0 8px;color:#fff}
+.bsl-sub{margin:0 0 30px;color:#b4bac4;max-width:40em;line-height:1.55;font-size:16px}
+.bsl-root{position:relative;height:clamp(380px,36vw,440px);user-select:none;-webkit-user-select:none;touch-action:pan-y;outline:none}
+.bsl-stage{position:absolute;inset:0;perspective:1400px}
+.bsl-c{position:absolute;top:0;left:50%;width:min(760px,80%);height:100%;margin-left:calc(min(760px,80%)/-2);border-radius:22px;overflow:hidden;background:#0e1a26;cursor:pointer;transition:transform .8s cubic-bezier(.22,.8,.2,1),opacity .6s ease,filter .6s ease;will-change:transform;box-shadow:0 30px 60px rgba(0,0,0,.45);text-decoration:none;color:inherit;display:block}
+.bsl-ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.12);transition:transform 6s cubic-bezier(.2,.6,.2,1)}
+.bsl-c.on .bsl-ph{transform:scale(1)}
+.bsl-nophoto{position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,#2b3a4c,#142434)}
+.bsl-c::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(14,26,38,.96) 0%,rgba(14,26,38,.72) 38%,rgba(14,26,38,.12) 78%,rgba(14,26,38,.28) 100%)}
+.bsl-tx{position:absolute;left:0;right:0;bottom:0;padding:clamp(18px,3vw,34px);z-index:2;display:flex;flex-direction:column;gap:10px}
+.bsl-meta{display:flex;gap:10px;align-items:center;font:600 12px/1 Inter,sans-serif;letter-spacing:.06em;color:#dfe3ea}
+.bsl-chip{background:#e2bd6a;color:#142434;border-radius:999px;padding:6px 11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
+.bsl-c h3{margin:0;font:700 clamp(22px,2.6vw,32px)/1.18 'Source Serif 4',serif;max-width:22em;text-wrap:balance;color:#fff}
+.bsl-c p{margin:0;color:#d4d9e0;font-size:15px;line-height:1.5;max-width:40em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bsl-by{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;font:600 13.5px Inter,sans-serif}
+.bsl-by small{display:block;font-weight:400;color:#b4bac4;font-size:12.5px}
+.bsl-go{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:10px 16px;font:700 13px Inter,sans-serif;transition:background .2s,transform .2s}
+.bsl-c:hover .bsl-go{background:#e2bd6a;color:#142434;transform:translateX(3px)}
+.bsl-tx>*{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.bsl-c.on .bsl-tx>*{opacity:1;transform:none}.bsl-c.on .bsl-tx>*:nth-child(2){transition-delay:.08s}.bsl-c.on .bsl-tx>*:nth-child(3){transition-delay:.16s}.bsl-c.on .bsl-tx>*:nth-child(4){transition-delay:.24s}
+.bsl-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.18);z-index:3}.bsl-bar i{display:block;height:100%;width:0;background:#e2bd6a}
+.bsl-c:not(.on) .bsl-bar{display:none}
+.bsl-ctl{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:26px}
+.bsl-ar{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;display:grid;place-items:center;transition:background .2s,border-color .2s,transform .2s}
+.bsl-ar:hover{background:#e2bd6a;border-color:#e2bd6a;color:#142434;transform:scale(1.06)}
+.bsl-dots{display:flex;gap:8px}.bsl-dots button{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.3);cursor:pointer;transition:width .4s,background .4s}.bsl-dots button.on{width:30px;background:#e2bd6a}
+.bsl-count{font:600 13px Inter,sans-serif;color:#b4bac4;min-width:54px;text-align:center;letter-spacing:.06em}
+.bsl-more{display:flex;justify-content:center;margin-top:22px}.bsl-more a{color:#e2bd6a;font:700 15px Inter,sans-serif;text-decoration:none}.bsl-more a:hover{text-decoration:underline}
+@media(max-width:700px){.bsl-c{width:88%;margin-left:-44%}}
+@media(prefers-reduced-motion:reduce){.bsl-c,.bsl-ph,.bsl-tx>*{transition:none!important}}
+</style>
+<section class="bsl" id="homeSlider" hidden aria-label="Latest articles from the firms">
+  <div class="bsl-in">
+    <p class="bsl-eyebrow">Latest from the firms</p>
+    <h2>Straight from the law firms</h2>
+    <p class="bsl-sub">Recent articles written by the firms in our directory. Swipe, drag or use the arrows. Each card opens the story, with a link to the full article on the firm's own website.</p>
+    <div class="bsl-root" id="bslRoot" tabindex="0" aria-roledescription="carousel" aria-label="Latest firm articles"><div class="bsl-stage" id="bslStage"></div></div>
+    <div class="bsl-ctl"><button type="button" class="bsl-ar" id="bslPrev" aria-label="Previous article"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="bsl-count" id="bslCount"></span><div class="bsl-dots" id="bslDots"></div><button type="button" class="bsl-ar" id="bslNext" aria-label="Next article"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    <div class="bsl-more"><a href="/news">See all LawDB News &rarr;</a></div>
   </div>
-  <div class="hn-chips" role="group" aria-label="Show articles about"><button type="button" data-type="" class="on" aria-pressed="true">All</button><button type="button" data-type="family" aria-pressed="false">Family</button><button type="button" data-type="injury" aria-pressed="false">Injury</button><button type="button" data-type="criminal" aria-pressed="false">Criminal</button><button type="button" data-type="realestate" aria-pressed="false">Real estate</button><button type="button" data-type="immigration" aria-pressed="false">Immigration</button><button type="button" data-type="business" aria-pressed="false">Business</button><button type="button" data-type="employment" aria-pressed="false">Employment</button><button type="button" data-type="wills" aria-pressed="false">Wills &amp; estates</button><button type="button" data-type="litigation" aria-pressed="false">Litigation</button><button type="button" data-type="traffic" aria-pressed="false">Traffic</button></div>
-  <div class="lw-bc-grid lw-feed hn-track" id="homeNewsGrid" aria-live="polite" tabindex="0"></div>
-  <div class="hn-more"><a class="hn-seeall" href="/news">See all LawDB News &rarr;</a></div>
-  <aside class="hn-rail" aria-label="Join and browse">
-    <div class="hn-card"><h3>Join LawDB, it is free</h3><p>Follow firms, save their stories and see their news in one place.</p><a class="hn-btn" href="/account/">Sign in free</a></div>
-    <div class="hn-card"><h3>Find a lawyer by case</h3><ul class="hn-links"><li><a href="/family-lawyers">Family law &amp; divorce</a></li><li><a href="/personal-injury-lawyers">Personal injury</a></li><li><a href="/criminal-defence-lawyers">Criminal defence</a></li><li><a href="/real-estate-lawyers">Real estate</a></li><li><a href="/immigration-lawyers">Immigration</a></li><li><a href="/wills-estate-lawyers">Wills &amp; estates</a></li><li><a href="/employment-lawyers">Employment</a></li><li><a href="/business-lawyers">Business</a></li><li><a href="/find-lawyers#cases">All case types &rarr;</a></li></ul></div>
-    <div class="hn-card hn-card-dark"><h3>Are you a lawyer?</h3><p>List your firm free and add your own description, hours and photos.</p><a class="hn-btn hn-btn-gold" href="/list-your-firm">List your firm free</a></div>
-  </aside>
-  <div id="homeNewsDlg"></div>
 </section>
 <script>
 (function(){
-  var sec=document.getElementById('homeNews'); if(!sec) return;
-  var grid=document.getElementById('homeNewsGrid'), chips=sec.querySelectorAll('.hn-chips button'), prev=sec.querySelector('.hn-prev'), nxt=sec.querySelector('.hn-next');
-  var type='', busy=false;
-  function edges(){ if(prev) prev.disabled=grid.scrollLeft<4; if(nxt) nxt.disabled=grid.scrollLeft+grid.clientWidth>=grid.scrollWidth-4; }
-  function by(dir){ var c=grid.querySelector('.lw-bc'); var w=(c?c.getBoundingClientRect().width:320)+18; grid.scrollBy({left:dir*w,behavior:'smooth'}); }
-  function load(){
-    if(busy) return; busy=true; grid.style.opacity='.5';
-    fetch('/api/home-news?offset=0&type='+encodeURIComponent(type)).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-      grid.innerHTML=d.html||'<p class="hn-end">No articles on this topic yet. Pick another, or see <a href="/news">all LawDB News</a>.</p>';
-      grid.scrollLeft=0;
-      if(window.lawdbSocial&&window.lawdbSocial.init) window.lawdbSocial.init(grid);
-      busy=false; grid.style.opacity=''; edges();
-    }).catch(function(){ busy=false; grid.style.opacity=''; });
+  var sec=document.getElementById('homeSlider'); if(!sec) return;
+  fetch('/api/home-slider').then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
+    var POSTS=(d&&d.posts)||[]; if(POSTS.length<3) return; sec.hidden=false; start(POSTS);
+  }).catch(function(){});
+  function start(POSTS){
+    var stage=document.getElementById('bslStage'),dots=document.getElementById('bslDots'),count=document.getElementById('bslCount'),root=document.getElementById('bslRoot');
+    var n=POSTS.length,cur=0,paused=false,DUR=5200,startT=0,raf=0,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+    function fmt(x){var t=new Date(String(x).replace(' ','T')+(/Z|[+-]\d\d:?\d\d$/.test(String(x))?'':'Z'));return isNaN(t)?'':t.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+    var cards=POSTS.map(function(p,i){
+      var a=document.createElement('a');a.className='bsl-c';a.href=p.u;a.setAttribute('role','group');a.setAttribute('aria-label',(i+1)+' of '+n);
+      a.innerHTML=(p.i?'<img class="bsl-ph" src="'+esc(p.i)+'" alt="" referrerpolicy="no-referrer" loading="'+(i<3?'eager':'lazy')+'">':'<div class="bsl-nophoto"></div>')+
+        '<div class="bsl-tx"><div class="bsl-meta"><span class="bsl-chip">Article</span><span>'+esc(fmt(p.d))+'</span></div><h3>'+esc(p.t)+'</h3>'+(p.x?'<p>'+esc(p.x)+'</p>':'')+
+        '<div class="bsl-by"><span>'+esc(p.f)+'<small>'+esc([p.c,p.s].filter(Boolean).join(', '))+'</small></span><span class="bsl-go">Read the story <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div><div class="bsl-bar"><i></i></div>';
+      var img=a.querySelector('img');if(img)img.addEventListener('error',function(){var d=document.createElement('div');d.className='bsl-nophoto';img.replaceWith(d)});
+      a.addEventListener('click',function(e){if(i!==cur){e.preventDefault();go(i)}});
+      stage.appendChild(a);return a;});
+    cards.forEach(function(c,i){var b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Show article '+(i+1));b.onclick=function(){go(i)};dots.appendChild(b)});
+    function offset(i){var d=i-cur;if(d>n/2)d-=n;if(d<-n/2)d+=n;return d}
+    function layout(){
+      var w=cards[0].offsetWidth;
+      cards.forEach(function(c,i){
+        var d=offset(i),ad=Math.abs(d),on=d===0;
+        c.classList.toggle('on',on);c.setAttribute('aria-hidden',on?'false':'true');c.tabIndex=on?0:-1;
+        c.style.transform='translate3d('+(d*w*0.62)+'px,0,'+(-Math.min(ad,3)*80)+'px) scale('+(1-Math.min(ad,3)*0.1)+') rotateY('+(d*-10)+'deg)';
+        c.style.opacity=ad>2?0:(on?1:Math.max(.35,.7-ad*.18));c.style.filter=on?'none':'brightness(.62) saturate(.85)';
+        c.style.zIndex=10-ad;c.style.pointerEvents=ad>2?'none':'auto';
+      });
+      [].forEach.call(dots.children,function(b,i){b.classList.toggle('on',i===cur)});
+      count.textContent=(cur+1)+' / '+n;
+    }
+    function bar(){
+      cancelAnimationFrame(raf);cards.forEach(function(c){var b=c.querySelector('.bsl-bar i');if(b)b.style.width='0'});
+      if(reduce)return;startT=performance.now();
+      (function tick(t){if(paused){startT+=16}var k=Math.min(1,(t-startT)/DUR),b=cards[cur].querySelector('.bsl-bar i');if(b)b.style.width=(k*100)+'%';if(k>=1){go(cur+1);return}raf=requestAnimationFrame(tick)})(performance.now());
+    }
+    function go(i){cur=(i%n+n)%n;layout();bar()}
+    document.getElementById('bslNext').onclick=function(){go(cur+1)};document.getElementById('bslPrev').onclick=function(){go(cur-1)};
+    root.addEventListener('keydown',function(e){if(e.key==='ArrowRight')go(cur+1);if(e.key==='ArrowLeft')go(cur-1)});
+    root.addEventListener('mouseenter',function(){paused=true});root.addEventListener('mouseleave',function(){paused=false});
+    root.addEventListener('focusin',function(){paused=true});root.addEventListener('focusout',function(){paused=false});
+    document.addEventListener('visibilitychange',function(){paused=document.hidden});
+    if('IntersectionObserver' in window){new IntersectionObserver(function(e){if(!e[0].isIntersecting)paused=true;else if(!document.hidden&&!root.matches(':hover'))paused=false},{threshold:.2}).observe(root)}
+    var sx=null,moved=0,dragged=false;
+    root.addEventListener('pointerdown',function(e){sx=e.clientX;moved=0;dragged=false;paused=true});
+    window.addEventListener('pointermove',function(e){if(sx!=null){moved=e.clientX-sx;if(Math.abs(moved)>8)dragged=true}});
+    window.addEventListener('pointerup',function(){if(sx==null)return;if(Math.abs(moved)>60)go(cur+(moved<0?1:-1));sx=null;paused=false});
+    root.addEventListener('click',function(e){if(dragged){e.preventDefault();e.stopPropagation();dragged=false}},true);
+    window.addEventListener('resize',layout);
+    layout();bar();
   }
-  chips.forEach(function(b){ b.addEventListener('click', function(){ type=b.getAttribute('data-type'); chips.forEach(function(c){ var on=c===b; c.classList.toggle('on',on); c.setAttribute('aria-pressed',on?'true':'false'); }); load(); }); });
-  if(prev) prev.addEventListener('click', function(){ by(-1); });
-  if(nxt) nxt.addEventListener('click', function(){ by(1); });
-  grid.addEventListener('scroll', edges, {passive:true});
-  edges();
 })();
 </script>
+
 <section class="how" aria-labelledby="howH"><div class="how-in"><p class="eyebrow">How it works</p><h2 id="howH">Three steps to the right lawyer</h2><a class="how-cta" href="/find-lawyers">Start your search &rarr;</a><div class="how-steps">
   <article class="how-step"><span class="how-num">1</span><h3>Tell us what you need</h3><p>Search in your own words, or pick a case type and a city.</p></article>
   <article class="how-step"><span class="how-num">2</span><h3>Compare the firms</h3><p>Each listing shows its Google rating, review count, practice areas and address.</p></article>

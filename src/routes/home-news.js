@@ -5,6 +5,7 @@ import { newsCardsHtml, DIALOG_CSS, STORY_JS, dialogHtml } from '../render/news-
 import { BLOG_CSS } from '../render/blog-cards.js';
 import { storyPath } from '../lib/stories.js';
 import { cached } from '../lib/http.js';
+import { safePostUrl } from '../render/blog-cards.js';
 
 export const FIRST = 6; // cards in the page itself (a swipe row, not a long feed)
 export const STEP = 6;  // cards per request
@@ -20,6 +21,27 @@ export async function homeNewsSlice(env, { offset = 0, type = '', limit = STEP }
   const posts = rankPosts(await loadCandidates(env), { type: isPracticeType(type) ? type : '' }).slice(0, MAX);
   const slice = posts.slice(offset, offset + limit).map((p) => ({ ...p, storyHref: storyPath(p.firmSlug, p.id, p.title) }));
   return { html: newsCardsHtml(slice), next: offset + slice.length < posts.length ? offset + slice.length : null, total: posts.length };
+}
+
+// The sliding "latest from the firms" cards on the home page: the best-ranked posts that have a picture, one small JSON object each.
+export const SLIDER_POSTS = 8;
+export async function homeSliderApi({ request, env, exec }) {
+  const url = new URL(request.url);
+  const ttl = ttlOf(env);
+  const key = new Request(`${url.origin}/api/home-slider`, { method: 'GET' });
+  if (ttl > 0) {
+    const hit = await caches.default.match(key);
+    if (hit) return hit;
+  }
+  const ranked = rankPosts(await loadCandidates(env), {});
+  const seen = new Set();
+  const posts = ranked.filter((p) => safePostUrl(p.image) && !seen.has(p.firmSlug) && seen.add(p.firmSlug)).slice(0, SLIDER_POSTS).map((p) => ({
+    t: String(p.title || '').slice(0, 160), x: String(p.excerpt || '').replace(/\s+/g, ' ').slice(0, 170), i: p.image, d: p.publishedAt,
+    f: p.firmName, c: p.city || '', s: p.province || '', u: storyPath(p.firmSlug, p.id, p.title),
+  }));
+  const res = new Response(JSON.stringify({ posts }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': ttl > 0 ? `public, max-age=${ttl}` : 'no-cache', 'x-content-type-options': 'nosniff' } });
+  if (ttl > 0) exec(caches.default.put(key, res.clone()));
+  return res;
 }
 
 export async function homeNewsApi({ request, env, exec }) {
