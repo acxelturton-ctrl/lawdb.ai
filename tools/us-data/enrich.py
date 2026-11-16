@@ -113,6 +113,77 @@ def jsonld(soup):
                     if isinstance(v, (list, dict)): stack.append(v)
     return out
 
+
+JUNK_IMG = re.compile(r'(logo|icon|sprite|favicon|avatar|gravatar|badge|seal|award|payment|visa|mastercard|bbb|avvo|superlawyers|martindale|lawyers\.com|justia|findlaw|facebook|twitter|linkedin|instagram|youtube|google|yelp|pixel|spacer|blank|placeholder|loading|arrow|star|rating|review|emoji|1x1|captcha|qr)', re.I)
+
+def size_stem(u):
+    """the same picture at different sizes shares a stem: photo-300x200.jpg -> photo.jpg"""
+    path = urllib.parse.urlparse(u).path
+    return re.sub(r'-\d{2,4}x\d{2,4}(?=\.\w+$)|@\dx(?=\.\w+$)', '', path.lower())
+
+def probe(site, u):
+    """download an image and return (final_url, w, h, bytes) or None"""
+    got = site.get(u, binary=True)
+    if not got: return None
+    try:
+        from PIL import Image; import io
+        im = Image.open(io.BytesIO(got[1])); return got[0], im.size[0], im.size[1], len(got[1])
+    except Exception: return None
+
+def image_candidates(soup, base):
+    """(url, hint) for pictures on a page: <img>, lazy-load attributes, <picture>, and CSS background images"""
+    out = []
+    def add(u, hint):
+        if u and not u.startswith('data:'): out.append((urllib.parse.urljoin(base, u.strip()), hint))
+    for img in soup.find_all('img'):
+        cls = ' '.join(img.get('class', [])) + ' ' + (img.get('id') or '')
+        srcset = img.get('srcset') or img.get('data-srcset') or ''
+        best = ''
+        if srcset:
+            parts = [x.strip().split(' ') for x in srcset.split(',') if x.strip()]
+            try: best = sorted(parts, key=lambda x: int(re.sub(r'\D', '', x[1]) or 0) if len(x) > 1 else 0)[-1][0]
+            except Exception: best = parts[-1][0] if parts else ''
+        add(best or img.get('data-src') or img.get('data-lazy-src') or img.get('src'), (cls + ' ' + (img.get('alt') or '')).lower())
+    for el in soup.find_all(style=True):
+        m = re.search(r'url\(["\']?([^"\')]+)', el['style'])
+        if m: add(m.group(1), ('bg ' + ' '.join(el.get('class', []))).lower())
+    for m in re.finditer(r'url\(["\']?(https?:[^"\')]+\.(?:jpe?g|png|webp))', str(soup)[:400000]):
+        add(m.group(1), 'css')
+    return out
+
+def parse_feed(site, feed_url, limit=6):
+    got = site.get(feed_url)
+    if not got: return []
+    try: x = BeautifulSoup(got[1][:600000], 'lxml-xml')
+    except Exception: return []
+    posts = []
+    for it in (x.find_all('item') or x.find_all('entry'))[:limit]:
+        def tx(n):
+            e = it.find(n); return e.get_text(' ').strip() if e else ''
+        title = tx('title'); link = tx('link') or (it.find('link').get('href') if it.find('link') else '')
+        date = tx('pubDate') or tx('published') or tx('updated') or tx('dc:date')
+        body = tx('encoded') or tx('content') or tx('description') or tx('summary')
+        bs = BeautifulSoup(body, 'lxml')
+        txt = re.sub(r'\s+', ' ', bs.get_text(' ')).strip()
+        txt = re.sub(r'\s*The post .{1,300} appeared first on .{1,200}$', '', txt, flags=re.I)[:170]
+        img = ''
+        for n in ('media:content', 'media:thumbnail', 'enclosure'):
+            e = it.find(n)
+            if e and (e.get('url') and (not e.get('type') or 'image' in e.get('type', '') or n != 'enclosure')): img = e.get('url'); break
+        if not img:
+            i = bs.find('img')
+            if i: img = i.get('src') or i.get('data-src') or ''
+        if title and link: posts.append({'title': title[:200], 'url': link, 'date': date, 'excerpt': txt, 'image': urllib.parse.urljoin(feed_url, img) if img else ''})
+    return posts
+
+def post_image(site, url):
+    got = site.get(url)
+    if not got: return ''
+    try: sp = BeautifulSoup(got[1][:500000], 'lxml')
+    except Exception: return ''
+    og = sp.find('meta', property='og:image')
+    return urllib.parse.urljoin(got[0], og['content']) if og and og.get('content') else ''
+
 def enrich(row):
     site_url = row['website']; dom = row['domain']; base = site_url
     res = {'name': row['name'], 'city': row['city'], 'domain': dom, 'website': site_url, 'overture_id': row['overture_id'], 'pages': [], 'ok': False}
@@ -122,7 +193,7 @@ def enrich(row):
     final_url, data = first; res['final_url'] = final_url
     soups = {}; queue = [final_url]; seen = set()
     emails, socials, logos, feeds = {}, {}, [], []
-    texts, nav_text = [], []; ld_objs = []
+    texts, nav_text = [], []; ld_objs = []; imgs = []
     host = urllib.parse.urlparse(final_url).hostname or ''
     pages = 0
     cache = {final_url: data}
@@ -136,6 +207,7 @@ def enrich(row):
         try: soup = BeautifulSoup(raw, 'lxml')
         except Exception: continue
         ld_objs += jsonld(soup)
+        imgs += [(u, h, 'home' if u2 == final_url else 'inner') for u, h in image_candidates(soup, u2)]
         # links
         for a in soup.find_all('a', href=True):
             h = a['href'].strip()
@@ -249,6 +321,34 @@ def enrich(row):
             if items:
                 feed = {'url': got[0], 'items': items, 'latest': dates[0].strip() if dates else None}; break
     res['blog_feed'] = feed
+
+    # cover photo and company photos: probe the most promising pictures, keep real photographs (big enough, not logos or badges)
+    og_img = res.get('photo_candidate')
+    cand, seen_i = [], set()
+    if og_img: cand.append((og_img, 'og', 'home'))
+    for u, h, where in imgs:
+        if JUNK_IMG.search(u) or JUNK_IMG.search(h.replace('bg ', '')) or not re.search(r'\.(jpe?g|png|webp)(\?|$)', u, re.I): continue
+        k = size_stem(u)
+        if k in seen_i: continue
+        seen_i.add(k); cand.append((u, h, where))
+    def prio(c):
+        u, h, where = c
+        return (0 if re.search(r'hero|banner|slider|cover|header|masthead|jumbotron', h) else 1 if c[1] == 'og' else 2, 0 if where == 'home' else 1)
+    cand.sort(key=prio)
+    probed = []
+    for u, h, where in cand[:16]:
+        pr = probe(site, u)
+        if pr and pr[1] >= 500 and pr[2] >= 280: probed.append({'url': pr[0], 'w': pr[1], 'h': pr[2], 'hint': h[:40], 'where': where})
+    probed = [p for p in probed if size_stem(p['url']) != size_stem((best or {}).get('url', ''))]
+    wide = [p for p in probed if 1.4 <= p['w'] / p['h'] <= 3.6 and p['w'] >= 1000]
+    res['cover'] = (sorted(wide, key=lambda p: (0 if re.search(r'hero|banner|slider|cover|header|masthead', p['hint']) or p['hint'] == 'og' else 1, -p['w'] * p['h']))[:1] or [None])[0]
+    cu = (res['cover'] or {}).get('url')
+    res['photos'] = [p for p in sorted(probed, key=lambda p: -p['w'] * p['h']) if p['url'] != cu][:8]
+    # blog posts (title, link, date, short excerpt, picture) from the feed we found
+    posts = parse_feed(site, feed['url']) if feed else []
+    for pst in posts[:4]:
+        if not pst['image'] and pst['url']: pst['image'] = post_image(site, pst['url'])
+    res['posts'] = posts
     res['facts_text'] = ' '.join((texts[0] if texts else '').split('|')[2:])[:700]
     res['ok'] = True
     return res
