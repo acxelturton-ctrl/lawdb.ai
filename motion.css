@@ -3,7 +3,7 @@
 
 /* header turns to frosted glass once the page moves */
 .site-header{ transition:background .3s ease, box-shadow .3s ease, backdrop-filter .3s ease; }
-.site-header.is-scrolled{ background:rgba(245,243,236,.82) !important; -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); box-shadow:0 8px 30px rgba(20,36,52,.10); }
+.site-header.is-scrolled{ background:rgba(245,243,236,.82) !important; -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); box-shadow:0 8px 30px rgba(42,42,42,.10); }
 
 @media (prefers-reduced-motion:no-preference){
   /* hero text rises in, one piece after another */
@@ -21,7 +21,7 @@
 
   /* touch feedback and lift */
   .h4-case-grid a{ transition:transform .25s var(--ease-out), box-shadow .25s ease, border-color .15s, background .15s; }
-  .h4-case-grid a:hover, .h4-case-grid a:focus-visible{ transform:translateY(-4px); box-shadow:0 14px 28px -12px rgba(20,36,52,.28); }
+  .h4-case-grid a:hover, .h4-case-grid a:focus-visible{ transform:translateY(-4px); box-shadow:0 14px 28px -12px rgba(42,42,42,.28); }
   .h5-go, .hz-solid, .hz-ghost, .hn-seeall, .bsl-more a, .btn-primary, .btn-ghost{ transition:transform .2s var(--ease-out), filter .2s, box-shadow .25s; }
   .h5-go:hover, .hz-solid:hover{ transform:translateY(-2px); box-shadow:0 12px 26px -10px rgba(226,189,106,.55); }
   .h5-go:active, .hz-solid:active, .hz-ghost:active{ transform:scale(.97); }

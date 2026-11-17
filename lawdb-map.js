@@ -93,8 +93,8 @@
 
   /* ------------------------------------------------------------ icons */
   var IC = {
-    search: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
-    x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    search: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+    x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     call: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
     dir: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>',
     web: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>',
@@ -490,7 +490,7 @@
     var W = Math.round(34 * scale), H = Math.round(46 * scale);
     var c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2;
     var x = c.getContext('2d'); x.scale(2 * scale, 2 * scale);
-    x.shadowColor = 'rgba(20,36,52,0.35)'; x.shadowBlur = 3; x.shadowOffsetY = 1.5;
+    x.shadowColor = 'rgba(42,42,42,0.35)'; x.shadowBlur = 3; x.shadowOffsetY = 1.5;
     x.beginPath(); x.moveTo(17, 44);
     x.bezierCurveTo(17, 44, 3, 28, 3, 16.5); x.arc(17, 16.5, 14, Math.PI, 0, false); x.bezierCurveTo(31, 28, 17, 44, 17, 44); x.closePath();
     x.fillStyle = fill; x.fill(); x.shadowColor = 'transparent'; x.lineWidth = 1.4; x.strokeStyle = stroke; x.stroke();
@@ -525,7 +525,7 @@
     return FONTS;
   }
   function textField(feat){
-    var F2 = pickFonts(), nm = { 'font-scale': 1, 'text-color': feat ? '#3c4043' : '#2a2a2a' }, sb = { 'font-scale': 0.88, 'text-color': '#586170' };
+    var F2 = pickFonts(), nm = { 'font-scale': 1, 'text-color': feat ? '#3c4043' : '#2a2a2a' }, sb = { 'font-scale': 0.88, 'text-color': '#5f5f5f' };
     if(F2.bold) nm['text-font'] = ['literal', F2.bold];
     if(F2.reg) sb['text-font'] = ['literal', F2.reg];
     return ['format', ['get', 'name'], nm, '\n', {}, ['get', 'sub'], sb];
@@ -770,10 +770,10 @@
     return items.slice(0, 9);
   }
   var SUGICO = {
-    search: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
-    pin: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    search: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+    pin: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
     near: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e2bd6a" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>',
-    firm: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#586170" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>'
+    firm: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>'
   };
   var sugItems = [], sugIdx = -1;
   function drawSug(){

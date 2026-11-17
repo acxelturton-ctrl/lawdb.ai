@@ -84,7 +84,7 @@ for r in rows:
     initials = (words[0][0] + (words[1][0] if len(words) > 1 else '')).upper()
     rec = {'slug': slug, 'name': r['name'], 'city': r['city'], 'state': ST, 'region': region_of(lat, lng) if ST == 'FL' else region_nearest(ST, lat, lng), 'featured': False,
            'tags': tags, 'caseTypes': case_types, 'lat': lat, 'lng': lng, 'address': addr, 'phone': '+1' + r['phone_raw'], 'rating': 0, 'count': 0,
-           'website': 'https://' + r['domain'], 'type': 'mono', 'initials': initials, 'color': '#2b3a4c',
+           'website': 'https://' + r['domain'], 'type': 'mono', 'initials': initials, 'color': '#3a3a3a',
            'mapsUrl': 'https://www.google.com/maps/search/' + re.sub(r'%20', '+', __import__('urllib.parse').parse.quote(f"{r['name']} {r['city']} {STATE_NAMES.get(ST, ST)}")),
            'dirUrl': 'https://www.google.com/maps/dir/?api=1&destination=' + re.sub(r'%20', '+', __import__('urllib.parse').parse.quote(addr)),
            'blurb': (f"{tags[0]} in {r['city']}." if tags else f"Law firm in {r['city']}.")}
