@@ -100,7 +100,7 @@ for r in rows:
     if det: rec['details'] = det
     if areas: stats['with_areas'] += 1
     out.append('INSERT OR IGNORE INTO firms (slug,name,city,state,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES ('
-               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', 'NULL', 'NULL', q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), 'NULL', 'NULL', "'dynamic'", "'live'", 'NULL']) + ');')
+               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', 'NULL', 'NULL', q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), 'NULL', 'NULL', "'dynamic'", "'live'" if (rec.get('src') and rec.get('heroImage')) else "'hidden'", 'NULL']) + ');')
     stats['firms'] += 1
     feed = e.get('blog_feed')
     posts = [p for p in (e.get('posts') or []) if p.get('image') and p.get('title') and p.get('url')]
