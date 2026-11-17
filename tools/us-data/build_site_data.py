@@ -2,7 +2,7 @@
 """Step 5: rebuild the Find page's inline data and the autocomplete places from the states that are loaded.
 
 Usage: python3 tools/us-data/build_site_data.py FL TX
-Reads  data/states/<ST>/selected.csv (the firms that are on the site), data/states/<ST>/candidates.csv (towns for autocomplete), tools/us-data/regions.json
+Reads  data/states/<ST>/live.csv (the firms that are live: logo + cover photo, written by build_import_sql.py), data/states/<ST>/candidates.csv (towns for autocomplete), tools/us-data/regions.json
 Writes the CITY_SEED / REGIONS_BY_STATE / STATES / REGION_CENTERS / POPULAR_CITIES lines in find-lawyers.html and places.json.
 Florida's regions are kept as they are in the page (they were written first); other states use regions.json.
 """
@@ -21,7 +21,7 @@ def grab(name):
     return json.loads(m.group(2)) if m else None
 
 seed = grab('CITY_SEED'); regions = grab('REGIONS_BY_STATE'); centers = grab('REGION_CENTERS')
-seed = [c for c in seed if c['state'] in ('FL',)]  # FL stays as built; other states are rebuilt below
+seed = []  # rebuilt below from each state's live firms
 regions = {k: v for k, v in regions.items() if k == 'FL'}; centers = {k: v for k, v in centers.items() if k.startswith('fl-')}
 
 def nearest(st, lat, lng):
@@ -33,17 +33,17 @@ def nearest(st, lat, lng):
 
 popular = ['Miami|FL', 'Tampa|FL', 'Orlando|FL', 'Fort Lauderdale|FL', 'Jacksonville|FL', 'Boca Raton|FL', 'West Palm Beach|FL', 'Coral Gables|FL']
 for st in sts:
-    if st == 'FL' or st not in REG: continue
-    regions[st] = [{'id': r['id'], 'label': r['label']} for r in REG[st]['regions']]
-    for r in REG[st]['regions']: centers[r['id']] = {'lat': r['lat'], 'lng': r['lng']}
+    if st != 'FL' and st in REG:
+        regions[st] = [{'id': r['id'], 'label': r['label']} for r in REG[st]['regions']]
+        for r in REG[st]['regions']: centers[r['id']] = {'lat': r['lat'], 'lng': r['lng']}
+        popular += [f'{c}|{st}' for c in REG[st].get('popular', [])]
     by = collections.defaultdict(list)
-    for row in csv.DictReader(open(f'data/states/{st}/selected.csv', encoding='utf-8')):
-        try: by[row['city'].strip()].append((float(row['lat']), float(row['lng'])))
-        except Exception: pass
+    for row in csv.DictReader(open(f'data/states/{st}/live.csv', encoding='utf-8')):
+        by[row['city'].strip()].append((float(row['lat']), float(row['lng']), row['region']))
     for city, pts in sorted(by.items()):
         lat = sum(p[0] for p in pts) / len(pts); lng = sum(p[1] for p in pts) / len(pts)
-        seed.append({'name': city, 'state': st, 'region': nearest(st, lat, lng), 'lat': round(lat, 5), 'lng': round(lng, 5)})
-    popular += [f'{c}|{st}' for c in REG[st].get('popular', [])]
+        region = collections.Counter(p[2] for p in pts).most_common(1)[0][0] or nearest(st, lat, lng)
+        seed.append({'name': city, 'state': st, 'region': region, 'lat': round(lat, 5), 'lng': round(lng, 5)})
 
 states = [{'code': s, 'label': NAMES[s]} for s in sts]
 def sub(name, value):
