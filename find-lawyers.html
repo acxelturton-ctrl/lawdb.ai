@@ -121,6 +121,9 @@
   .fyh-formula strong{ display:block; font:600 15px/1.25 Inter,sans-serif; color:#fff; }
   .fyh-formula small{ display:block; margin-top:2px; font:400 13px/1.3 Inter,sans-serif; color:#b4bac4; }
   .fyh-formula i{ flex:none; align-self:center; padding:0 2px; font-style:normal; font-size:20px; color:#b4bac4; }
+  .fyh-search .ls-wrap{ position:relative; z-index:6; }
+  .fyh-search:focus-within .fyh-formula{ opacity:0; visibility:hidden; transition:opacity .15s; }
+  .fyh-formula{ position:relative; z-index:1; transition:opacity .2s; }
   .fyh-formula .fyh-sep{ flex:none; width:1px; margin:12px 0; background:rgba(226,189,106,0.3); }
   @media(max-width:420px){ .fyh-formula > div{ padding:12px 10px; gap:9px; } .fyh-formula b{ width:32px; height:32px; font-size:14px; } .fyh-formula strong{ font-size:14px; } .fyh-formula small{ font-size:12px; } }
   .fyh .fy-live{ margin-top:12px; }
