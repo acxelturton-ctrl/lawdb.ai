@@ -7,7 +7,6 @@ import { cleanBookingUrl } from '../lib/booking.js';
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 
 const CAL = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 14.5l2 2 4-4"/></svg>';
-const LOCK = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
 
 const CSS = '<style>.li-book-row{margin:10px 0 0;max-width:470px}' +
   '.li-book-row .li-btn{width:100%;flex:none;gap:8px;cursor:pointer;font-family:inherit}' +
@@ -31,11 +30,11 @@ export function bookingRow({ url, name, managed = false, featured = false }) {
   // The page already has its own "Claim this listing" line right under the buttons, so the note points to it instead of repeating the link.
   const note = !featured
     ? (managed
-      ? `Online booking is a Featured feature. The owner of ${esc(name)} can unlock it from the dashboard (the first month is free).`
-      : `Online booking is a Featured feature. If you run ${esc(name)}, use &ldquo;Claim this listing&rdquo; below to start a free month and add your booking link.`)
+      ? `${esc(name)} is not a Featured member, so online booking isn&#x27;t available. The owner can unlock it from the dashboard (the first month is free).`
+      : `${esc(name)} is not a Featured member, so online booking isn&#x27;t available. If you run this firm, use &ldquo;Claim this listing&rdquo; below to start a free month and add your booking link.`)
     : (managed
       ? `${esc(name)} hasn&#x27;t added an online booking link yet.`
       : `${esc(name)} hasn&#x27;t added an online booking link yet. If you run this firm, use &ldquo;Claim this listing&rdquo; below to add one.`);
-  return `${CSS}<div class="li-book-row"><button type="button" class="li-btn li-book li-book-off" aria-disabled="true" aria-expanded="false" aria-controls="lw-book-note">${LOCK}<span>Book a call</span>${featured ? '' : '<em class="li-book-tag">Featured</em>'}</button>` +
+  return `${CSS}<div class="li-book-row"><button type="button" class="li-btn li-book li-book-off" aria-disabled="true" aria-expanded="false" aria-controls="lw-book-note"><span>Book a call</span></button>` +
     `<p class="lw-book-note" id="lw-book-note" hidden>${note}</p></div>`;
 }

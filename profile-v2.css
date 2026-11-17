@@ -43,7 +43,8 @@ body.pg-firm.pg-msp .pf-card .pf-btn.pf-primary{ flex:2 1 260px; background:#142
 body.pg-firm.pg-msp .pf-card .pf-btn.pf-primary:hover{ background:#1f3550; border-color:#1f3550; color:#fff; }
 body.pg-firm.pg-msp .pf-card .pf-btn.pf-follow{ flex:0 1 auto; background:transparent; }
 body.pg-firm.pg-msp .pf-card .pf-btn.lw-fbtn[aria-pressed="true"]{ background:#142434; border-color:#142434; color:#f2d98f; }
-body.pg-firm.pg-msp .pf-card .pf-actions .li-btn.li-book-off{ opacity:.8; border-style:dashed; }
+body.pg-firm.pg-msp .pf-card .pf-actions .li-btn.li-book-off{ background:rgba(20,36,52,.06); border:1.5px solid rgba(20,36,52,.12); color:#8a919b; cursor:pointer; box-shadow:none; }
+body.pg-firm.pg-msp .pf-card .pf-actions .li-btn.li-book-off:hover{ background:rgba(20,36,52,.08); border-color:rgba(20,36,52,.18); color:#6f7885; transform:none; }
 body.pg-firm.pg-msp .pf-card .li-book-tag{ font:700 10.5px Inter,sans-serif; letter-spacing:.08em; text-transform:uppercase; font-style:normal; background:#142434; color:#f2d98f; border-radius:999px; padding:3px 8px; border:0; }
 body.pg-firm.pg-msp .pf-card .pf-actions .lw-book-note{ flex:1 1 100%; color:#3b4757; background:rgba(255,255,255,.6); border-radius:12px; padding:10px 14px; }
 body.pg-firm.pg-msp .pf-card .lw-claim,body.pg-firm.pg-msp .pf-card .pf-plan{ color:#6b5a2e; font-size:13.5px; margin:14px 0 0; }
