@@ -283,15 +283,25 @@ function breadcrumb(f, prov) {
 }
 
 // "Firms you may like": three nearby firms with a Follow button. Beside the page on a wide screen; on a phone the "other lawyers" row at the bottom does this job.
-function likeAside(nearby) {
+function likeAside(nearby, articlesHtml = '') {
   const rows = (nearby || []).slice(0, 3).map((n) => {
     const src = safeUrl(n.src), remote = safeUrl(n.logoUrl);
     const av = src ? `<img src="${esc(rootImg(src))}" alt="" loading="lazy">` : remote ? `<img src="${esc(remote)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : monogram(n);
     const sub = (n.tags || []).filter(Boolean)[0] || 'Law practice';
     return `<div class="pf-like-row"><a class="pf-like-av" href="/firms/${esc(n.slug)}" tabindex="-1" aria-hidden="true">${av}</a><div class="pf-like-t"><a href="/firms/${esc(n.slug)}"><b>${esc(n.name)}</b></a><span>${esc(sub)} &middot; ${esc(n.city)}</span><button class="lw-fbtn pf-btn pf-sm" type="button" data-follow="${esc(n.slug)}">+ Follow</button></div></div>`;
   }).join('');
-  return rows ? `\n   <aside class="pf-aside" aria-label="Firms you may like"><section class="pf-like"><h2>Firms you may like</h2>${rows}</section></aside>` : '';
+  if (!rows && !articlesHtml) return '';
+  // Two tabs when the firm has articles: the firms nearby, and the firm's own recent articles. One panel alone gets a plain heading.
+  if (rows && articlesHtml) {
+    return `\n   <aside class="pf-aside" aria-label="Firms you may like and recent articles"><section class="pf-like pf-tabcard">` +
+      `<div class="pf-tabs" role="tablist"><button type="button" role="tab" id="pfTab1" aria-selected="true" aria-controls="pfPan1">Firms you may like</button><button type="button" role="tab" id="pfTab2" aria-selected="false" aria-controls="pfPan2" tabindex="-1">Recent articles</button></div>` +
+      `<div class="pf-pan" role="tabpanel" id="pfPan1" aria-labelledby="pfTab1">${rows}</div><div class="pf-pan" role="tabpanel" id="pfPan2" aria-labelledby="pfTab2" hidden>${articlesHtml}</div></section>${TABS_JS}</aside>`;
+  }
+  return rows ? `\n   <aside class="pf-aside" aria-label="Firms you may like"><section class="pf-like"><h2>Firms you may like</h2>${rows}</section></aside>`
+    : `\n   <aside class="pf-aside" aria-label="Recent articles"><section class="pf-like pf-tabcard"><div class="pf-pan">${articlesHtml}</div></section></aside>`;
 }
+
+const TABS_JS = "<script>(function(){var t=document.querySelectorAll('.pf-tabs [role=tab]');function sel(b){for(var i=0;i<t.length;i++){var on=t[i]===b;t[i].setAttribute('aria-selected',on);t[i].tabIndex=on?0:-1;document.getElementById(t[i].getAttribute('aria-controls')).hidden=!on;}}for(var i=0;i<t.length;i++){t[i].addEventListener('click',function(){sel(this);});t[i].addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var o=t[0]===this?t[1]:t[0];o.focus();sel(o);}});}})();</script>";
 
 // The Message button opens the contact form it scrolls to.
 const CONTACT_JS = "<script>(function(){var bs=document.querySelectorAll('[data-open-contact]'),s=document.querySelector('.lead-slim');if(s)for(var i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){s.classList.add('open');});})();</script>";
@@ -411,10 +421,10 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,
     C.STYLE + PHOTO_CSS + GLANCE_CSS + OFFICES_CSS + (chipsHtml(f, verified) ? CHIPS_CSS : '') + (verified ? VERIFIED_CSS : '') + (f.block && f.block.image ? BLOCK_CSS : '') + (practiceHtml(f, cards) ? PRACTICE_CSS : '') + '\n<link rel="stylesheet" href="../desktop.css">\n<link rel="stylesheet" href="../site.css">\n<link rel="stylesheet" href="/profile-v2.css?v=1">\n</head>',
     '<body class="pg-firm pg-msp">\n  ' + C.HEADER,
-    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + (articlesHtml ? '\n    ' + articlesHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '') + '\n\n    ' + socials,
+    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '')  + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '') + '\n\n    ' + socials,
     carousel(f, nearby),
     '\n\n    ' + leadScript,
     '\n    ' + CONTACT_JS,
-    '\n   </div>' + likeAside(nearby) + '\n  </div>\n  ' + stickyBar(f) + C.FOOTER,
+    '\n   </div>' + likeAside(nearby, articlesHtml) + '\n  </div>\n  ' + stickyBar(f) + C.FOOTER,
   ].join('\n');
 }
