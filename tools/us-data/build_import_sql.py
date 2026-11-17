@@ -11,7 +11,6 @@ import csv, json, os, re, sys, unicodedata, datetime, email.utils
 
 ST = (sys.argv[1] if len(sys.argv) > 1 else 'FL').upper()
 D = os.path.join('data', 'states', ST)
-STATE_NAMES = {'FL': 'Florida', 'TX': 'Texas', 'CA': 'California', 'NY': 'New York', 'IL': 'Illinois', 'GA': 'Georgia'}
 
 # practice area label (from the crawler) -> the site's ten case types (ids used by search and the case pages)
 CASE = {'Personal injury': 'injury', 'Car accidents': 'injury', 'Wrongful death': 'injury', 'Medical malpractice': 'injury', 'Insurance claims': 'injury',
@@ -20,6 +19,13 @@ CASE = {'Personal injury': 'injury', 'Car accidents': 'injury', 'Wrongful death'
         'Business & corporate': 'business', 'Intellectual property': 'business', 'Tax law': 'business', 'Civil litigation': 'litigation'}
 TAG = {'Wills, trusts & probate': 'Wills, Trusts & Probate', 'Workers’ compensation': 'Workers’ Compensation', 'Business & corporate': 'Business & Corporate', 'Social Security disability': 'Social Security Disability'}
 LANGS = {'Spanish', 'French', 'Russian', 'Arabic', 'Mandarin', 'Portuguese', 'Hebrew', 'Haitian Creole'}
+
+REGIONS = json.load(open(os.path.join(os.path.dirname(__file__), 'regions.json')))
+STATE_NAMES = json.load(open(os.path.join(os.path.dirname(__file__), 'state_names.json')))
+
+def region_nearest(st, lat, lng):
+    if st not in REGIONS: return ''
+    return min(REGIONS[st]['regions'], key=lambda r: (r['lat'] - lat) ** 2 + ((r['lng'] - lng) * 0.85) ** 2)['id']
 
 def region_of(lat, lng):
     if lat < 27.0 and lng > -81.3: return 'fl-south'
@@ -74,7 +80,7 @@ for r in rows:
     addr = f"{r['street']}, {r['city']}, {ST} {r['zip']}".strip().rstrip(',')
     words = [w for w in re.split(r'\W+', r['name']) if w]
     initials = (words[0][0] + (words[1][0] if len(words) > 1 else '')).upper()
-    rec = {'slug': slug, 'name': r['name'], 'city': r['city'], 'state': ST, 'region': region_of(lat, lng) if ST == 'FL' else '', 'featured': False,
+    rec = {'slug': slug, 'name': r['name'], 'city': r['city'], 'state': ST, 'region': region_of(lat, lng) if ST == 'FL' else region_nearest(ST, lat, lng), 'featured': False,
            'tags': tags, 'caseTypes': case_types, 'lat': lat, 'lng': lng, 'address': addr, 'phone': '+1' + r['phone_raw'], 'rating': 0, 'count': 0,
            'website': 'https://' + r['domain'], 'type': 'mono', 'initials': initials, 'color': '#2b3a4c',
            'mapsUrl': 'https://www.google.com/maps/search/' + re.sub(r'%20', '+', __import__('urllib.parse').parse.quote(f"{r['name']} {r['city']} {STATE_NAMES.get(ST, ST)}")),

@@ -1,0 +1,15 @@
+{
+  "TX": {
+    "name": "Texas",
+    "popular": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "Plano", "El Paso", "Frisco"],
+    "regions": [
+      {"id": "tx-dfw", "label": "Dallas–Fort Worth (Dallas, Fort Worth, Plano, Frisco)", "lat": 32.85, "lng": -97.0},
+      {"id": "tx-houston", "label": "Houston Area (Houston, Sugar Land, The Woodlands)", "lat": 29.75, "lng": -95.45},
+      {"id": "tx-central", "label": "Austin & Central Texas (Austin, Round Rock, Waco)", "lat": 30.4, "lng": -97.7},
+      {"id": "tx-san-antonio", "label": "San Antonio & Hill Country (San Antonio, New Braunfels)", "lat": 29.6, "lng": -98.5},
+      {"id": "tx-south", "label": "South Texas & Gulf Coast (Corpus Christi, McAllen, Brownsville)", "lat": 27.4, "lng": -98.2},
+      {"id": "tx-east", "label": "East Texas (Tyler, Longview, Beaumont)", "lat": 31.8, "lng": -94.6},
+      {"id": "tx-west", "label": "West Texas & Panhandle (El Paso, Lubbock, Amarillo, Midland)", "lat": 32.4, "lng": -102.0}
+    ]
+  }
+}
