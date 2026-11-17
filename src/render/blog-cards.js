@@ -64,7 +64,10 @@ const fmtDate = (d) => {
   const t = new Date(String(d).replace(' ', 'T') + 'Z');
   return Number.isNaN(t.getTime()) ? '' : t.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 };
+// Feed excerpts sometimes end with a picture's file name ("GGM_Medium", "Some_Photo_Name (1)"): those words are dropped before the text is shown.
+const tidy = (s) => String(s || '').replace(/\s*\S*_\S*(?:\s*\(\d+\))?/g, '').replace(/\s{2,}/g, ' ').trim();
 const teaser = (s, max = 170) => {
+  s = tidy(s);
   if (s.length <= max) return s;
   const t = s.slice(0, max);
   return t.slice(0, Math.max(t.lastIndexOf(' '), max - 40)).replace(/[\s,;:.\-]+$/, '') + '...';

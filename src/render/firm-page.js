@@ -294,7 +294,14 @@ function likeAside(nearby) {
 }
 
 // The Message button opens the contact form it scrolls to.
-const CONTACT_JS = "<script>(function(){var b=document.querySelector('[data-open-contact]'),s=document.querySelector('.lead-slim');if(b&&s)b.addEventListener('click',function(){s.classList.add('open');});})();</script>";
+const CONTACT_JS = "<script>(function(){var bs=document.querySelectorAll('[data-open-contact]'),s=document.querySelector('.lead-slim');if(s)for(var i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){s.classList.add('open');});})();</script>";
+
+
+// On a phone a bar stays at the bottom with Call and Request a consultation.
+function stickyBar(f) {
+  const call = f.phone ? `<a class="sk-call" href="tel:${esc(f.phone)}" aria-label="Call ${esc(f.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a>` : '';
+  return `<div class="pf-sticky">${call}<a class="sk-msg" href="#contact" data-open-contact>Request a consultation</a></div>\n  `;
+}
 
 export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null }) {
   const prov = STATES[f.state] || f.state;
@@ -335,10 +342,10 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
   // Directions is on the location card.
   const actions =
     '<div class="li-actions pf-actions">' +
-    `<button class="lw-fbtn pf-btn pf-follow" type="button" data-follow="${esc(f.slug)}">+ Follow</button>` +
-    `<a class="pf-btn" href="#contact" data-open-contact>${IC.msg}<span>Message</span></a>` +
-    '<span class="pf-slot" data-slot="book"></span>' +
+    `<a class="pf-btn pf-primary" href="#contact" data-open-contact>${IC.msg}<span>Request a consultation</span></a>` +
     (f.phone ? `<a class="pf-btn" href="tel:${esc(f.phone)}">${C.ICONS.phone}<span>${esc(showPhone(f.phone))}</span></a>` : '') +
+    '<span class="pf-slot" data-slot="book"></span>' +
+    `<button class="lw-fbtn pf-btn pf-follow" type="button" data-follow="${esc(f.slug)}">+ Follow</button>` +
     '</div>';
 
   const planLine = f.featured
@@ -359,7 +366,8 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `        <h1 class="li-name">${esc(f.name)}${f.featured ? ' ' + C.TICK : ''}</h1>\n        <p class="pf-handle">@${esc(f.slug)}</p>\n        <p class="li-tag">${tagline(f)}</p>\n${chipsHtml(f, verified)}` +
     `        ${meta}\n        ${actions}${planLine ? '\n        ' + planLine : ''}\n      </div>\n    </section>`;
 
-  const aboutHtml = about ? `\n    <div class="article">${esc(about).replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>')}</div>` : '';
+  const aboutParas = about ? about.split(/\n{2,}/).map((t) => t.trim()).filter(Boolean).map((t) => `<p>${esc(t).replace(/\n/g, '<br>')}</p>`).join('') : '';
+  const aboutHtml = about ? `\n    <section class="pf-about" aria-label="About ${esc(f.name)}"><p class="pf-eyebrow">About the firm</p><h2>About ${esc(f.name)}</h2><div class="article">${aboutParas}</div></section>` : '';
   // The Profiles box (the firm's social icons) sits right under the description; a firm without one still has it where the description would be.
   const profilesHtml = profilesBox(f.social, f.name);
   // A picture that does not suit the cover goes under the description, like a bio or blog picture.
@@ -401,13 +409,12 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<meta name="twitter:description" content="${esc(desc)}">\n<meta name="twitter:image" content="${ogImage}">`,
     `<script type="application/ld+json">\n${jsonForHtml(ld)}\n</script>`,
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,
-    C.STYLE + PHOTO_CSS + GLANCE_CSS + OFFICES_CSS + (chipsHtml(f, verified) ? CHIPS_CSS : '') + (verified ? VERIFIED_CSS : '') + (f.block && f.block.image ? BLOCK_CSS : '') + (practiceHtml(f, cards) ? PRACTICE_CSS : '') + '\n<link rel="stylesheet" href="../desktop.css">\n<link rel="stylesheet" href="../site.css">\n</head>',
+    C.STYLE + PHOTO_CSS + GLANCE_CSS + OFFICES_CSS + (chipsHtml(f, verified) ? CHIPS_CSS : '') + (verified ? VERIFIED_CSS : '') + (f.block && f.block.image ? BLOCK_CSS : '') + (practiceHtml(f, cards) ? PRACTICE_CSS : '') + '\n<link rel="stylesheet" href="../desktop.css">\n<link rel="stylesheet" href="../site.css">\n<link rel="stylesheet" href="/profile-v2.css?v=1">\n</head>',
     '<body class="pg-firm pg-msp">\n  ' + C.HEADER,
-    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + aboutHtml + practiceHtml(f, cards) + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + (hoursHtml ? '\n    ' + hoursHtml : '') + (guide ? '\n    ' + guide : '') + '\n\n    ' + socials,
-    articlesHtml ? '\n    ' + articlesHtml : '',
+    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + (articlesHtml ? '\n    ' + articlesHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '') + '\n\n    ' + socials,
     carousel(f, nearby),
     '\n\n    ' + leadScript,
     '\n    ' + CONTACT_JS,
-    '\n   </div>' + likeAside(nearby) + '\n  </div>\n  ' + C.FOOTER,
+    '\n   </div>' + likeAside(nearby) + '\n  </div>\n  ' + stickyBar(f) + C.FOOTER,
   ].join('\n');
 }
