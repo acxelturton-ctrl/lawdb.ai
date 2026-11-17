@@ -104,13 +104,13 @@
     prev: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     next: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
     tick: '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
-    loc: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#142434" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>',
+    loc: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2a2a2a" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>',
     redo: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>',
     pinS: '<svg class="gm-pin" width="14" height="14" viewBox="0 0 24 24" fill="#e2bd6a" aria-hidden="true"><path d="M12 22s-7-6.4-7-12a7 7 0 0 1 14 0c0 5.6-7 12-7 12zm0-9.2a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z"/></svg>',
     pinG: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>',
     sliders: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',
-    plus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142434" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-    minus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142434" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+    plus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a2a2a" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    minus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a2a2a" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
     go: '<svg class="gm-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
   };
 
@@ -122,7 +122,7 @@
   function thumb(f){
     if(f.logoUrl){
       return '<div class="gm-i-thumb mono">' + esc(initials(f.name)) +
-        '<img src="' + esc(f.logoUrl) + '" alt="' + esc(f.name) + ' logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" style="background:' + (f.dark ? '#142434' : '#fff') + '"></div>';
+        '<img src="' + esc(f.logoUrl) + '" alt="' + esc(f.name) + ' logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" style="background:' + (f.dark ? '#2a2a2a' : '#fff') + '"></div>';
     }
     if(f.type === 'logo' && f.src) return '<div class="gm-i-thumb"><img src="' + esc(ROOT + f.src) + '" alt="' + esc(f.name) + ' logo" loading="lazy"></div>';
     return '<div class="gm-i-thumb mono">' + esc(initials(f.name)) + '</div>';
@@ -525,7 +525,7 @@
     return FONTS;
   }
   function textField(feat){
-    var F2 = pickFonts(), nm = { 'font-scale': 1, 'text-color': feat ? '#2b3a4c' : '#142434' }, sb = { 'font-scale': 0.88, 'text-color': '#586170' };
+    var F2 = pickFonts(), nm = { 'font-scale': 1, 'text-color': feat ? '#3c4043' : '#2a2a2a' }, sb = { 'font-scale': 0.88, 'text-color': '#586170' };
     if(F2.bold) nm['text-font'] = ['literal', F2.bold];
     if(F2.reg) sb['text-font'] = ['literal', F2.reg];
     return ['format', ['get', 'name'], nm, '\n', {}, ['get', 'sub'], sb];
@@ -537,7 +537,7 @@
     };
     var font = F2.reg || F2.any; if(font) lay['text-font'] = font;
     var def = { id: id, type: 'symbol', source: source, layout: lay,
-      paint: { 'text-color': '#142434', 'text-halo-color': 'rgba(245,243,236,0.95)', 'text-halo-width': 1.8,
+      paint: { 'text-color': '#2a2a2a', 'text-halo-color': 'rgba(255,255,255,0.95)', 'text-halo-width': 1.8,
         'text-opacity': feat ? 1 : ['interpolate', ['linear'], ['zoom'], 10.5, 0, 11.5, 1] } };
     if(filter) def.filter = filter;
     try { map.addLayer(def); } catch(e){}
@@ -550,7 +550,7 @@
     map.addSource('firms-feat', { type: 'geojson', data: empty });
     map.addSource('firm-sel', { type: 'geojson', data: empty });
     map.addSource('me', { type: 'geojson', data: empty });
-    var IM = { 'gm-pin': ['#2b3a4c', '#ffffff', 1, false], 'gm-pin-gold': ['#c9a050', '#ffffff', 1.12, true], 'gm-pin-sel': ['#142434', '#ffffff', 1.35, false, '#c9a050'], 'gm-pin-sel-gold': ['#c9a050', '#142434', 1.5, true] };
+    var IM = { 'gm-pin': ['#b8892f', '#ffffff', 1, false], 'gm-pin-gold': ['#d9b35a', '#ffffff', 1.12, true], 'gm-pin-sel': ['#8a6a1f', '#ffffff', 1.35, false, '#f2d98f'], 'gm-pin-sel-gold': ['#c9a050', '#8a6a1f', 1.5, true] };
     Object.keys(IM).forEach(function(k){ if(!map.hasImage(k)) map.addImage(k, pinImage(IM[k][0], IM[k][1], IM[k][2], IM[k][3], IM[k][4]), { pixelRatio: 2 }); });
     var font = pickFonts(), tf = font.bold || font.any;
     var size = ['interpolate', ['linear'], ['zoom'], 8, 0.55, 13, 0.8];
@@ -562,7 +562,7 @@
       paint: { 'circle-color': '#e2bd6a', 'circle-radius': ['step', ['get', 'point_count'], 17, 5, 21, 15, 26], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } });
     var cl = { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 13, 'text-allow-overlap': true };
     if(tf) cl['text-font'] = tf;
-    map.addLayer({ id: 'firm-cluster-count', type: 'symbol', source: 'firms', filter: ['has', 'point_count'], layout: cl, paint: { 'text-color': '#142434' } });
+    map.addLayer({ id: 'firm-cluster-count', type: 'symbol', source: 'firms', filter: ['has', 'point_count'], layout: cl, paint: { 'text-color': '#2a2a2a' } });
 
     map.addLayer({ id: 'firm-pin', type: 'symbol', source: 'firms', filter: notCluster,
       layout: { 'icon-image': 'gm-pin', 'icon-size': size, 'icon-anchor': 'bottom', 'icon-allow-overlap': true, 'symbol-sort-key': ['get', 'prio'] } });
@@ -608,12 +608,13 @@
   /* ------------------------------------------------------------ map creation */
   ensureMap = function(){
     if(mapReady) return mapReady;
-    mapReady = new Promise(function(resolve, reject){
+    var styleP = window.LawdbMapStyle ? window.LawdbMapStyle.load('bright') : Promise.resolve(null);
+    mapReady = styleP.then(function(styleObj){ return new Promise(function(resolve, reject){
       var settled = false;
       var timer = setTimeout(function(){ if(!settled){ settled = true; reject(new Error('Map load timed out')); } }, 12000);
       try {
         map = new maplibregl.Map({
-          container: 'map', style: 'https://tiles.openfreemap.org/styles/bright', center: [-82.5, 44.5], zoom: 5.4,
+          container: 'map', style: styleObj || 'https://tiles.openfreemap.org/styles/bright', center: [-91, 31.5], zoom: 4.6,
           attributionControl: false, dragRotate: false, touchPitch: false, pitchWithRotate: false, maxZoom: 18.5
         });
         map.touchZoomRotate.disableRotation();
@@ -629,7 +630,7 @@
           if(msg && /AJAXError|cloned|style/i.test(msg) && !settled){ settled = true; clearTimeout(timer); reject(e.error); }
         });
       } catch(err){ if(!settled){ settled = true; clearTimeout(timer); reject(err); } }
-    }).catch(function(err){ console.error('Map failed to initialize:', err); showMapError(); throw err; });
+    }); }).catch(function(err){ console.error('Map failed to initialize:', err); showMapError(); throw err; });
     return mapReady;
   };
 

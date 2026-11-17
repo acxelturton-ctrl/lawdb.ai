@@ -1032,7 +1032,7 @@ function ensureMap(){
       map = new maplibregl.Map({
         container: 'map',
         style: 'https://tiles.openfreemap.org/styles/liberty',
-        center: [-82.5, 44.5], zoom: 5.4,
+        center: [-91, 31.5], zoom: 4.6,
         attributionControl: false, dragRotate: false, touchPitch: false
       });
       map.addControl(new maplibregl.NavigationControl({ showCompass:false }), 'top-right');
@@ -1544,7 +1544,7 @@ async function renderMap(list){
   map.getSource('firms').setData(firmsToGeoJSON(mapDataList));
 
   if(!mapDataList.length){
-    map.jumpTo({ center:[-82.5,44.5], zoom:5.4 });
+    map.jumpTo({ center:[-91,31.5], zoom:4.6 });
     return;
   }
   if(mapDataList.length === 1){
@@ -1569,7 +1569,8 @@ async function renderMap(list){
 }
 </script>
 <!-- LAWDB-MAP-START -->
-<script src="lawdb-map.js?v=6" defer></script>
+<script src="map-style.js?v=1" defer></script>
+<script src="lawdb-map.js?v=8" defer></script>
 <!-- LAWDB-MAP-END -->
 <script src="site.js" defer></script>
 <script src="/follow.js" defer></script>
