@@ -32,6 +32,10 @@ export async function sendMail(env, { to, subject, text, html }) {
   }
 }
 
+// Can this server send mail at all? (The Brevo key is a Cloudflare secret; local development echoes links instead.) The sign-in page uses it to say so
+// honestly instead of promising an email that cannot be sent.
+export const emailConfigured = (env) => env.DEV_ECHO_LINK === '1' || !!(env.BREVO_API_KEY || '').trim();
+
 // Fire-and-forget: a mail problem is written to the audit log (Activity tab) and never blocks the action.
 export const mailInBackground = (env, exec, message) =>
   exec(
@@ -63,9 +67,17 @@ export function inviteEmail(link, { firmName, days }) {
   };
 }
 
-export function newClaimEmail(origin, { email, contactName, jobTitle, firmName, city, isNew }) {
+export function newClaimEmail(origin, { email, contactName, jobTitle, firmName, city, isNew, auto }) {
   const link = `${origin}/admin/#approvals`;
   const who = `${contactName}${jobTitle ? ` (${jobTitle})` : ''}, ${email}`;
+  if (auto) {
+    // No action needed: the person's work email is on the firm's own website, so the claim was approved at once. This is the paper trail.
+    return {
+      subject: `Claimed automatically: ${firmName}`,
+      text: `${who} now manages ${firmName}, ${city}. Their email is on the firm's own website domain, so no approval was needed.\n\nIf this looks wrong, you can remove them here: ${link}`,
+      html: `<p><b>${esc(contactName)}</b>${jobTitle ? ` (${esc(jobTitle)})` : ''}, ${esc(email)} now manages ${esc(firmName)}, ${esc(city)}. Their email is on the firm's own website domain, so no approval was needed.</p><p>If this looks wrong, you can remove them in LawDB admin.</p>${button(link, 'Open LawDB admin')}`,
+    };
+  }
   const what = isNew ? `wants to list a new firm: ${firmName}, ${city}` : `wants to manage: ${firmName}, ${city}`;
   return {
     subject: `Approval needed: ${firmName}`,
@@ -166,7 +178,7 @@ const FEATURED_GETS = [
   'Listed first among nearby firms on other firms\' profiles and story pages',
   'A page for every office: each office gets its own page, in its own city and on the map, and the one plan covers them all',
   'An analytics dashboard: page views, visitors, which buttons were clicked, where visitors came from, their devices and regions, with trends and a spreadsheet export',
-  'A members-only Professional Network to find and connect with law firms in other cities and states',
+  'LawDB Connect, a members-only network to find and connect with law firms in other cities and states',
   'An inquiries dashboard with filters, private notes, one-tap reply and a spreadsheet export',
   'A Featured badge on your stories in LawDB News, a LawDB page search engines can find for each article, and higher placement in the home page news strip',
 ];
@@ -282,14 +294,14 @@ export function paymentFailedEmail(origin, { firmName }) {
   };
 }
 
-// ---------------------------------------------------------------- Professional Network
+// ---------------------------------------------------------------- LawDB Connect
 export function networkRequestEmail(origin, { toName, fromName, fromCity, fromState, person, message }) {
   const link = `${origin}/account/#pro`;
   const who = person ? `${person} at ${fromName}` : fromName;
   return {
-    subject: `${fromName} would like to connect on the LawDB Professional Network`,
-    text: `${who} (${fromCity}, ${fromState}) asked to connect with ${toName} on the LawDB Professional Network.${message ? `\n\nTheir note: "${message}"` : ''}\n\nAccepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.\n\nAnswer the request: ${link}`,
-    html: `<p><b>${esc(who)}</b> (${esc(fromCity)}, ${esc(fromState)}) asked to connect with <b>${esc(toName)}</b> on the LawDB Professional Network.</p>${message ? `<p style="border-left:3px solid #e2bd6a;padding-left:12px">${esc(message)}</p>` : ''}${button(link, 'Answer the request')}${small('Accepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.')}`,
+    subject: `${fromName} would like to connect on LawDB Connect`,
+    text: `${who} (${fromCity}, ${fromState}) asked to connect with ${toName} on LawDB Connect.${message ? `\n\nTheir note: "${message}"` : ''}\n\nAccepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.\n\nAnswer the request: ${link}`,
+    html: `<p><b>${esc(who)}</b> (${esc(fromCity)}, ${esc(fromState)}) asked to connect with <b>${esc(toName)}</b> on LawDB Connect.</p>${message ? `<p style="border-left:3px solid #e2bd6a;padding-left:12px">${esc(message)}</p>` : ''}${button(link, 'Answer the request')}${small('Accepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.')}`,
   };
 }
 export function networkAcceptedEmail(origin, { askerName, otherName }) {
@@ -303,7 +315,7 @@ export function networkAcceptedEmail(origin, { askerName, otherName }) {
 export function networkReportEmail(origin, { reporterName, reportedName, reportedSlug, reason, detail }) {
   const link = `${origin}/admin/#network`;
   return {
-    subject: `Professional Network report: ${reportedName}`,
+    subject: `LawDB Connect report: ${reportedName}`,
     text: `${reporterName} reported ${reportedName} (${reportedSlug}) for: ${reason}.${detail ? `\n\n"${detail}"` : ''}\n\nReview: ${link}`,
     html: `<p><b>${esc(reporterName)}</b> reported <b>${esc(reportedName)}</b> (${esc(reportedSlug)}) for: ${esc(reason)}.</p>${detail ? `<p style="border-left:3px solid #e2bd6a;padding-left:12px">${esc(detail)}</p>` : ''}${button(link, 'Review the report')}`,
   };

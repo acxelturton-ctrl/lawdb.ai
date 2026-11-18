@@ -29,51 +29,86 @@ async function renderLogin() {
   const q = new URLSearchParams(location.search).get('signin');
   if (SIGNIN_MESSAGES[q]) msg.replaceChildren(note('msg-err', SIGNIN_MESSAGES[q]));
   let providers = {};
-  try { providers = await api('GET', '/api/auth/providers'); } catch { /* the email link always works */ }
-  const email = h('input', { type: 'email', id: 'email', required: true, autocomplete: 'email', placeholder: 'you@example.com' });
-  const btn = h('button', { class: 'auth-continue', type: 'submit' }, 'Continue');
-  const form = h('form', {
+  try { providers = await api('GET', '/api/auth/providers'); } catch { /* treated as "not set up" below */ }
+  const join = new URLSearchParams(location.search).get('join') === '1';
+  const social = ['google', 'linkedin'].filter((k) => providers[k]).map((k) => h('a', { class: 'provider', href: `/api/auth/${k}/start` }, icon(k), k === 'google' ? 'Continue with Google' : 'Continue with LinkedIn'));
+
+  // The email link. It is offered only when the server can really send it, so nobody is told to "check their email" for a message that will never come.
+  const email = h('input', { type: 'email', id: 'email', required: true, autocomplete: 'email', placeholder: 'you@yourfirm.com' });
+  const btn = h('button', { class: 'auth-continue', type: 'submit' }, 'Email me a sign-in link');
+  let form;
+  const showSent = (address, res) => {
+    const again = h('button', { type: 'button', class: 'auth-again', disabled: true }, 'Send it again');
+    let left = 30;
+    const tick = setInterval(() => {
+      left -= 1;
+      if (!again.isConnected) return clearInterval(tick);
+      if (left <= 0) { clearInterval(tick); again.disabled = false; again.textContent = 'Send it again'; } else again.textContent = `Send it again in ${left}s`;
+    }, 1000);
+    again.textContent = `Send it again in ${left}s`;
+    again.addEventListener('click', async () => {
+      again.disabled = true;
+      try { await api('POST', '/api/auth/request-link', { email: address, signup: true }); again.textContent = 'Sent again'; } catch (err) { msg.replaceChildren(note('msg-err', err.message)); again.disabled = false; }
+    });
+    form.replaceChildren(
+      h('h2', { class: 'auth-sent-h' }, 'Check your email'),
+      h('p', { class: 'muted' }, 'We sent a one-time link to ', h('b', null, address), '. Open it on this device to finish. It works once and expires in 15 minutes.'),
+      h('p', { class: 'muted small' }, 'Nothing there? Look in your spam or promotions folder.'),
+      res && res.dev_link ? h('p', null, h('a', { href: res.dev_link }, 'Open the sign-in link (local development only)')) : null,
+      h('div', { class: 'auth-sent-row' }, again, h('a', { href: location.pathname + location.search }, 'Use a different email')));
+  };
+  form = h('form', {
     class: 'auth-form',
     onsubmit: async (e) => {
       e.preventDefault();
       btn.disabled = true;
       msg.replaceChildren();
       try {
-        await api('POST', '/api/auth/request-link', { email: email.value, signup: true });
-        const sent = email.value;
-        form.replaceChildren(
-          h('h2', { class: 'auth-sent-h' }, 'Check your email'),
-          h('p', { class: 'muted' }, 'We sent a one-time sign-in link to ', h('b', null, sent), '. It works once and expires in 15 minutes.'),
-          h('p', { class: 'muted small' }, h('a', { href: '/account/' }, 'Use a different email')));
+        const res = await api('POST', '/api/auth/request-link', { email: email.value, signup: true });
+        showSent(email.value.trim(), res);
       } catch (err) {
         msg.replaceChildren(note('msg-err', err.message));
         btn.disabled = false;
       }
     },
-  }, h('label', { for: 'email' }, 'Email address'), email, btn);
-  const OFFERED = ['google', 'linkedin'];
-  const social = OFFERED.filter((k) => providers[k]).map((k) => h('a', { class: 'provider', href: `/api/auth/${k}/start` }, icon(k), k === 'google' ? 'Continue with Google' : 'Continue with LinkedIn'));
-  // Members sign in with Google or LinkedIn only. The email box is the fallback when neither is set up, so nobody is ever locked out (admins use the email link on /admin/).
-  const join = new URLSearchParams(location.search).get('join') === '1';
-  const chip = ([label, href]) => h('a', { class: 'auth-chip', href }, label);
-  const band = (cls, title, text, items) => h('section', { class: `auth-band ${cls}` }, h('div', { class: 'auth-band-in' },
-    h('div', { class: 'auth-band-text' }, h('h2', null, title), h('p', null, text)),
-    h('div', { class: 'auth-chips' }, ...items.map(chip))));
-  const AREAS = [['Business', '/business-lawyers'], ['Criminal defense', '/criminal-defense-lawyers'], ['Employment', '/employment-lawyers'], ['Family', '/family-lawyers'], ['Immigration', '/immigration-lawyers'], ['Litigation', '/litigation-lawyers'], ['Personal injury', '/personal-injury-lawyers'], ['Real estate', '/real-estate-lawyers'], ['Traffic tickets', '/traffic-ticket-lawyers'], ['Wills and estates', '/wills-estate-lawyers']];
-  const STATES = [['Florida', '/florida/']];
-  // Two firm cards and a map pin, drawn for LawDB (shown as an image so it needs no extra files).
-  const ART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440"><circle cx="260" cy="225" r="205" fill="#f4ecd8"/><rect x="110" y="95" width="250" height="150" rx="14" fill="#fff" stroke="#ece6d3"/><circle cx="148" cy="136" r="18" fill="#2a2a2a"/><rect x="178" y="124" width="120" height="11" rx="5" fill="#2a2a2a"/><rect x="178" y="144" width="80" height="8" rx="4" fill="#c9a050"/><rect x="132" y="176" width="206" height="8" rx="4" fill="#ece6d3"/><rect x="132" y="194" width="170" height="8" rx="4" fill="#ece6d3"/><rect x="132" y="214" width="84" height="20" rx="10" fill="#c9a050"/><rect x="200" y="215" width="260" height="150" rx="14" fill="#fff" stroke="#ece6d3"/><circle cx="238" cy="256" r="18" fill="#c9a050"/><rect x="268" y="244" width="130" height="11" rx="5" fill="#2a2a2a"/><rect x="268" y="264" width="90" height="8" rx="4" fill="#c9a050"/><rect x="222" y="296" width="216" height="8" rx="4" fill="#ece6d3"/><rect x="222" y="314" width="150" height="8" rx="4" fill="#ece6d3"/><rect x="222" y="334" width="84" height="20" rx="10" fill="#2a2a2a"/><circle cx="108" cy="318" r="34" fill="#2a2a2a"/><polygon points="86,340 130,340 108,384" fill="#2a2a2a"/><circle cx="108" cy="318" r="13" fill="#fffdf8"/><g fill="#c9a050"><circle cx="410" cy="120" r="6"/><circle cx="430" cy="140" r="4"/><circle cx="395" cy="150" r="3"/></g></svg>';
+  }, h('label', { for: 'email' }, join ? 'Your email address' : 'Email address'), email, btn,
+  h('p', { class: 'auth-hint' }, join ? 'Use your firm email (the one on your website) and your firm is approved on the spot.' : 'No password. We email you a link that signs you in.'));
+
+  const off = h('div', { class: 'auth-off' }, h('b', null, 'Sign-up is opening very soon.'),
+    h('p', null, 'We are finishing setting up sign-in. Write to ', h('a', { href: 'mailto:info@lawdb.ai' }, 'info@lawdb.ai'), ' and we will add you right away.'));
+  const options = [...social, social.length && providers.email ? h('div', { class: 'auth-or' }, h('span', null, 'or')) : null, providers.email ? form : null];
+  if (!social.length && !providers.email) options.push(off);
+
+  const STEPS = [
+    ['Create your account', 'With Google, LinkedIn or an email link. No password to remember.'],
+    ['Claim or add your firm', 'Sign up with your firm email and you are approved at once. Any other email is checked by us.'],
+    ['Start your free month', 'Featured is free for 30 days, with no card needed.'],
+    ['Join LawDB Connect', 'The members-only network where firms find firms in other cities and states, for referrals and co-counsel.'],
+  ];
+  const INSIDE = [
+    ['Your firm, your way', 'Edit your profile, photos, hours and booking link.'],
+    ['LawDB Connect', 'Find and message firms in other cities and states.'],
+    ['Analytics and inquiries', 'See who views, calls and writes to your firm.'],
+    ['Follow and save', 'Follow firms and save the stories you like.'],
+  ];
+  const card = h('aside', { class: 'auth-card', 'aria-label': join ? 'How joining works' : 'Inside your account' },
+    h('p', { class: 'auth-card-k' }, join ? 'How joining works' : 'Inside your account'),
+    h('ol', { class: 'auth-steps' }, (join ? STEPS : INSIDE).map(([t, d], i) => h('li', null, h('span', { class: 'auth-n', 'aria-hidden': 'true' }, join ? String(i + 1) : '\u2713'), h('div', null, h('b', null, t), h('span', null, d))))),
+    h('p', { class: 'auth-card-foot' }, 'Looking for a lawyer instead? You do not need an account. ', h('a', { href: '/find-lawyers' }, 'Find a lawyer')));
+
   document.body.classList.add('lw-auth');
   mount(h('div', { class: 'auth-wrap' },
     h('section', { class: 'auth-hero' },
       h('div', { class: 'auth-hero-copy' },
-        h('h1', null, join ? 'Create your free LawDB account' : 'Welcome to the LawDB legal directory'),
-        h('div', { class: 'auth-btns' }, ...social, social.length ? null : form, msg),
-        h('p', { class: 'auth-terms' }, 'By continuing, you agree to LawDB’s ', h('a', { href: '/terms' }, 'Terms'), ' and ', h('a', { href: '/privacy-policy' }, 'Privacy Policy'), '. There is no password to remember.'),
-        h('p', { class: 'auth-new' }, join ? 'Already a member? ' : 'New to LawDB? ', h('a', { href: join ? '/account/' : '/account/?join=1' }, join ? 'Sign in' : 'Join now'))),
-      h('div', { class: 'auth-hero-art' }, h('img', { src: 'data:image/svg+xml;utf8,' + encodeURIComponent(ART), alt: 'Two law firm profile cards and a map pin', width: 520, height: 440 }))),
-    band('areas', 'Explore by kind of case', 'Real, reviewed law firms near you, sorted by the kind of case you have.', AREAS),
-    band('states', 'Find a firm in your state', 'Five states are live now, with more coming soon.', STATES)));
+        h('p', { class: 'auth-eyebrow' }, join ? 'Free to join' : 'Your LawDB account'),
+        h('h1', null, join ? 'Create your free LawDB account' : 'Welcome back'),
+        h('p', { class: 'auth-sub' }, join
+          ? 'For law firms and the people who follow them. Claim your firm, build your profile and join LawDB Connect.'
+          : 'Sign in to manage your firm, LawDB Connect and the firms you follow.'),
+        h('div', { class: 'auth-btns' }, ...options.filter(Boolean), msg),
+        h('p', { class: 'auth-terms' }, 'By continuing, you agree to LawDB\u2019s ', h('a', { href: '/terms' }, 'Terms'), ' and ', h('a', { href: '/privacy-policy' }, 'Privacy Policy'), '.'),
+        h('p', { class: 'auth-new' }, join ? 'Already a member? ' : 'New to LawDB? ', h('a', { href: join ? '/account/' : '/account/?join=1' }, join ? 'Sign in' : 'Join free'))),
+      h('div', { class: 'auth-hero-art' }, card))));
 }
 
 // ---------------------------------------------------------------- shell
@@ -90,7 +125,7 @@ function shell(active, content, { wide = false } = {}) {
     ['firms', mine.length > 1 ? 'My firms' : mine.length ? 'My firm' : 'Your firm'],
     ['stats', 'Analytics', !unlocked],
     ['leads', 'Inquiries', !unlocked],
-    ['pro', 'Network', !unlocked],
+    ['pro', 'Connect', !unlocked],
   ];
   const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'Following'], ['saved', 'Saved']];
   const moreActive = more.some(([id]) => id === active);
@@ -116,11 +151,22 @@ function shell(active, content, { wide = false } = {}) {
     h('main', { class: 'page' + (wide ? '' : ' narrow') }, content));
 }
 
+let flash = null; // one-time message shown on the next My firm page (for example right after a claim is approved at once)
 const approved = () => memberships.filter((m) => m.status === 'approved');
 document.addEventListener('click', (e) => { const d = document.querySelector('.mb-more[open]'); if (d && !d.contains(e.target)) d.removeAttribute('open'); });
 const where = (m) => `${m.city}, ${STATES[m.state] || m.state}`;
 
 // ---------------------------------------------------------------- my firms
+// The way into LawDB Connect: what is done, and the one next step.
+function connectCard(m) {
+  const row = (t, done) => h('li', { class: done ? 'done' : '' }, h('span', { class: 'cc-tick', 'aria-hidden': 'true' }, done ? '\u2713' : ''), t);
+  return h('div', { class: 'cc-card' },
+    h('div', { class: 'cc-head' }, h('b', null, 'LawDB Connect'), h('span', { class: 'cc-tag' }, m.featured ? 'Open to you' : 'Part of Featured')),
+    h('p', { class: 'muted' }, 'The members-only network where firms find firms in other cities and states, for referrals and co-counsel.'),
+    h('ul', { class: 'cc-steps' }, row('Account created', true), row('Firm claimed', true), row(m.trialEnds ? 'Free month started' : 'Featured (free for your first 30 days, no card)', !!m.featured), row('Your LawDB Connect profile switched on', false)),
+    h('a', { href: `#pro/${m.slug}` }, h('button', { class: 'primary', type: 'button' }, m.featured ? 'Set up my LawDB Connect profile' : 'Start my free month')));
+}
+
 function viewFirms() {
   if (!memberships.length) {
     const row = (t, lock) => h('li', { class: lock ? 'locked' : '' }, lock ? lockIcon(13) : h('span', { class: 'tick', 'aria-hidden': 'true' }, '\u2713'), t);
@@ -134,13 +180,16 @@ function viewFirms() {
           h('div', null, h('b', null, 'Featured, with a free first month'), h('ul', { class: 'fx-list' }, ['Your logo, cover and photos', 'A booking link and the Book a call button', 'Inquiries to a second email address', 'The analytics dashboard: views, clicks, where visitors come from', 'The inquiries inbox, with notes and export', 'Placed above Basic firms in your city'].map((t) => row(t, true))))),
         h('p', { class: 'muted' }, 'Curious? Open ', h('a', { href: '#stats' }, 'Analytics'), ' to see the dashboard with sample numbers.')));
   }
-  return h('div', null, h('h1', null, 'My firms'), memberships.map((m) => {
+  const msgNow = flash ? note('msg-ok', flash) : null;
+  flash = null;
+  return h('div', null, h('h1', null, 'My firms'), msgNow, memberships.map((m) => {
     const state = m.status === 'approved' ? null
       : m.status === 'pending' ? note('msg-ok', 'Waiting for approval. We will email you as soon as it is done.')
       : note('msg-err', 'This request was declined. If that is a mistake, write to info@lawdb.ai.');
     return h('div', { class: 'card' },
       h('div', { class: 'row spread' }, h('b', null, m.name), h('span', { class: 'badge' + (m.status === 'approved' ? (m.featured ? ' featured' : '') : ' new') }, m.status === 'approved' ? (m.trialEnds ? 'Featured, free month' : m.featured ? 'Featured' : 'Basic') : m.status === 'pending' ? 'Pending' : 'Declined')),
       h('p', { class: 'muted' }, where(m)), state,
+      m.status === 'approved' && m.firmStatus === 'live' && connectCard(m),
       m.status === 'approved' && m.strength && strengthLine(m),
       m.status === 'approved' && !m.featured && m.firmStatus === 'live' && h('p', { class: 'muted fx-lockline' }, lockIcon(13), ' Locked on Basic: a booking link, pictures, a second inquiry email, the analytics dashboard and the inquiries inbox.'),
       m.status === 'approved' && h('div', { class: 'row' },
@@ -194,12 +243,13 @@ function viewFind(slug) {
       e.preventDefault();
       go.disabled = true;
       try {
-        await api('POST', '/api/account/claims', { slug: firm.slug, ...c.get() });
+        const r = await api('POST', '/api/account/claims', { slug: firm.slug, ...c.get() });
         await loadMe();
+        flash = r.status === 'approved' ? `You now manage ${firm.name}. Welcome to LawDB!` : null;
         location.hash = '#firms';
       } catch (err) { out.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
     } },
-      h('h2', null, firm.name), h('p', { class: 'muted' }, `${firm.city}, ${firm.state}. We will email you when your request is approved. Signed in with your work email (the same address as the firm's website)? That helps us approve you faster.`),
+      h('h2', null, firm.name), h('p', { class: 'muted' }, `${firm.city}, ${firm.state}. Signed in with your firm email (the same domain as the firm's website)? You are approved at once. With any other email we check the request and email you when it is approved.`),
       c.el, h('div', { class: 'row' }, go, h('button', { type: 'button', onclick: () => panel.replaceChildren() }, 'Cancel')), out));
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

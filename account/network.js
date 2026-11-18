@@ -1,4 +1,4 @@
-// The Professional Network in the firm dashboard: Overview, Find lawyers, Connections, My profile. Featured firms (paid or the free month) use it;
+// LawDB Connect in the firm dashboard: Overview, Find lawyers, Connections, My profile. Featured firms (paid or the free month) use it;
 // a Basic firm sees a preview made of clearly marked sample firms. All text from the server is inserted as text nodes, never as HTML.
 import { h, api, note, STATES, CASE_LABELS, lockIcon } from '/admin/ui.js';
 import { SAMPLE_FIRMS, SAMPLE_TILES } from '/account/network-sample.js';
@@ -55,7 +55,7 @@ function preview({ data, slug, onStart }) {
   if (plan.upgradeUrl) cta.push(h('a', { href: plan.upgradeUrl }, h('button', { class: plan.trialAvailable ? '' : 'primary', type: 'button' }, `Subscribe, ${plan.price}`)));
   if (!cta.length) cta.push(h('p', { class: 'muted' }, plan.trial && plan.trial.status !== 'active' ? 'Your free month has ended. Subscribe from the Analytics tab to keep Featured.' : 'Featured can be started once your listing is live.'));
   return h('div', { class: 'pn' },
-    h('h1', null, 'Professional Network'),
+    h('h1', null, 'LawDB Connect'),
     h('div', { class: 'card pn-lock' },
       h('div', { class: 'row spread' }, h('h2', null, 'Meet and connect with other law firms'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
       h('p', null, 'A members-only directory where Featured firms find lawyers in other cities and states for referrals, co-counsel and local representation, and connect with them. Included in Featured, ', h('b', null, plan.price), ', with a free first month.'),
@@ -71,15 +71,15 @@ function preview({ data, slug, onStart }) {
 // ---------------------------------------------------------------- the live view
 export async function viewPro({ mine, slug, tab = 'overview', onPlanChange }) {
   if (!mine.length) {
-    return h('div', { class: 'pn' }, h('h1', null, 'Professional Network'), h('div', { class: 'card pn-lock' },
+    return h('div', { class: 'pn' }, h('h1', null, 'LawDB Connect'), h('div', { class: 'card pn-lock' },
       h('div', { class: 'row spread' }, h('h2', null, 'Meet and connect with other law firms'), h('span', { class: 'ed-pill big' }, lockIcon(), 'Featured')),
-      h('p', null, 'The Professional Network is where Featured firms find lawyers in other places for referrals and co-counsel. Claim your firm to get started. It is free for your first month.'),
+      h('p', null, 'LawDB Connect is where Featured firms find lawyers in other places for referrals and co-counsel. Claim your firm to get started. It is free for your first month.'),
       h('a', { href: '#find' }, h('button', { class: 'primary', type: 'button' }, 'Find or add my firm'))),
       h('div', { class: 'pn-sample' }, h('div', { class: 'row spread' }, h('h2', null, 'What it looks like'), h('span', { class: 'pn-badge' }, 'Sample data, not real firms')), h('div', { class: 'pn-grid' }, SAMPLE_FIRMS.slice(0, 2).map((f) => firmCard(f)))));
   }
   if (!slug) {
     if (mine.length === 1) { location.replace(`#pro/${mine[0].slug}`); return h('p', { class: 'muted' }, 'Loading…'); }
-    return h('div', { class: 'pn' }, h('h1', null, 'Professional Network'), h('p', { class: 'muted' }, 'Choose a firm.'), mine.map((m) => h('a', { class: 'firm-row', href: `#pro/${m.slug}` }, h('span', null, m.name, h('small', null, `${m.city}, ${STATES[m.state] || m.state}`)), h('span', { class: 'badge' + (m.featured ? ' featured' : '') }, m.featured ? 'Featured' : 'Basic'))));
+    return h('div', { class: 'pn' }, h('h1', null, 'LawDB Connect'), h('p', { class: 'muted' }, 'Choose a firm.'), mine.map((m) => h('a', { class: 'firm-row', href: `#pro/${m.slug}` }, h('span', null, m.name, h('small', null, `${m.city}, ${STATES[m.state] || m.state}`)), h('span', { class: 'badge' + (m.featured ? ' featured' : '') }, m.featured ? 'Featured' : 'Basic'))));
   }
   if (!mine.some((m) => m.slug === slug)) return note('msg-err', 'You do not manage this firm.');
   const base = `/api/account/firms/${encodeURIComponent(slug)}`;
@@ -97,9 +97,9 @@ export async function viewPro({ mine, slug, tab = 'overview', onPlanChange }) {
     if (data.locked) return root.replaceChildren(preview({ data, slug, onStart: startTrial }));
     const incoming = data.incoming.length;
     root.replaceChildren(...[
-      h('div', { class: 'row spread pn-head' }, h('h1', null, 'Professional Network'), mine.length > 1 ? h('a', { href: '#pro' }, '← All my firms') : null),
+      h('div', { class: 'row spread pn-head' }, h('h1', null, 'LawDB Connect'), mine.length > 1 ? h('a', { href: '#pro' }, '← All my firms') : null),
       flash ? note('msg-ok', flash) : null,
-      h('nav', { class: 'pn-tabs', 'aria-label': 'Professional Network sections' }, TABS.map(([id, label]) => h('button', { type: 'button', 'aria-current': id === current ? 'page' : false, onclick: () => go(id) }, label, id === 'connections' && incoming ? h('span', { class: 'lx-count', 'aria-label': `${incoming} waiting` }, incoming) : null))),
+      h('nav', { class: 'pn-tabs', 'aria-label': 'LawDB Connect sections' }, TABS.map(([id, label]) => h('button', { type: 'button', 'aria-current': id === current ? 'page' : false, onclick: () => go(id) }, label, id === 'connections' && incoming ? h('span', { class: 'lx-count', 'aria-label': `${incoming} waiting` }, incoming) : null))),
       current === 'find' ? findPanel() : current === 'connections' ? connectionsPanel() : current === 'profile' ? profilePanel() : overviewPanel()].filter(Boolean));
   }
   function go(id) { current = id; try { history.replaceState(null, '', `#pro/${slug}/${id}`); } catch (e) {} draw(); window.scrollTo({ top: 0 }); }
@@ -270,7 +270,7 @@ export async function viewPro({ mine, slug, tab = 'overview', onPlanChange }) {
     const out = h('div');
     const save = h('button', { class: 'primary', type: 'submit' }, 'Save');
     form.append(...[
-      p.suspended ? note('msg-err', 'This firm was removed from the Professional Network. Please contact LawDB.') : null,
+      p.suspended ? note('msg-err', 'This firm was removed from LawDB Connect. Please contact LawDB.') : null,
       !p.agreed ? h('div', { class: 'pn-rules' }, h('h2', null, 'The network rules'), h('ul', null, data.rules.map((r) => h('li', null, r))), h('label', { class: 'pn-chk' }, agree, 'I have read and agree to these rules.')) : h('p', { class: 'muted' }, `You accepted the network rules on ${date((p.agreedAt || '').slice(0, 10))}.`),
       h('h2', null, 'Listing'), h('label', { class: 'pn-chk' }, vis, 'List my firm in the members-only directory. Only Featured firms that have done this can see and be found by each other.'),
       h('h2', null, 'Accepting referrals?'), h('p', { class: 'muted' }, 'Shown to other members with the date you set it. If you leave it unset, nothing is shown.'), h('div', { class: 'row pn-radio' }, acc('null', 'Not set'), acc('true', 'Yes, accepting'), acc('false', 'Not right now')),

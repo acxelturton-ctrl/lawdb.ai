@@ -1,4 +1,4 @@
-// Tests for the Professional Network (src/lib/network.js), run on a real in-memory SQLite database (the engine D1 uses) with the real migrations.
+// Tests for LawDB Connect (src/lib/network.js), run on a real in-memory SQLite database (the engine D1 uses) with the real migrations.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
@@ -204,7 +204,7 @@ await net.decideConnection(env, U(1), 'alpha-miami', (await net.overview(env, 'a
 // accepting needs both firms to still be listed
 const x1 = await net.requestConnection(env, U(1), 'bulk-03', 'bulk-04', '');
 raw.prepare("UPDATE network_profiles SET visible = 0 WHERE firm_slug = 'bulk-03'").run();
-await rejects(net.decideConnection(env, U(1), 'bulk-04', x1, 'accept'), 409, /no longer in the Professional Network/, 'cannot accept a firm that left');
+await rejects(net.decideConnection(env, U(1), 'bulk-04', x1, 'accept'), 409, /no longer in LawDB Connect/, 'cannot accept a firm that left');
 raw.prepare("UPDATE network_profiles SET visible = 1 WHERE firm_slug = 'bulk-03'").run();
 raw.prepare("UPDATE network_profiles SET visible = 0 WHERE firm_slug = 'bulk-04'").run();
 await rejects(net.decideConnection(env, U(1), 'bulk-04', x1, 'accept'), 409, /Switch your firm on/, 'and you must be listed to accept');
@@ -232,7 +232,7 @@ p = await net.getProfile(env, 'bravo-houston');
 eq([p.visible, p.suspended], [false, true], 'a suspended firm is switched off');
 eq(raw.prepare('SELECT status FROM network_connections WHERE id = ?').get(c4).status, 'withdrawn', 'and its waiting requests end');
 eq(await net.memberCount(env), 28, 'it leaves the count');
-await rejects(net.saveProfile(env, U(2), 'bravo-houston', { visible: true }, { featured: true }), 403, /removed from the Professional Network/, 'and cannot list itself again');
+await rejects(net.saveProfile(env, U(2), 'bravo-houston', { visible: true }, { featured: true }), 403, /removed from LawDB Connect/, 'and cannot list itself again');
 await net.setSuspended(env, admin, 'bravo-houston', false, 'test');
 p = await net.getProfile(env, 'bravo-houston');
 eq([p.visible, p.suspended], [false, false], 'restoring lets it list itself again (it stays off until it does)');

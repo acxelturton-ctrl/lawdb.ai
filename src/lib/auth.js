@@ -14,6 +14,11 @@ const readCookie = (request, name) => {
   return null;
 };
 
+// Where links and sign-in redirects point: the real site, but on a workers.dev preview (before the domain is live) the preview itself, so a sign-in link
+// emailed from the preview opens the preview, not a site that is not there yet. Hosts are never taken from anything a visitor typed: this is the host
+// Cloudflare routed the request to.
+export const siteOrigin = (env, url) => (env.DEV_ECHO_LINK === '1' || /\.workers\.dev$/i.test(url.hostname) ? url.origin : env.SITE_ORIGIN || url.origin).replace(/\/+$/, '');
+
 export const adminEmails = (env) =>
   new Set((env.ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
 

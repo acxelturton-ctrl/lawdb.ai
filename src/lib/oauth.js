@@ -6,7 +6,7 @@
 //  - an account is matched by e-mail address, and ONLY if the provider says that e-mail is verified;
 //  - ADMIN_EMAILS still decides who is an admin; disabled accounts cannot sign in; new accounts per day are capped.
 import { randomToken, sha256Hex } from './crypto.js';
-import { adminEmails, createSession } from './auth.js';
+import { adminEmails, createSession, siteOrigin } from './auth.js';
 import { isEmail } from './http.js';
 import { audit } from './audit.js';
 import { mailInBackground, welcomeEmail } from './email.js';
@@ -48,7 +48,6 @@ function config(env, key) {
 export const providersConfigured = (env) => ({ google: !!config(env, 'google'), linkedin: !!config(env, 'linkedin') });
 
 const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const siteOrigin = (env, url) => (dev(env) ? url.origin : (env.SITE_ORIGIN || url.origin)).replace(/\/+$/, '');
 // Only places on our own site, never an address someone else supplied.
 const safeNext = (n) => (typeof n === 'string' && /^\/(account\/|firms\/[a-z0-9-]+$|news(\/|$|\?))/.test(n) && !n.includes('//') && !n.includes('\\') ? n : '/account/');
 const back = (origin, query) => Response.redirect(`${origin}/account/?${query}`, 302);

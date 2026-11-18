@@ -1,7 +1,7 @@
 import { json, readJson, isEmail, NO_STORE, HttpError } from '../lib/http.js';
 import { randomToken, sha256Hex } from '../lib/crypto.js';
-import { adminEmails, createSession, destroySession, getUser } from '../lib/auth.js';
-import { sendLoginEmail } from '../lib/email.js';
+import { adminEmails, createSession, destroySession, getUser, siteOrigin } from '../lib/auth.js';
+import { sendLoginEmail, emailConfigured } from '../lib/email.js';
 import { providersConfigured, startOAuth, finishOAuth, welcomeOnce } from '../lib/oauth.js';
 import { audit } from '../lib/audit.js';
 
@@ -45,7 +45,7 @@ export async function requestLink({ request, env, url, exec }) {
     .run();
 
   // The token rides in the URL fragment: it is never sent to servers, logs or referrers.
-  const origin = env.DEV_ECHO_LINK === '1' ? url.origin : env.SITE_ORIGIN || url.origin;
+  const origin = siteOrigin(env, url);
   const link = `${origin}/admin/verify.html#token=${token}`;
 
   // Local development only: hand the link back instead of emailing it.
@@ -93,14 +93,15 @@ export async function verify({ request, env, url, exec }) {
     user.role = 'member';
   }
   await env.DB.prepare("UPDATE users SET last_login_at = datetime('now') WHERE id = ?").bind(user.id).run();
-  await welcomeOnce(env, exec, env.DEV_ECHO_LINK === '1' ? url.origin : env.SITE_ORIGIN || url.origin, user, '');
+  await welcomeOnce(env, exec, siteOrigin(env, url), user, '');
 
   const cookie = await createSession(env, request, user.id);
   await audit(env, user, 'login', 'user', user.id);
   return json({ ok: true, user: { email: user.email, role: user.role } }, 200, { ...NO_STORE, 'set-cookie': cookie });
 }
 
-export const providers = ({ env }) => json(providersConfigured(env), 200, NO_STORE);
+// What the sign-in page can offer: the Google and LinkedIn buttons that are set up, and whether the email link can be sent.
+export const providers = ({ env }) => json({ ...providersConfigured(env), email: emailConfigured(env) }, 200, NO_STORE);
 export const oauthStart = (key) => ({ request, env, url }) => startOAuth(env, request, url, key);
 export const oauthCallback = (key) => ({ request, env, url, exec }) => finishOAuth(env, request, url, exec, key);
 

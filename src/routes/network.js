@@ -1,4 +1,4 @@
-// The Professional Network API (see src/lib/network.js). Every route needs a signed-in user who is an APPROVED manager of the acting firm (:slug).
+// LawDB Connect API (see src/lib/network.js). Every route needs a signed-in user who is an APPROVED manager of the acting firm (:slug).
 // The Network is part of the Featured plan (paid or the free month): a Basic firm gets the locked preview from GET .../network.
 import { json, readJson, NO_STORE, HttpError } from '../lib/http.js';
 import { requireUser, requireAdmin, adminEmails } from '../lib/auth.js';
@@ -19,7 +19,7 @@ async function owner(env, request, slug) {
   if (!m) throw new HttpError(403, 'You do not manage this firm');
   return user;
 }
-const needFeatured = async (env, slug) => { if (!(await isFeatured(env, slug))) throw new HttpError(403, 'The Professional Network is part of the Featured plan. Start your free month from your dashboard.'); };
+const needFeatured = async (env, slug) => { if (!(await isFeatured(env, slug))) throw new HttpError(403, 'LawDB Connect is part of the Featured plan. Start your free month from your dashboard.'); };
 const firmName = async (env, slug) => (await env.DB.prepare('SELECT name, city, state FROM firms WHERE slug = ?').bind(slug).first()) || { name: slug, city: '', state: '' };
 
 // Basic firms get the locked preview (and the way to start the free month); Featured firms get their network.

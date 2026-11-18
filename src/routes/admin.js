@@ -1,3 +1,4 @@
+import { emailMatch } from '../lib/email-match.js';
 import { inUS } from '../lib/us.js';
 import { json, readJson, clampInt, NO_STORE, HttpError } from '../lib/http.js';
 import { requireAdmin } from '../lib/auth.js';
@@ -257,18 +258,6 @@ export async function geocodeAddress({ request, env, url }) {
 
 
 // ---------------------------------------------------------------- owner approvals
-// Does the claimant's email address belong to the firm's own website? A work address on the firm's domain is
-// the strongest cheap signal that the person really is the firm. 'free' = Gmail and similar (proves nothing).
-const FREE_MAIL = new Set(['gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.ca', 'hotmail.com', 'hotmail.ca', 'outlook.com', 'live.com', 'live.ca', 'msn.com', 'icloud.com', 'me.com', 'aol.com', 'proton.me', 'protonmail.com', 'rogers.com', 'bell.net', 'sympatico.ca', 'shaw.ca', 'telus.net', 'videotron.ca', 'cogeco.ca']);
-export function emailMatch(email, website) {
-  const domain = String(email).split('@')[1]?.toLowerCase();
-  if (!domain) return 'mismatch';
-  if (FREE_MAIL.has(domain)) return 'free';
-  let host;
-  try { host = new URL(website).hostname.toLowerCase().replace(/^www\./, ''); } catch { return 'nosite'; }
-  return domain === host || domain.endsWith('.' + host) || host.endsWith('.' + domain) ? 'match' : 'mismatch';
-}
-
 // A person asked to manage a firm (claim) or to list a new one. Nothing they request takes effect until approved here.
 export async function listMembers({ request, env, url }) {
   await requireAdmin(env, request);

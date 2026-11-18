@@ -3,7 +3,8 @@
 
 import { isState } from '../lib/us.js';
 import { json, readJson, clampInt, NO_STORE, HttpError } from '../lib/http.js';
-import { requireUser } from '../lib/auth.js';
+import { requireUser, siteOrigin } from '../lib/auth.js';
+import { emailMatch } from '../lib/email-match.js';
 import { audit } from '../lib/audit.js';
 import { applyFirmEdit, prepareNewFirm, insertFirm, str } from '../lib/firm-edit.js';
 import { profileStrength } from '../lib/profile-strength.js';
@@ -146,22 +147,30 @@ async function assertRoomForRequest(env, user) {
   if (c.total >= MAX_MEMBERSHIPS) throw new HttpError(429, 'You have reached the limit of firms per account. Contact info@lawdb.ai.');
 }
 
+// A claim is approved at once when the person's work email is on the firm's own website domain (they just proved they can read mail there, by using the
+// sign-in link) and nobody else manages the firm yet. Everything else waits for an admin, as before. Set AUTO_APPROVE_CLAIMS to "0" to turn this off.
+export const autoApproves = (env, user, websiteOfFirm, alreadyManaged) => env.AUTO_APPROVE_CLAIMS !== '0' && !alreadyManaged && emailMatch(user.email, websiteOfFirm) === 'match';
+
 export async function claim({ request, env, url, exec }) {
   const user = await requireUser(env, request);
   const body = await readJson(request, 4000);
   const contact = contactFrom(body);
-  const firm = await env.DB.prepare("SELECT slug, name, city FROM firms WHERE slug = ? AND status = 'live'").bind(String(body.slug || '')).first();
+  const firm = await env.DB.prepare("SELECT slug, name, city, data FROM firms WHERE slug = ? AND status = 'live'").bind(String(body.slug || '')).first();
   if (!firm) throw new HttpError(404, 'Firm not found');
   const existing = await env.DB.prepare('SELECT status FROM firm_members WHERE user_id = ? AND firm_slug = ?').bind(user.id, firm.slug).first();
   if (existing) {
-    throw new HttpError(409, existing.status === 'approved' ? 'You already manage this firm.' : existing.status === 'pending' ? 'Your request is already waiting for approval.' : 'Your earlier request was declined. Contact info@lawdb.ai if that was a mistake.');
+    throw new HttpError(409, existing.status === 'approved' ? 'You already manage this firm.' : existing.status === 'pending' ? 'Your request is already waiting for approval.' : 'Your earlier request was declined. Contact info@lawdb.ai if that was a mistake.')
   }
   await assertRoomForRequest(env, user);
-  await env.DB.prepare("INSERT INTO firm_members (user_id, firm_slug, contact_name, job_title, message, terms_accepted_at) VALUES (?,?,?,?,?,datetime('now'))")
+  let website = '';
+  try { website = JSON.parse(firm.data).website || ''; } catch { /* no website */ }
+  const managed = !!(await env.DB.prepare("SELECT 1 FROM firm_members WHERE firm_slug = ? AND status = 'approved'").bind(firm.slug).first());
+  const auto = autoApproves(env, user, website, managed);
+  await env.DB.prepare(`INSERT INTO firm_members (user_id, firm_slug, contact_name, job_title, message, terms_accepted_at${auto ? ", status, decided_at" : ''}) VALUES (?,?,?,?,?,datetime('now')${auto ? ", 'approved', datetime('now')" : ''})`)
     .bind(user.id, firm.slug, contact.contactName, contact.jobTitle || null, contact.message || null).run();
-  await audit(env, user, 'member.claim', 'firm', firm.slug, { contactName: contact.contactName });
-  notifyAdmins(env, exec, env.SITE_ORIGIN || url.origin, { email: user.email, ...contact, firmName: firm.name, city: firm.city, isNew: false });
-  return reply({ ok: true, slug: firm.slug, status: 'pending' }, 201);
+  await audit(env, user, auto ? 'member.claim_auto_approved' : 'member.claim', 'firm', firm.slug, { contactName: contact.contactName, ...(auto ? { because: 'work email is on the firm website' } : {}) });
+  notifyAdmins(env, exec, siteOrigin(env, url), { email: user.email, ...contact, firmName: firm.name, city: firm.city, isNew: false, auto });
+  return reply({ ok: true, slug: firm.slug, status: auto ? 'approved' : 'pending' }, 201);
 }
 
 // A firm that is not listed yet. It stays hidden from the public until an admin approves it.

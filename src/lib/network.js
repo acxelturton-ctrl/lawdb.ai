@@ -1,4 +1,4 @@
-// LawDB Professional Network, phase 1: a members-only directory where Featured law firms that opted in find each other, and connection requests.
+// LawDB Connect, phase 1: a members-only directory where Featured law firms that opted in find each other, and connection requests.
 //
 // Rules this file keeps:
 // - A firm is listed only while it is live, Featured (paid or in its free month), switched on, has accepted the rules and is not suspended.
@@ -55,7 +55,7 @@ export async function getProfile(env, slug) {
 
 export async function saveProfile(env, user, slug, body, { featured }) {
   const cur = await getProfile(env, slug);
-  if (cur.suspended) throw new HttpError(403, 'This firm was removed from the Professional Network. Please contact LawDB.');
+  if (cur.suspended) throw new HttpError(403, 'This firm was removed from LawDB Connect. Please contact LawDB.');
   const next = { ...cur };
   if ('headline' in body) next.headline = plain(body.headline, 'Headline', LIMITS.headline);
   if ('openTo' in body) {
@@ -82,7 +82,7 @@ export async function saveProfile(env, user, slug, body, { featured }) {
   if ('visible' in body) {
     if (typeof body.visible !== 'boolean') throw new HttpError(422, 'Visible: true or false.');
     if (body.visible) {
-      if (!featured) throw new HttpError(403, 'The Professional Network is part of the Featured plan.');
+      if (!featured) throw new HttpError(403, 'LawDB Connect is part of the Featured plan.');
       if (!cur.agreed && agreedAt !== 'now') throw new HttpError(422, 'Please read and accept the network rules first.');
     }
     next.visible = body.visible;
@@ -283,10 +283,10 @@ export async function requestConnection(env, user, from, to, message) {
   if (from === to) throw new HttpError(422, 'Choose another firm.');
   const note = plain(message, 'Note', LIMITS.message);
   const me = await getProfile(env, from);
-  if (!me.visible) throw new HttpError(409, 'Switch your firm on in the Professional Network (and accept the rules) before you connect with others.');
-  if (!(await isListed(env, to))) throw new HttpError(404, 'That firm is not in the Professional Network.');
+  if (!me.visible) throw new HttpError(409, 'Switch your firm on in LawDB Connect (and accept the rules) before you connect with others.');
+  if (!(await isListed(env, to))) throw new HttpError(404, 'That firm is not in LawDB Connect.');
   const blocked = await env.DB.prepare('SELECT 1 FROM network_blocks WHERE (firm_slug = ?1 AND blocked_slug = ?2) OR (firm_slug = ?2 AND blocked_slug = ?1)').bind(from, to).first();
-  if (blocked) throw new HttpError(404, 'That firm is not in the Professional Network.');
+  if (blocked) throw new HttpError(404, 'That firm is not in LawDB Connect.');
   const live = await env.DB.prepare("SELECT status, from_slug AS fromSlug FROM network_connections WHERE ((from_slug = ?1 AND to_slug = ?2) OR (from_slug = ?2 AND to_slug = ?1)) AND status IN ('pending', 'accepted')").bind(from, to).first();
   if (live) throw new HttpError(409, live.status === 'accepted' ? 'You are already connected.' : live.fromSlug === from ? 'Your request is already waiting for an answer.' : 'This firm already asked to connect with you. Accept it under Connections.');
   const declined = await env.DB.prepare("SELECT 1 FROM network_connections WHERE from_slug = ? AND to_slug = ? AND status = 'declined' AND decided_at > datetime('now', ?)").bind(from, to, `-${LIMITS.redecline} days`).first();
@@ -308,8 +308,8 @@ export async function decideConnection(env, user, slug, id, action) {
   let status;
   if (action === 'accept' || action === 'decline') {
     if (!mine || c.status !== 'pending') throw new HttpError(409, 'There is no request here waiting for your answer.');
-    if (action === 'accept' && !(await getProfile(env, slug)).visible) throw new HttpError(409, 'Switch your firm on in the Professional Network (and accept the rules) before you accept.');
-    if (action === 'accept' && !(await isListed(env, c.fromSlug))) throw new HttpError(409, 'That firm is no longer in the Professional Network.');
+    if (action === 'accept' && !(await getProfile(env, slug)).visible) throw new HttpError(409, 'Switch your firm on in LawDB Connect (and accept the rules) before you accept.');
+    if (action === 'accept' && !(await isListed(env, c.fromSlug))) throw new HttpError(409, 'That firm is no longer in LawDB Connect.');
     status = action === 'accept' ? 'accepted' : 'declined';
   } else if (action === 'withdraw') {
     if (mine || c.status !== 'pending') throw new HttpError(409, 'Only the firm that asked can withdraw a waiting request.');

@@ -19,6 +19,12 @@ Order: hero (animated demo, search) → numbers → **Law firms to explore** →
 - Memory: each server keeps the pick for 10 minutes (the page itself is cached 60 s); a failed query is not retried for a minute.
 - Tests: `scripts/test-home-showcase.mjs` (part of `npm run check`).
 
+## Sign-up and the way into LawDB Connect
+`/account/?join=1` (sign-up) and `/account/` (sign-in) are one page (`renderLogin` in `account/account.js`): Google and LinkedIn buttons when configured, the email link when the server can send mail (`emailConfigured`, `GET /api/auth/providers`), otherwise an honest "opening soon" note. Setup steps: `docs/SIGN_IN_SETUP.md`.
+- Path of a firm: sign-up (email link, one use, 15 minutes) -> four-screen welcome (name, city, role, goal) -> "Find or add my firm" -> claim -> **approved at once if the email is on the firm's own website domain** (`src/lib/email-match.js`, `autoApproves` in `routes/account.js`; otherwise an admin approves; `AUTO_APPROVE_CLAIMS=0` turns it off) -> My firm page with the LawDB Connect card -> free month (`/trial`) -> LawDB Connect tab.
+- Links and OAuth redirects use `siteOrigin(env, url)` (`lib/auth.js`): the real site, or the `*.workers.dev` preview itself, so sign-in links work before the domain is live.
+- Tests: `scripts/test-signup.mjs` (part of `npm run check`).
+
 ## LawDB AI (home page chat)
 `ai-search.js` / `ai-search.css` draw a round AI icon at the bottom right of every public page (loaded from `site.js`); tapping it opens the chat in a panel. It posts to `POST /api/ai/match` (`src/routes/ai.js` -> `src/lib/ai-match.js`).
 - The model (Cloudflare Workers AI, binding `AI`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`) only **reads** the situation: case type, city, state, a neutral one-line summary. It never writes text for the visitor and gives no legal advice; every sentence shown is a template in `ai-match.js`.
@@ -30,7 +36,7 @@ Order: hero (animated demo, search) → numbers → **Law firms to explore** →
 - "Request consultation" opens the firm page with `?ask=<summary>#contact`, which pre-fills the (editable) message.
 - Tests: `scripts/test-ai-match.mjs` (part of `npm run check`).
 
-## Professional Network (Featured plan, $89/month)
+## LawDB Connect (Featured plan, $89/month)
 A members-only directory where Featured firms find and connect with firms in other cities and states. Code: `src/lib/network.js` (logic), `src/routes/network.js` (API under `/api/account/firms/:slug/network/...` and `/api/admin/network/...`), `account/network.js` + `network.css` (the "Network" tab in the firm dashboard), `admin/admin.js` (the "Network" admin tab: reports, remove/restore). Tables: `network_profiles`, `network_connections`, `network_blocks`, `network_reports` (`migrations/0002_network.sql`).
 - **Who is listed:** a firm that is live, Featured (paid or the free month), has switched itself on and accepted the rules, and is not suspended. A firm that stops being Featured leaves the directory by itself (the queries join `firms.featured`). A Basic firm sees a locked preview made of clearly labelled sample firms (`account/network-sample.js`) and a button to start the free month.
 - **What is shown:** what LawDB verified (`firm_verifications`) is kept apart from what the firm reports about itself. "Accepting referrals" appears only if the firm set it, with the date.

@@ -1,4 +1,4 @@
-// SAMPLE firms for the locked preview of the Professional Network. Every name is invented and every card is marked "Sample" on screen.
+// SAMPLE firms for the locked preview of LawDB Connect. Every name is invented and every card is marked "Sample" on screen.
 // Nothing here is ever shown as a real firm, and none of it is sent to or from the server.
 const f = (slug, name, city, state, practice, rep) => ({
   slug, name, city, state, logo: '', phone: '', website: '', sample: true, link: null, why: [],
