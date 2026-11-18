@@ -243,7 +243,7 @@ const firstSentence = (s) => {
   return m ? m[1] : t.slice(0, 150).replace(/\s\S*$/, '') + '...';
 };
 
-export async function findFirms(env, { caseType, city, state, languages = [], needs = [], lat, lng, limit = 5, lang = 'en' }) {
+export async function findFirms(env, { caseType, city, state, languages = [], needs = [], lat, lng, limit = 5, lang = 'en', anywhere = false }) {
   const { results } = await env.DB.prepare(
     `SELECT data, about, featured,
             EXISTS (SELECT 1 FROM firm_verifications v WHERE v.firm_slug = firms.slug AND v.status = 'verified') AS verified
@@ -261,12 +261,14 @@ export async function findFirms(env, { caseType, city, state, languages = [], ne
     const needHit = needs.length > 0 && needs.every((n) => perks[n]);
     // lower is better: nearby first; Featured counts as 6 miles closer, a verified firm as 12, a firm with the language asked for as 25
     const rank = (d != null ? d : inCity ? 0 : 60) - (r.featured ? 6 : 0) - (r.verified ? 12 : 0) - (langHit ? 25 : 0) - (inCity ? 4 : 0);
-    return { f, about: r.about, featured: !!r.featured, verified: !!r.verified, d, inCity, rank, langHit, needHit, perks };
+    // Featured firms are listed first, as long as they are close (the same city, or within 40 miles, or anywhere in the state when the whole state was asked for)
+    const first = !!r.featured && (anywhere || inCity || (d != null && d <= 40));
+    return { f, about: r.about, featured: !!r.featured, verified: !!r.verified, d, inCity, rank, langHit, needHit, perks, first };
   }).filter(Boolean);
   let pool = languages.length && rows.some((x) => x.langHit) ? rows.filter((x) => x.langHit) : rows;
   let relaxed = false;
   if (needs.length) { if (pool.some((x) => x.needHit)) pool = pool.filter((x) => x.needHit); else relaxed = true; }
-  pool.sort((a, b) => a.rank - b.rank || String(a.f.name).localeCompare(String(b.f.name)));
+  pool.sort((a, b) => Number(b.first) - Number(a.first) || a.rank - b.rank || String(a.f.name).localeCompare(String(b.f.name)));
   const top = pool.slice(0, limit);
   const scope = top.length && top.every((x) => x.inCity) ? 'city' : top.length ? 'nearby' : 'none';
   const W = tr(lang).why;
@@ -300,7 +302,18 @@ const cityChips = (cities, state, lang) => ({
 });
 const typeChips = (lang) => ({ kind: 'caseType', chips: CASE_IDS.map((id) => ({ label: caseLabel(id, lang), pick: { caseType: id } })) });
 
+// The chat answers in the language the visitor chose (the language buttons), never in one it guessed. It reads Spanish or English either way; when the
+// visitor writes Spanish while English is chosen, the answer carries offerLang so the chat can offer a button to switch.
 export async function answer(env, body) {
+  const meta = { modelLang: null };
+  const res = await answerInner(env, body, meta);
+  const typed = sanitizeMessages(body.messages), last = typed.length ? typed[typed.length - 1] : '';
+  const chosen = body && body.context && body.context.lang === 'es' ? 'es' : 'en';
+  if (!(body.pick && body.pick.lang) && chosen === 'en' && (detectLang(last) === 'es' || meta.modelLang === 'es')) res.offerLang = 'es';
+  return res;
+}
+
+async function answerInner(env, body, meta) {
   const texts = sanitizeMessages(body.messages);
   const pick = body.pick && typeof body.pick === 'object' ? body.pick : {};
   const prev = body.context && typeof body.context === 'object' ? body.context : {};
@@ -331,8 +344,7 @@ export async function answer(env, body) {
   if (lastText) {
     const ai = await readSituation(env, texts.slice(-3));
     mode = ai ? 'ai' : 'fallback';
-    const detected = (ai && ai.lang) || detectLang(lastText);
-    if (detected) ctx.lang = detected;
+    if (ai) meta.modelLang = ai.lang;
     const typedState = findState(lastText) || (ai && ai.state) || null;
     const typedCity = findCity(lastText, cities, typedState) || (ai && ai.city ? findCity(ai.city, cities, typedState || ai.state) : null);
     const kw = guessCaseType(lastText) || guessCaseType(allText);
@@ -371,7 +383,7 @@ export async function answer(env, body) {
   // 4) the firms
   const city = cities.find((c) => c.city === ctx.city && c.state === ctx.state) || null;
   const lat = centre ? centre.lat : city ? city.lat : null, lng = centre ? centre.lng : city ? city.lng : null;
-  const found = await findFirms(env, { caseType: ctx.caseType, city: ctx.city, state: ctx.state, languages: ctx.languages, needs: ctx.needs, lat, lng, lang });
+  const found = await findFirms(env, { caseType: ctx.caseType, city: ctx.city, state: ctx.state, languages: ctx.languages, needs: ctx.needs, lat, lng, lang, anywhere: ctx.anywhere });
   const noun = caseNoun(ctx.caseType, lang), where = ctx.city ? `${ctx.city}, ${ctx.state}` : STATES[ctx.state], n = found.firms.length;
   let reply;
   if (!n) reply = L.none(noun, where);

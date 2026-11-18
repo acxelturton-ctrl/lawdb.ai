@@ -15,16 +15,16 @@
   var UI = {
     en: { greet: 'Hi! Tell me what\u2019s going on in your own words, and where you are. I\u2019ll find law firms that handle it.', suggest: ['I was rear-ended in Tampa', 'I need a divorce lawyer in Houston', 'My landlord won\u2019t return my deposit', 'Charged with a DUI in Miami'],
       sub: 'Describe your situation. I\u2019ll find the right firms.', ph: 'e.g. I was rear-ended in Tampa and need a lawyer', label: 'Describe your legal situation', launch: 'Ask LawDB AI', launchAria: 'Ask LawDB AI, the help bot', close: 'Close chat', toggle: 'ES', toggleAria: 'Cambiar a espa\u00f1ol',
-      note: 'LawDB AI matches you with law firms. It can\u2019t give legal advice, AI-generated information is general in nature, and using it doesn\u2019t create a lawyer-client relationship. Please don\u2019t share confidential details.',
+      note: 'LawDB AI matches you with law firms. It can\u2019t give legal advice, AI-generated information is general in nature, and using it doesn\u2019t create a lawyer-client relationship. Featured firms are listed first. Please don\u2019t share confidential details.',
       view: 'View profile', call: 'Call', ask: 'Request consultation', why: 'Why this matches: ', loc: 'Use my location', browse: 'Browse all lawyers', featured: 'Featured', verified: 'Verified', free: 'Free consultation', h24: 'Available 24/7',
       err: 'I couldn\u2019t reach the matcher just now. You can still search by case type and city.', nogeo: 'Your browser can\u2019t share a location. Type your city instead.', denied: 'No problem. Type your city, or pick one of the cities above.', nudge: 'Need a lawyer? Ask LawDB AI', dismiss: 'Dismiss' },
     es: { greet: '\u00a1Hola! Cu\u00e9ntame qu\u00e9 est\u00e1 pasando, con tus propias palabras, y d\u00f3nde est\u00e1s. Buscar\u00e9 firmas de abogados que atiendan tu caso.', suggest: ['Me chocaron por detr\u00e1s en Tampa', 'Necesito un abogado de divorcio en Houston', 'Mi casero no me devuelve el dep\u00f3sito', 'Me acusaron de DUI en Miami'],
       sub: 'Cu\u00e9ntame tu situaci\u00f3n. Te ayudar\u00e9 a encontrar la firma adecuada.', ph: 'p. ej. Me chocaron por detr\u00e1s en Tampa y necesito un abogado', label: 'Describe tu situaci\u00f3n legal', launch: 'Pregunta a LawDB AI', launchAria: 'Pregunta a LawDB AI, el asistente', close: 'Cerrar chat', toggle: 'EN', toggleAria: 'Switch to English',
-      note: 'LawDB AI te conecta con firmas de abogados. No ofrece asesor\u00eda legal, la informaci\u00f3n generada por IA es de car\u00e1cter general y usarla no crea una relaci\u00f3n abogado-cliente. Por favor no compartas detalles confidenciales.',
+      note: 'LawDB AI te conecta con firmas de abogados. No ofrece asesor\u00eda legal, la informaci\u00f3n generada por IA es de car\u00e1cter general y usarla no crea una relaci\u00f3n abogado-cliente. Las firmas destacadas aparecen primero. Por favor no compartas detalles confidenciales.',
       view: 'Ver perfil', call: 'Llamar', ask: 'Solicitar consulta', why: 'Por qu\u00e9 coincide: ', loc: 'Usar mi ubicaci\u00f3n', browse: 'Ver todos los abogados', featured: 'Destacada', verified: 'Verificada', free: 'Consulta gratis', h24: 'Disponible 24/7',
       err: 'No pude conectar con el buscador en este momento. A\u00fan puedes buscar por tipo de caso y ciudad.', nogeo: 'Tu navegador no puede compartir la ubicaci\u00f3n. Escribe tu ciudad.', denied: 'No hay problema. Escribe tu ciudad o elige una de las ciudades de arriba.', nudge: '\u00bfNecesitas un abogado? Pregunta a LawDB AI', dismiss: 'Cerrar' },
   };
-  var lang = S.ctx.lang === 'es' || S.ctx.lang === 'en' ? S.ctx.lang : ((navigator.language || '').slice(0, 2) === 'es' ? 'es' : 'en');
+  var lang = S.ctx.lang === 'es' ? 'es' : 'en';
   if (!S.ctx.lang) S.ctx.lang = lang;
   function t(k) { return UI[lang][k]; }
   var SPARK = 'M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z';
@@ -112,6 +112,7 @@
     if (j.reply) add({ k: 'b', w: 'bot', t: j.reply });
     if (j.firms && j.firms.length) add({ k: 'firms', list: j.firms, summary: (S.ctx && S.ctx.summary) || '' });
     if (j.ask && j.ask.chips) add({ k: 'chips', list: j.ask.chips, locate: !!j.ask.locate });
+    if (j.offerLang === 'es') add({ k: 'chips', list: [{ label: 'Cambiar a espa\u00f1ol', pick: { lang: 'es' } }] });
   }
   function post(payload) {
     S.busy = true; send.disabled = true; typing(true);
@@ -150,8 +151,8 @@
   // a saved chat is put back; a new one starts with a greeting and a few examples
   if (S.events.length) S.events.forEach(function (e) { draw(e, true); });
   else {
-    add({ k: 'b', w: 'bot', t: t('greet') });
-    add({ k: 'chips', list: t('suggest').map(function (x) { return { label: x, text: x }; }) });
+    add({ k: 'b', w: 'bot', t: 'Welcome! Choose your language to start. / \u00a1Bienvenido! Elige tu idioma para empezar.' });
+    add({ k: 'chips', list: [{ label: 'English', pick: { lang: 'en' } }, { label: 'Espa\u00f1ol', pick: { lang: 'es' } }] });
   }
   function applyLang() {
     htSub.textContent = t('sub'); input.placeholder = t('ph'); lab.textContent = t('label'); note.textContent = t('note');
