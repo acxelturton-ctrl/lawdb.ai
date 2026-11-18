@@ -9,6 +9,7 @@ import { STATES } from './us.js';
 export const MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 export const CASE_IDS = Object.keys(CASE.types);
 export const caseLabel = (id) => (CASE.types[id] && CASE.types[id].homeLabel) || '';
+export const caseName = (id) => (CASE.types[id] && CASE.types[id].name) || '';
 export const caseNoun = (id) => (CASE.types[id] && CASE.types[id].noun) || 'lawyer';
 
 const LIMITS = { messages: 6, chars: 500 };
@@ -188,7 +189,9 @@ export async function findFirms(env, { caseType, city, state, languages = [], la
   const scope = top.length && top.every((x) => x.inCity) ? 'city' : top.length ? 'nearby' : 'none';
   return {
     scope,
-    firms: top.map(({ f, about, featured, d }) => ({
+    firms: top.map(({ f, about, featured, d, inCity, langHit }) => ({
+      // the plain reasons this firm is on the list, so the visitor sees why and not only who
+      why: [`Handles ${caseName(caseType).toLowerCase()} matters`, inCity ? `in ${f.city}` : d != null ? `about ${Math.max(1, Math.round(d))} miles from ${city || 'you'}` : '', langHit ? `offers ${languages[0]}` : ''].filter(Boolean).join(', '),
       slug: f.slug, name: f.name, city: f.city, state: f.state, address: f.address || '', phone: f.phone || '',
       tags: (f.tags || []).slice(0, 3), logo: f.type === 'logo' && f.src ? f.src : '', featured,
       blurb: firstSentence(about), miles: d != null ? Math.round(d) : null,

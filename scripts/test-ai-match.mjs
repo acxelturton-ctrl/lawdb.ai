@@ -70,6 +70,8 @@ eq(r.firms.map((f) => f.slug), ['b-tampa', 'a-tampa', 'c-orlando', 'd-miami'].sl
 ok(r.firms[0].slug === 'b-tampa', 'a Featured firm in the same city comes first');
 ok(r.firms.every((f) => !f.slug.includes('houston')) && r.firms.every((f) => f.state === 'FL'), 'only firms in the right state');
 ok(r.firms.find((f) => f.slug === 'a-tampa').blurb.endsWith('.'), 'the blurb is the first sentence of the bio');
+ok(/^Handles .* matters, in Tampa$/.test(r.firms[0].why), 'each firm says why it matches: ' + r.firms[0].why);
+ok(/miles from Tampa/.test(r.firms.find((f) => f.slug === 'c-orlando').why), 'a farther firm says how far');
 ok(/personal injury lawyer/i.test(r.reply) && /Tampa/.test(r.reply), 'reply names the case and city');
 ok(r.ask.kind === 'refine');
 
