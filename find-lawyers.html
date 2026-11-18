@@ -762,7 +762,7 @@ function renderLive(){
     if(guess.length >= 3 && !hit && !LawdbPlaces.ready()) LawdbPlaces.load('').then(() => { if(fyInput.value === raw) renderLive(); }).catch(() => {});
     bits.push(hit
       ? `<span class="fy-tag">Near: ${hit.label}</span>`
-      : `<span class="fy-tag miss">Add a city or town, e.g. "in New York"</span>`);
+      : `<span class="fy-tag miss">Add a city or town, e.g. "in Miami"</span>`);
   }
   fyLive.innerHTML = bits.join('');
 }
@@ -795,7 +795,7 @@ function lookUpPlace(text, caseId, raw){
     const shown = (raw || text).replace(/</g,'&lt;');
     if(caseId){
       const btns = POPULAR_CITIES.slice(0,6).map(c => `<button type="button" data-q="${caseSay(caseId)} in ${cityLabel(c)}">${c.name}</button>`).join('');
-      showSearchHelp(`We couldn't find a place called <strong>${text.replace(/</g,'&lt;')}</strong>. Try the nearest bigger town, for example <strong>${caseSay(caseId)} in New York</strong>.<br>${btns}`);
+      showSearchHelp(`We couldn't find a place called <strong>${text.replace(/</g,'&lt;')}</strong>. Try the nearest bigger town, for example <strong>${caseSay(caseId)} in Miami</strong>.<br>${btns}`);
       fyErr.querySelectorAll('button[data-q]').forEach(b => b.addEventListener('click', () => { fyInput.value = b.dataset.q; runSearch(); }));
     } else {
       showSearchHelp(`We couldn't find a city or a type of lawyer in "${shown}". Try something like <strong>car accident lawyer in Miami</strong>, or browse by case type below. We are starting with Florida, with more states coming.`);
@@ -872,7 +872,7 @@ function runSearch(){
   if(p.caseId){
     const btns = POPULAR_CITIES.slice(0,6).map(c =>
       `<button type="button" data-q="${caseSay(p.caseId)} in ${cityLabel(c)}">${c.name}</button>`).join('');
-    showSearchHelp(`Got it: <strong>${caseLabel(p.caseId)}</strong>. Now add a city, for example <strong>${caseSay(p.caseId)} in New York</strong>.<br>${btns}`);
+    showSearchHelp(`Got it: <strong>${caseLabel(p.caseId)}</strong>. Now add a city, for example <strong>${caseSay(p.caseId)} in Miami</strong>.<br>${btns}`);
     fyErr.querySelectorAll('button[data-q]').forEach(b => b.addEventListener('click', () => { fyInput.value = b.dataset.q; runSearch(); }));
     return;
   }
