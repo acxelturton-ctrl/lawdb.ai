@@ -67,14 +67,12 @@
 /* keep clear of the other things that live at the bottom of a phone screen */
 body.aic-ready .to-top{ bottom:calc(92px + env(safe-area-inset-bottom,0px)); }
 @media (max-width:760px){
-  body.has-sheet .aic-launch{ bottom:calc(120px + env(safe-area-inset-bottom,0px)); }
-  body.has-sheet.aic-ready .to-top{ bottom:190px; }
   body.pg-firm .aic-launch{ bottom:calc(86px + env(safe-area-inset-bottom,0px)); }
   body.pg-firm.aic-ready .to-top{ bottom:calc(156px + env(safe-area-inset-bottom,0px)); }
 }
 .aic-nudge{ position:fixed; right:18px; bottom:calc(86px + env(safe-area-inset-bottom,0px)); z-index:459; display:flex; align-items:center; gap:8px; max-width:240px; background:#fff; border:1px solid #e6d4a4; border-radius:16px 16px 6px 16px; padding:11px 8px 11px 14px; font:600 14px/1.35 Inter,sans-serif; color:#2a2a2a; box-shadow:0 18px 36px -18px rgba(42,42,42,.55); cursor:pointer; animation:aicIn .4s ease both; }
 .aic-nudge button{ flex:none; width:24px; height:24px; border:0; border-radius:50%; background:rgba(42,42,42,.08); color:#2a2a2a; font:400 16px/1 Inter,sans-serif; cursor:pointer; }
-@media (max-width:760px){ body.pg-firm .aic-nudge{ bottom:calc(152px + env(safe-area-inset-bottom,0px)); } body.has-sheet .aic-nudge{ bottom:calc(186px + env(safe-area-inset-bottom,0px)); } }
+@media (max-width:760px){ body.pg-firm .aic-nudge{ bottom:calc(152px + env(safe-area-inset-bottom,0px)); }  }
 
 /* the panel the chat opens in */
 .aic-panel{ display:none; position:fixed; z-index:650; right:24px; bottom:24px; width:min(410px,calc(100vw - 32px)); height:min(660px,calc(100dvh - 48px)); border-radius:24px; box-shadow:0 40px 80px -30px rgba(42,42,42,.65); }

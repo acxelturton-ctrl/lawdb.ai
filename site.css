@@ -475,3 +475,8 @@ body.pg-msp .pf-card .lw-claim a:hover{ color:#2a2a2a; }
   body.pg-msp .pf-btn{ padding:0 13px; font-size:13.5px; }
 }
 body.pg-msp .lw-rate,body.pg-msp .lw-prof{ max-width:none; margin:0 0 20px; }
+
+/* the LawDB AI item in the desktop menu: a button that opens the chat, drawn like the links beside it */
+.desktop-nav .nav-ai{ display:inline-flex; align-items:center; gap:7px; font:600 15.5px Inter,sans-serif; color:#2a2a2a; border:0; padding:0 0 4px; margin-right:30px; cursor:pointer; white-space:nowrap; background:linear-gradient(#c9a050,#c9a050) left bottom/0 2px no-repeat; transition:background-size .28s ease; }
+.desktop-nav .nav-ai:hover{ background-size:100% 2px; }
+.desktop-nav .nav-ai svg{ width:17px; height:17px; fill:#c9a050; flex:none; }

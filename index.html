@@ -458,14 +458,14 @@
 <link rel="stylesheet" href="home-wide.css?v=1">
 <link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="/home-gold.css?v=1">
-<link rel="stylesheet" href="/ai-search.css?v=6">
+<link rel="stylesheet" href="/ai-search.css?v=7">
 </head>
 <body class="pg-home">
 
 <header class="site-header">
   <a class="mark" href="/"><img src="images/logo-icon.png" alt="LawDB"><span class="wordmark"><span class="name"><span class="law">Law</span><span class="db">DB</span><span class="ai" style="font-size:.62em;font-weight:500;margin-left:1px;color:#c9a050">.ai</span></span><span class="tagline">The Legal Directory</span></span></a>
   <div class="header-right">
-    <nav class="desktop-nav" aria-label="Primary"><a href="/find-lawyers">Find Your Lawyer</a><a href="/news">LawDB News</a><a href="/for-firms">For Law Firms</a></nav>
+    <nav class="desktop-nav" aria-label="Primary"><a href="/find-lawyers">Find Your Lawyer</a><a href="/news">LawDB News</a><a href="/add-your-firm">List Your Firm</a><button type="button" class="nav-ai" data-open-ai><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z"/></svg><span>LawDB AI</span></button></nav>
     <div class="hdr-auth"><a class="hdr-signin" href="/account/">Sign in</a></div>
     <button class="hamburger-btn" id="menuToggle" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
@@ -475,9 +475,10 @@
   <button class="menu-close" id="menuClose" aria-label="Close menu">&times;</button>
   <a href="/find-lawyers">Find Your Lawyer</a>
   <a href="/news">LawDB News</a>
+  <a href="#" data-open-ai>LawDB AI</a>
   <a href="/new-firms">New listed firms</a>
   <a href="/for-firms">Grow Leads to Your Law Firm</a>
-  <a href="/add-your-firm">Add Your Firm</a>
+  <a href="/add-your-firm">List Your Firm</a>
   <a href="/contact">Contact Us</a>
   <a class="menu-cta" href="/account/">Sign in</a>
   <div class="menu-promo">
@@ -729,14 +730,6 @@ section.hz-firms{ background:#2a2a2a; color:#ffffff; padding:44px 20px; }
 .hz-solid{ background:#c9a050; color:#2a2a2a; }
 .hz-ghost{ border:1.5px solid #e2bd6a; color:#e2bd6a; }
 /* shared: the sign-up sheet on phones (the markup stays at the end of the page) */
-.join-sheet{ position:fixed; left:0; right:0; bottom:0; z-index:450; display:none; background:#ffffff; border-radius:18px 18px 0 0; box-shadow:0 -10px 30px rgba(42,42,42,0.18); padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px)); }
-@media (max-width:760px){ .join-sheet:not([hidden]){ display:block; } body.has-sheet{ padding-bottom:104px; } body.has-sheet .to-top{ bottom:112px; } }
-.join-sheet-in{ display:flex; align-items:center; gap:12px; max-width:560px; margin:0 auto; }
-.join-sheet-txt{ flex:1; min-width:0; }
-.join-sheet-txt b{ display:block; font:700 16px/1.25 'Source Serif 4',serif; color:#2a2a2a; }
-.join-sheet-txt span{ display:block; margin-top:2px; font-size:13px; color:#5f5f5f; }
-.join-sheet-btn{ flex:none; display:inline-flex; align-items:center; height:44px; padding:0 22px; border-radius:999px; background:#2a2a2a; color:#ffffff; font:600 15px Inter,sans-serif; text-decoration:none; }
-.join-sheet-x{ flex:none; width:36px; height:36px; border:0; background:none; color:#5f5f5f; font-size:26px; line-height:1; cursor:pointer; }
 
 /* concept B: a navy "why" band, a swipe row of top firms, the case types and cities as tiles, the news after them */
 .why-b{ background:#2a2a2a; color:#ffffff; padding:40px 20px; }
@@ -966,24 +959,9 @@ section.citystrip{ padding:28px 20px 36px !important; }
   </div>
 </footer>
 
-<div class="join-sheet" id="joinSheet" hidden role="region" aria-label="Sign up">
-  <div class="join-sheet-in">
-    <div class="join-sheet-txt"><b>Find a lawyer you can trust</b><span>Sign in free to follow firms and save stories.</span></div>
-    <a class="join-sheet-btn" href="/account/">Sign in</a>
-    <button type="button" class="join-sheet-x" aria-label="Close">&times;</button>
-  </div>
-</div>
-<script>
-(function(){
-  var el=document.getElementById('joinSheet'); if(!el) return;
-  try{ if(sessionStorage.getItem('lawdb_sheet')==='closed'||localStorage.getItem('lawdb_in')==='1') return; }catch(e){}
-  el.hidden=false; document.body.classList.add('has-sheet');
-  el.querySelector('.join-sheet-x').addEventListener('click',function(){ el.hidden=true; document.body.classList.remove('has-sheet'); try{ sessionStorage.setItem('lawdb_sheet','closed'); }catch(e){} });
-})();
-</script>
 <script src="site.js" defer></script>
 <script src="motion.js" defer></script>
-<script src="ai-search.js?v=5" defer></script>
+<script src="ai-search.js?v=6" defer></script>
 <script src="lwa.js?v=2" defer></script>
 <script src="/follow.js" defer></script>
 </body>

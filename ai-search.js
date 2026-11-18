@@ -188,6 +188,12 @@
     launch.focus({ preventScroll: true });
   }
   launch.addEventListener('click', open);
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-open-ai]'); if (!a) return;
+    e.preventDefault();
+    var d = document.getElementById('menuDrawer'), o = document.getElementById('menuOverlay'); if (d) d.classList.remove('open'); if (o) o.classList.remove('open');
+    if (!isOpen()) open();
+  });
   closeBtn.addEventListener('click', close);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) close(); });
 
