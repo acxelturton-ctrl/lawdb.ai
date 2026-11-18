@@ -10,6 +10,15 @@ US law-firm directory. Everything is US only: 50 states + DC (`src/lib/us.js` is
 - **Blog reader** (`src/lib/feeds.js`): follows each firm's blog feed and shows the latest posts on `/news` and the home slider.
 - **Verification** (`src/lib/verification.js`): checks a lawyer against the state bar directory (`STATE_BARS`).
 
+## Home page (`index.html`)
+Order: hero (animated demo, search) → numbers → **Law firms to explore** → What do you need help with → Find lawyers in your state → articles slider → **More from the firms + Firm spotlight** → How it works → Why LawDB (LawDB AI, Verified, complete profiles, guides, free) → For law firms → Questions (with FAQPage JSON-LD). Styles: `home-gold.css` (hero, numbers, states, slider), `home-wide.css` (desktop width), `home-v6.css` (the content sections, all classes `hv-*`).
+- The real-data sections are **filled in by the Worker** (`src/routes/home-showcase.js`, called from `dynamic.js`): they are `hidden` in the file and shown only when the database answers, so the page is never broken by it. Code: `src/render/home-showcase.js` (card, spotlight, article row).
+- **Who can appear:** a live firm with its own logo, a cover picture, a phone, a practice area and a description of 90 words or more. Featured firms (at most 4, a different city each) lead and are labelled; the rest of the 12 cards are a daily pick (seeded by the Eastern date, so everyone sees the same row, tomorrow's differs) alternating between states, at most 2 per city and about 3 per practice area. The spotlight is one more firm (Featured, else Verified, else best look), never one of the cards. The Florida/Texas tabs filter the cards in the browser.
+- **Chips are only what the data says:** Verified (`firm_verifications`), Free consultation, 24/7, Virtual (`perks` crawled from the firm's own site), Habla español (`details.languages`). Nothing is invented; the one illustration with made-up content (the chat example, the "Harbour & Finch" firm in For law firms) is labelled Example / Sample preview.
+- The article list continues where the slider stops (`sliderPosts` in `home-news.js`); one article per firm.
+- Memory: each server keeps the pick for 10 minutes (the page itself is cached 60 s); a failed query is not retried for a minute.
+- Tests: `scripts/test-home-showcase.mjs` (part of `npm run check`).
+
 ## LawDB AI (home page chat)
 `ai-search.js` / `ai-search.css` draw a round AI icon at the bottom right of every public page (loaded from `site.js`); tapping it opens the chat in a panel. It posts to `POST /api/ai/match` (`src/routes/ai.js` -> `src/lib/ai-match.js`).
 - The model (Cloudflare Workers AI, binding `AI`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`) only **reads** the situation: case type, city, state, a neutral one-line summary. It never writes text for the visitor and gives no legal advice; every sentence shown is a template in `ai-match.js`.

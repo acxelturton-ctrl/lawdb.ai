@@ -312,30 +312,6 @@
 <link rel="stylesheet" href="site.css">
 <link rel="stylesheet" href="lawdb-search.css?v=1">
 <link rel="stylesheet" href="lwa.css?v=2">
-<style id="home3">
-  .citybrowse .cb-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:18px; }
-  .cb-col{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 16px 10px; }
-  .cb-col h3{ font-family:'Source Serif 4',serif; font-size:16px; margin:0 0 8px; }
-  .cb-col ul{ list-style:none; margin:0; padding:0; }
-  .cb-col a{ display:flex; justify-content:space-between; gap:8px; padding:7px 0; border-top:1px solid #f7f1e0; color:var(--ink); text-decoration:none; font-size:14.5px; }
-  .cb-col a:hover{ color:var(--brass-deep); }
-  .cb-col a span{ color:#8c8c8c; font-size:12.5px; }
-  .why3-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-  .why3-card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; }
-  .why3-n{ display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--brass); color:var(--ink); font-weight:700; font-size:14px; margin-bottom:12px; }
-  .why3-card h3{ font-family:'Source Serif 4',serif; font-size:19px; margin:0 0 8px; }
-  .why3-card p{ margin:0; color:var(--ink-soft); font-size:14.5px; line-height:1.55; }
-  .why3-steps{ background:var(--dark); color:#fffdf8; border-radius:16px; padding:26px 28px; margin-top:22px; display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
-  .why3-steps h3{ grid-column:1/-1; font-family:'Source Serif 4',serif; font-size:21px; margin:0; color:#fff; }
-  .why3-steps > div{ display:flex; gap:12px; align-items:flex-start; }
-  .why3-steps .n{ flex:none; display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--brass); color:var(--ink); font-weight:700; font-size:14px; }
-  .why3-steps b{ display:block; font-size:15px; margin-bottom:3px; }
-  .why3-steps span:not(.n){ font-size:13.5px; color:#8c8c8c; line-height:1.5; }
-  .firms-divider{ max-width:1080px; margin:20px auto 0; padding:0 20px; display:flex; align-items:center; gap:14px; color:var(--brass-deep); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
-  .firms-divider::before,.firms-divider::after{ content:''; flex:1; height:1px; background:var(--line); }
-  @media(max-width:860px){ .citybrowse .cb-grid{ grid-template-columns:repeat(2,1fr); } .why3-grid,.why3-steps{ grid-template-columns:1fr; } }
-  @media(max-width:520px){ .citybrowse .cb-grid{ grid-template-columns:1fr; } }
-</style>
 <style id="home5">
   .h4-sprite{ position:absolute; width:0; height:0; overflow:hidden; }
   .h5-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
@@ -455,8 +431,10 @@
 </style>
 <link rel="stylesheet" href="home-wide.css?v=1">
 <link rel="stylesheet" href="motion.css">
-<link rel="stylesheet" href="/home-gold.css?v=1">
+<link rel="stylesheet" href="/home-gold.css?v=2">
+<link rel="stylesheet" href="/home-v6.css?v=1">
 <link rel="stylesheet" href="/ai-search.css?v=7">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is LawDB free to use?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Searching, comparing firms, reading the guides and using LawDB AI are free, and you do not need an account. Signing in, which is also free, lets you follow firms and save stories."}}, {"@type": "Question", "name": "How does LawDB choose the firms it shows?", "acceptedAnswer": {"@type": "Answer", "text": "Firms are listed from public business information and each firm's own website. A firm appears on LawDB once it has a complete profile: a logo, a cover photo and a written description of its practice. Featured firms are a paid plan and are always labelled Featured."}}, {"@type": "Question", "name": "What does “Verified by LawDB” mean?", "acceptedAnswer": {"@type": "Answer", "text": "We check that a lawyer at the firm is in the state bar's public directory, that the person managing the profile is who they say they are, and that the office details match. It is not an endorsement and it does not say anything about a lawyer's record, so check the state bar's own directory too. Each profile links to it."}}, {"@type": "Question", "name": "Does LawDB give legal advice or recommend a lawyer?", "acceptedAnswer": {"@type": "Answer", "text": "No. LawDB is an independent online directory. We are not a law firm and do not give legal advice. A listing is not a recommendation, and LawDB AI helps you find firms that fit what you describe; it cannot tell you what to do about your case."}}, {"@type": "Question", "name": "Which states do you cover?", "acceptedAnswer": {"@type": "Answer", "text": "Florida and Texas today, with California, New York, Illinois and the rest of the country coming next."}}, {"@type": "Question", "name": "How do I contact a lawyer?", "acceptedAnswer": {"@type": "Answer", "text": "Open a firm's profile to call, visit its website or get directions. You deal with the firm directly. Some firms also offer a booking button on their profile."}}, {"@type": "Question", "name": "How do I list my firm, or fix my listing?", "acceptedAnswer": {"@type": "Answer", "text": "List your firm free to add your photos, description and practice areas. If your firm is already here, open its page and choose “Own this firm?”, or contact us and we will correct or remove it."}}]}</script>
 </head>
 <body class="pg-home">
 
@@ -675,87 +653,18 @@ section.hn{max-width:1440px;margin:0 auto;padding:44px 20px 12px}
 .hn-end{color:var(--ink-soft);font-size:15px}.hn-end a{color:var(--brass-deep);font-weight:700}
 @media(max-width:600px){section.hn{padding:30px 14px 8px}}
 </style>
-<style>
-/* shared: the firm card (cover photo, logo badge, rating, two buttons) */
-.lc{ max-width:none; flex:none; background:#fff; border:1px solid #ece6d3; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(42,42,42,0.06); }
-.lc-media{ position:relative; display:block; aspect-ratio:16/9; background:#3a3a3a; }
-.lc-media > img{ display:block; width:100%; height:100%; object-fit:cover; border-radius:16px 16px 0 0; }
-.lc-logo{ position:absolute; left:18px; bottom:-28px; width:58px; height:58px; border-radius:12px; background:#fff; border:2px solid #fff; box-shadow:0 2px 10px rgba(42,42,42,0.2); display:grid; place-items:center; overflow:hidden; }
-.lc-logo img{ width:100%; height:100%; object-fit:contain; padding:6px; }
-.lc-body{ position:relative; display:flex; flex-direction:column; gap:6px; padding:36px 18px 18px; flex:1; }
-.lc-cat{ font:600 12px/1.4 Inter,sans-serif; letter-spacing:.08em; text-transform:uppercase; color:#e2bd6a; }
-.lc h3{ margin:0; font:700 21px/1.25 'Source Serif 4',Georgia,serif; color:#2a2a2a; }
-.lc h3 a{ color:inherit; text-decoration:none; }
-.lc h3 a:hover{ text-decoration:underline; }
-.lc-rate{ margin:0; font-size:14px; color:#5f5f5f; }
-.lc-rate b{ color:#e2bd6a; }
-.lc-serves{ margin:0; font-size:14px; font-weight:600; color:#3a3a3a; }
-.lc-phone{ margin:0; font-size:13.5px; color:#5f5f5f; font-variant-numeric:tabular-nums; }
-.lc-btns{ display:flex; gap:10px; margin-top:auto; padding-top:10px; }
-.lc-btns a{ flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; font:600 15px Inter,sans-serif; text-decoration:none; }
-.lc-btns .lc-view{ background:#2a2a2a !important; color:#ffffff !important; border:1.5px solid #2a2a2a; }
-.lc-btns .lc-call{ background:#ffffff; color:#2a2a2a; border:1.5px solid #2a2a2a; }
-/* shared: section heads */
-.fh{ display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; justify-content:space-between; }
-.fh h2{ margin:0; font:700 clamp(26px,5vw,32px)/1.15 'Source Serif 4',serif; color:#2a2a2a; text-wrap:balance; }
-.fh a{ font:600 15px Inter,sans-serif; color:#e2bd6a; text-decoration:none; }
-.fh a:hover{ text-decoration:underline; }
-.eyebrow{ margin:0 0 10px; font:600 12px/1.6 Inter,sans-serif; letter-spacing:.18em; text-transform:uppercase; color:#e2bd6a; }
-/* shared: the lede under a heading, and how it works (three numbered steps) */
-.why-lede{ margin:0 0 20px; max-width:640px; font-size:16px; line-height:1.6; color:#5f5f5f; }
-.why-b .why-lede{ color:#bdbdbd; }
-section.how{ padding:44px 20px; background:#fffdf8; }
-.how h2{ margin:0 0 4px; font:700 clamp(26px,5vw,32px)/1.15 'Source Serif 4',serif; color:#2a2a2a; text-wrap:balance; }
-.how-steps{ display:grid; grid-template-columns:minmax(0,1fr); gap:14px; margin-top:22px; }
-@media (min-width:800px){ .how-steps{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; } }
-.how-step{ background:#ffffff; border:1px solid #ece6d3; border-radius:16px; padding:22px 20px; }
-.how-num{ display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:#c9a050; color:#2a2a2a; font:700 19px 'Source Serif 4',serif; margin-bottom:14px; }
-.how-step h3{ margin:0 0 6px; font:700 19px/1.25 'Source Serif 4',serif; color:#2a2a2a; }
-.how-step p{ margin:0; font-size:15px; line-height:1.55; color:#5f5f5f; }
-/* shared: the sign-up band and the For law firms band */
-section.join-c{ background:#f4ecd8; color:#2a2a2a; padding:44px 20px; }
-.join-c-in{ max-width:720px; margin:0 auto; }
-.join-c h2{ margin:0 0 10px; font:700 clamp(26px,5vw,34px)/1.15 'Source Serif 4',serif; color:#2a2a2a; text-wrap:balance; }
-.join-c p{ margin:0 0 22px; font-size:16px; line-height:1.6; color:#3a3a3a; }
-.join-solid{ display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 26px; border-radius:999px; background:#2a2a2a; color:#ffffff; font:600 16px Inter,sans-serif; text-decoration:none; }
-.join-solid:hover{ background:#3a3a3a; }
-section.hz-firms{ background:#2a2a2a; color:#ffffff; padding:44px 20px; }
-.hz-firms-in{ max-width:720px; margin:0 auto; }
-.hz-firms .eyebrow{ color:#e2bd6a; }
-.hz-firms h2{ margin:0 0 12px; font:700 clamp(26px,5vw,34px)/1.15 'Source Serif 4',serif; color:#ffffff; text-wrap:balance; }
-.hz-firms p{ margin:0 0 22px; font-size:16px; line-height:1.6; color:#bdbdbd; }
-.hz-btns{ display:flex; flex-wrap:wrap; gap:12px; }
-.hz-btns a{ display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 22px; border-radius:999px; font:600 15px Inter,sans-serif; text-decoration:none; }
-.hz-solid{ background:#c9a050; color:#2a2a2a; }
-.hz-ghost{ border:1.5px solid #e2bd6a; color:#e2bd6a; }
-/* shared: the sign-up sheet on phones (the markup stays at the end of the page) */
-
-/* concept B: a navy "why" band, a swipe row of top firms, the case types and cities as tiles, the news after them */
-.why-b{ background:#2a2a2a; color:#ffffff; padding:40px 20px; }
-.why-b h2{ margin:0 0 20px; font:700 clamp(26px,5vw,32px)/1.15 'Source Serif 4',serif; color:#ffffff; text-wrap:balance; }
-.why-b .eyebrow{ color:#e2bd6a; }
-.why-b-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px 18px; }
-@media (min-width:900px){ .why-b-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
-.why-b-item b{ display:block; margin:10px 0 4px; font:700 18px/1.25 'Source Serif 4',serif; color:#ffffff; }
-.why-b-item p{ margin:0; font-size:14px; line-height:1.5; color:#bdbdbd; }
-.why-b-ic{ display:grid; place-items:center; width:40px; height:40px; border-radius:50%; background:#c9a050; color:#2a2a2a; }
-section.top-c{ padding:40px 0 8px; background:#fffdf8; }
-section.top-c .fh{ padding:0 20px; }
-.top-track{ display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding:8px 20px 22px; scrollbar-width:none; -webkit-overflow-scrolling:touch; scroll-padding-inline:20px; }
-.top-track::-webkit-scrollbar{ display:none; }
-.top-track .lc{ flex:0 0 82%; max-width:340px; scroll-snap-align:start; }
-@media (min-width:760px){ .top-track .lc{ flex:0 0 310px; } }
-.top-hint{ margin:0 20px; font-size:13.5px; color:#8c8c8c; }
-/* the city strip as tiles, two or more across */
-.cs-chips{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-@media (min-width:700px){ .cs-chips{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
-.cs-chips .cc{ justify-content:space-between; }
-</style>
 <section class="h5-stats" aria-label="LawDB at a glance"><div class="h5-stats-in">
   <div><b data-live="firms">471</b><span>Law firms listed</span></div>
   <div><b data-live="cities">159</b><span>Cities covered</span></div>
   <div><b data-live="states">2</b><span>States, more coming</span></div>
   <div><b>10</b><span>Practice areas</span></div>
+</div></section>
+<section class="hv hv-firms" id="hvFirms" hidden aria-labelledby="hvFirmsH"><div class="hv-in">
+  <div class="hv-head">
+    <div><p class="eyebrow">Meet the firms</p><h2 id="hvFirmsH">Law firms to explore</h2><p class="hv-sub">A fresh mix every day. Each firm here has a complete profile: its logo, photos, practice areas and a written description.</p></div>
+    <div class="hv-head-r"><div class="hv-tabs" id="hvTabs" role="group" aria-label="Show firms in"></div><a class="hv-all" href="/find-lawyers">See all firms <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+  </div>
+  <div class="hv-grid" id="hvGrid"></div>
 </div></section>
 <section class="h4-cases" id="cases" aria-labelledby="h4CasesH"><div class="h4-wrap">
   <div class="h4-cases-card">
@@ -822,40 +731,6 @@ section.bsl{background:#2a2a2a;color:#fff;padding:64px 20px 72px}
     <div class="bsl-more"><a href="/news">See all LawDB News &rarr;</a></div>
   </div>
 </section>
-<section class="why-b" aria-labelledby="whyBH">
-  <p class="eyebrow">Why LawDB</p>
-  <h2 id="whyBH">Find your lawyer, faster.</h2>
-  <p class="why-lede">Real law firms near you, with the practice areas and contact details to choose the right one.</p>
-  <div class="why-b-grid">
-    <div class="why-b-item"><span class="why-b-ic" aria-hidden="true"><svg width="18" height="18"><use href="#i-scales"/></svg></span><b>Real firms</b><p>Listed from open business data and each firm's own website.</p></div>
-    <div class="why-b-item"><span class="why-b-ic" aria-hidden="true"><svg width="18" height="18"><use href="#i-pin"/></svg></span><b>Matched to your case</b><p>Search by the kind of case and the city you are in.</p></div>
-    <div class="why-b-item"><span class="why-b-ic" aria-hidden="true"><svg width="18" height="18"><use href="#i-doc"/></svg></span><b>Know what to ask</b><p>Plain-language guides for each practice area.</p></div>
-    <div class="why-b-item"><span class="why-b-ic" aria-hidden="true"><svg width="18" height="18"><use href="#i-shield"/></svg></span><b>Free to search</b><p>No account needed to look around.</p></div>
-  </div>
-</section>
-<section class="top-c" id="firms" hidden aria-labelledby="topH">
-  <div class="fh"><h2 id="topH">Featured law firms</h2><a href="/find-lawyers">See all</a></div>
-  <div class="top-track"><!--more-firms--></div>
-</section>
-
-<style>
-section.citystrip{ padding:8px 20px 40px; }
-.cs-head{ display:flex; align-items:baseline; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:26px; text-align:center; }
-.cs-head h2{ font-family:'Source Serif 4',serif; font-size:32px; margin:0; }
-.cs-head span{ font-size:16px; color:var(--ink-soft); } .cs-head a{ color:var(--brass-deep); font-weight:600; text-decoration:none; } .cs-head a:hover{ text-decoration:underline; }
-.cs-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px; max-width:1100px; margin:0 auto; }
-.cc{ display:inline-flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:15px 26px; font:600 17px Inter,sans-serif; color:var(--ink); text-decoration:none; transition:background .15s,border-color .15s,transform .15s; }
-.cc span{ font-weight:500; font-size:12px; color:#8c8c8c; }
-@media (hover:hover){ .cc:hover{ background:#f4ecd8; border-color:#c9a050; transform:translateY(-1px); } }
-section.feat-swipe{ padding-top:36px !important; padding-bottom:0 !important; }
-.feat-swipe .lw-track{ padding-bottom:4px; }
-section.citystrip{ padding:28px 20px 36px !important; }
-.cs-prov{ text-align:center; font-size:15px; color:var(--ink-soft); margin:22px 0 0; } .cs-prov a{ color:var(--brass-deep); font-weight:600; text-decoration:none; } .cs-prov a:hover{ text-decoration:underline; }
-</style>
-<section class="citystrip" id="cities" hidden>
-  <div class="cs-head"><h2>Lawyers in your city</h2><span>or <a href="/find-lawyers">search any city</a></span></div>
-  <!--home-dir--><div class="cd-grid"></div>
-</section>
 <script>
 (function(){
   var sec=document.getElementById('homeSlider'); if(!sec) return;
@@ -912,13 +787,87 @@ section.citystrip{ padding:28px 20px 36px !important; }
 })();
 </script>
 
-<section class="how" aria-labelledby="howH"><div class="how-in"><p class="eyebrow">How it works</p><h2 id="howH">Three steps to the right lawyer</h2><a class="how-cta" href="/find-lawyers">Start your search &rarr;</a><div class="how-steps">
-  <article class="how-step"><span class="how-num">1</span><h3>Tell us what you need</h3><p>Search in your own words, or pick a case type and a city.</p></article>
-  <article class="how-step"><span class="how-num">2</span><h3>Compare the firms</h3><p>Each listing shows its practice areas, languages, address and phone number.</p></article>
-  <article class="how-step"><span class="how-num">3</span><h3>Call or visit</h3><p>Call straight from a card, or open the profile for more.</p></article>
+<section class="hv hv-insights" id="hvInsights" hidden aria-labelledby="hvInsH"><div class="hv-in">
+  <div class="hv-head">
+    <div><p class="eyebrow">Legal insights</p><h2 id="hvInsH">More from the firms</h2><p class="hv-sub">Recent articles written by the firms in our directory. Each story links to the original on the firm's own website.</p></div>
+    <a class="hv-all" href="/news">See all LawDB News <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="hv-ins-grid"><ul class="hv-news-list" id="hvNewsList"></ul><div class="hv-spot-wrap" id="hvSpot"></div></div>
+</div></section>
+
+<section class="hv hv-how" aria-labelledby="hvHowH"><div class="hv-in">
+  <div class="hv-head">
+    <div><p class="eyebrow">How it works</p><h2 id="hvHowH">Three steps to the right lawyer</h2><p class="hv-sub">No account and no forms. Search, compare, then call or visit.</p></div>
+    <a class="hv-btn" href="/find-lawyers">Start your search <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
+  <ol class="hv-steps">
+    <li class="hv-step">
+      <div class="hv-art" aria-hidden="true"><div class="hv-a-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f5f5f" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>car accident lawyer in Miami</span><i></i></div><div class="hv-a-chips"><b>Personal injury</b><b>Miami, FL</b><b>Free consultation</b></div></div>
+      <span class="hv-num">1</span><h3>Tell us what you need</h3><p>Type it in your own words, or pick a case type and a city. &ldquo;Car accident lawyer in Miami&rdquo; works.</p>
+    </li>
+    <li class="hv-step">
+      <div class="hv-art" aria-hidden="true"><div class="hv-a-row"><span class="hv-a-av"></span><span class="hv-a-lines"><i></i><i></i></span><b>Verified</b></div><div class="hv-a-row"><span class="hv-a-av"></span><span class="hv-a-lines"><i></i><i></i></span><b>Free consult</b></div><div class="hv-a-row"><span class="hv-a-av"></span><span class="hv-a-lines"><i></i><i></i></span><b>Spanish</b></div></div>
+      <span class="hv-num">2</span><h3>Compare the firms</h3><p>Each card shows the practice areas, languages, address and phone number, and what the firm offers, like a free first consultation.</p>
+    </li>
+    <li class="hv-step">
+      <div class="hv-art" aria-hidden="true"><div class="hv-a-prof"><div class="hv-a-cov"></div><span class="hv-a-logo"></span><span class="hv-a-name"></span><span class="hv-a-sub"></span><div class="hv-a-btns"><b>Call</b><b>Website</b></div></div></div>
+      <span class="hv-num">3</span><h3>Call or visit</h3><p>Call straight from a card, or open the profile for the firm's story, hours, map and latest articles.</p>
+    </li>
+  </ol>
+</div></section>
+
+<section class="hv hv-why" aria-labelledby="hvWhyH"><div class="hv-in">
+  <div class="hv-head"><div><p class="eyebrow">Why LawDB</p><h2 id="hvWhyH">Find your lawyer, faster.</h2><p class="hv-sub">What you need to choose with confidence, and it costs you nothing.</p></div></div>
+  <div class="hv-bento">
+    <article class="hv-tile hv-t-ai">
+      <div class="hv-t-tx"><span class="hv-ic" aria-hidden="true"><svg width="22" height="22"><use href="#i-globe"/></svg></span><h3>Just ask LawDB AI</h3><p>Describe your situation in plain words, in English or Spanish, your choice. LawDB AI points you to firms that fit, and tells you why each one matches. It is free for everyone.</p><button type="button" class="hv-btn hv-btn-dark" data-open-ai>Ask LawDB AI <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+      <div class="hv-chat" aria-hidden="true"><span class="hv-chat-tag">Example</span><p class="me">I was in a car accident in Tampa and need a lawyer who offers a free consultation.</p><p class="bot">Here are personal injury firms in Tampa that offer free consultations, with a short note on why each one matches.</p></div>
+    </article>
+    <article class="hv-tile hv-t-ver"><span class="hv-ic" aria-hidden="true"><svg width="22" height="22"><use href="#i-shield"/></svg></span><h3>Verified by LawDB</h3><p>For firms that ask, we check the lawyer in the state bar's public directory, that the person managing the profile is who they say, and that the office details match. It is not an endorsement.</p><a class="hv-link" href="/how-it-works">How we check <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a></article>
+    <article class="hv-tile"><span class="hv-ic" aria-hidden="true"><svg width="22" height="22"><use href="#i-scales"/></svg></span><h3>Complete profiles only</h3><p>A firm appears here once it has a logo, a cover photo and a written description of its practice. No empty listings.</p></article>
+    <article class="hv-tile"><span class="hv-ic" aria-hidden="true"><svg width="22" height="22"><use href="#i-doc"/></svg></span><h3>Know what to ask</h3><p>Plain-language guides for each practice area.</p><p class="hv-pills"><a href="/personal-injury-lawyers">Injury</a><a href="/family-lawyers">Family</a><a href="/criminal-defense-lawyers">Criminal defense</a><a href="/immigration-lawyers">Immigration</a><a href="/find-lawyers#cases">All 10</a></p></article>
+    <article class="hv-tile hv-t-free"><span class="hv-ic" aria-hidden="true"><svg width="22" height="22"><use href="#i-person"/></svg></span><h3>Free to search, free to join</h3><p>No account needed to look around. Sign in free to follow firms, save their stories and see news from the firms you follow.</p><a class="hv-btn hv-btn-dark" href="/account/">Sign in free</a></article>
+  </div>
+</div></section>
+
+<section class="hv hv-fc-sec" aria-labelledby="hvFcH"><div class="hv-in"><div class="hv-fc">
+  <div class="hv-fc-tx">
+    <p class="eyebrow">For law firms</p><h2 id="hvFcH">Be found by people who are searching now</h2>
+    <p>Every firm on LawDB gets a profile with its practice areas, address and contact details. Add your photos, description and latest articles for free, or get Featured to stand out in your city.</p>
+    <ul class="hv-fc-list">
+      <li><b>A free profile</b><span>Photos, description, practice areas, hours and your own articles.</span></li>
+      <li><b>Verified by LawDB, free</b><span>Show visitors that your lawyer is in the state bar's directory.</span></li>
+      <li><b>Featured, $89 a month</b><span>First 30 days free, no card to start. Stand out, see views and calls, and join the Professional Network.</span></li>
+    </ul>
+    <div class="hv-btns"><a class="hv-gold" href="/list-your-firm">List your firm free</a><a class="hv-ghost" href="/for-firms">See how it works</a></div>
+  </div>
+  <div class="hv-mock" aria-hidden="true"><div class="hv-mock-card"><div class="hv-mock-top"><img src="images/family-consultation.jpg" alt="" width="1024" height="682" loading="lazy" decoding="async"><span class="hv-mock-ft">Featured</span></div><div class="hv-mock-body"><span class="hv-mock-av">HF</span><b>Harbour &amp; Finch LLP</b><span class="hv-mock-sub">Family law &middot; Miami, Florida</span><span class="hv-mock-chips"><i>Verified by LawDB</i><i>Accepting new clients</i><i>Free first consultation</i></span><span class="hv-mock-btns"><i>Call</i><i>Message</i></span></div></div><div class="hv-mock-news"><span class="hv-mock-nimg"></span><span class="hv-mock-ntxt"><small>New on LawDB News</small><b>What happens to the family home in a Florida divorce?</b></span></div><div class="hv-mock-stat"><b>+38</b><span>profile views this week</span></div><small class="hv-mock-note">Sample preview</small></div>
 </div></div></section>
-<section class="join-c" aria-labelledby="joinH"><div class="join-c-in"><div class="join-c-txt"><p class="eyebrow">Free to join</p><h2 id="joinH">Find your lawyer. Stay in touch.</h2><p>Sign in free to follow firms, save their stories and see news from the firms you follow.</p><a class="join-solid" href="/account/">Sign in free</a></div><ul class="join-perks"><li><b>Follow firms</b><span>Keep the firms you like in one place.</span></li><li><b>Save stories</b><span>Bookmark articles to read later.</span></li><li><b>See their news</b><span>A feed of articles from the firms you follow.</span></li></ul></div></section>
-<section class="hz-firms" aria-labelledby="hzFirmsH"><div class="hz-firms-in"><div class="hz-firms-txt"><p class="eyebrow">For law firms</p><h2 id="hzFirmsH">Be found by people who are searching now</h2><p>Every firm on LawDB gets a profile with its practice areas, address and contact details. List your firm for free to add your photos, a description and your latest articles, or get Featured to stand out in your city.</p><div class="hz-btns"><a class="hz-solid" href="/list-your-firm">List your firm free</a><a class="hz-ghost" href="/for-firms">See how it works</a></div></div><div class="hz-mock" aria-hidden="true"><div class="hz-mock-card"><div class="hz-mock-top"><img src="images/family-consultation.jpg" alt="" width="1024" height="682" loading="lazy" decoding="async"><span class="hz-mock-ft">Featured</span></div><div class="hz-mock-body"><span class="hz-mock-av">HF</span><b>Harbour &amp; Finch LLP</b><span class="hz-mock-sub">Family law &middot; Miami, Florida</span><span class="hz-mock-chips"><i>Verified by LawDB</i><i>Accepting new clients</i><i>Free first consultation</i></span><span class="hz-mock-btns"><i>Call</i><i>Message</i></span></div></div><div class="hz-mock-news"><span class="hz-mock-nimg"></span><span class="hz-mock-ntxt"><small>New on LawDB News</small><b>What happens to the family home in a Florida divorce?</b></span></div><div class="hz-mock-stat"><b>+38</b><span>profile views this week</span></div><small class="hz-mock-note">Sample preview</small></div></div></section>
+
+<section class="hv hv-faq" aria-labelledby="hvFaqH"><div class="hv-in"><div class="hv-faq-grid">
+  <div class="hv-faq-l"><p class="eyebrow">Good to know</p><h2 id="hvFaqH">Questions, answered</h2><p class="hv-sub">The short version of how LawDB works. Still unsure? Ask us.</p><a class="hv-btn hv-btn-dark" href="/contact">Contact us <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+  <div class="hv-faq-r">
+    <details><summary>Is LawDB free to use?</summary><p>Yes. Searching, comparing firms, reading the guides and using LawDB AI are free, and you do not need an account. Signing in, which is also free, lets you follow firms and save stories.</p></details>
+    <details><summary>How does LawDB choose the firms it shows?</summary><p>Firms are listed from public business information and each firm's own website. A firm appears on LawDB once it has a complete profile: a logo, a cover photo and a written description of its practice. Featured firms are a paid plan and are always labelled Featured.</p></details>
+    <details><summary>What does &ldquo;Verified by LawDB&rdquo; mean?</summary><p>We check that a lawyer at the firm is in the state bar's public directory, that the person managing the profile is who they say they are, and that the office details match. It is not an endorsement and it does not say anything about a lawyer's record, so check the state bar's own directory too. Each profile links to it.</p></details>
+    <details><summary>Does LawDB give legal advice or recommend a lawyer?</summary><p>No. LawDB is an independent online directory. We are not a law firm and do not give legal advice. A listing is not a recommendation, and LawDB AI helps you find firms that fit what you describe; it cannot tell you what to do about your case.</p></details>
+    <details><summary>Which states do you cover?</summary><p>Florida and Texas today, with California, New York, Illinois and the rest of the country coming next.</p></details>
+    <details><summary>How do I contact a lawyer?</summary><p>Open a firm's profile to call, visit its website or get directions. You deal with the firm directly. Some firms also offer a booking button on their profile.</p></details>
+    <details><summary>How do I list my firm, or fix my listing?</summary><p><a href="/list-your-firm">List your firm free</a> to add your photos, description and practice areas. If your firm is already here, open its page and choose &ldquo;Own this firm?&rdquo;, or <a href="/contact">contact us</a> and we will correct or remove it.</p></details>
+  </div>
+</div></div></section>
+<script>
+(function(){
+  var tabs=document.getElementById('hvTabs'),grid=document.getElementById('hvGrid'); if(!tabs||!grid) return;
+  tabs.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button[data-st]'); if(!b) return;
+    var st=b.getAttribute('data-st');
+    Array.prototype.forEach.call(tabs.children,function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on?'true':'false');});
+    Array.prototype.forEach.call(grid.children,function(c){c.hidden=!!st&&c.getAttribute('data-state')!==st;});
+    grid.scrollLeft=0;
+  });
+})();
+</script>
 <footer class="site-footer">
   <div class="foot-grid">
     <div>

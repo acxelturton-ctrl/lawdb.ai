@@ -7,7 +7,7 @@
 // file is served unchanged, so these pages can never go down because of the database.
 import { SLUG_STATE } from '../lib/us.js';
 import { withHomeNews } from './home-news.js';
-import { withDailyFirms } from './home-firms.js';
+import { withHomeShowcase } from './home-showcase.js';
 
 const cacheSeconds = (env) => {
   const n = Number(env.PUBLIC_CACHE_TTL ?? 60);
@@ -134,10 +134,8 @@ export async function page({ request, env, ctx }) {
     let live;
     try { live = await withLiveStats(html, await liveStats(env)); } catch (err) { console.error('live totals failed, serving static page', new URL(request.url).pathname, err); return passthrough(); }
     try { live = await withHomeNews(live, env); } catch (err) { console.error('home news failed', err); } // the home page's LawDB News feed (does nothing on other pages, and never fails the page)
-    const beforeStrip = live;
-    try { live = await withDailyFirms(live, env); } catch (err) { console.error('daily firms failed', err); } // the home page's top-rated firms, new each day (does nothing on other pages, and never fails the page)
+    try { live = await withHomeShowcase(live, env); } catch (err) { console.error('home showcase failed', err); } // the home page's firm cards, spotlight and articles, new each day (does nothing on other pages, and never fails the page)
     const res = respond(live, 'text/html; charset=utf-8', ttl);
-    if (live !== beforeStrip) res.headers.set('x-lawdb-home-strip', 'daily'); // says which strip was served: today's pick, or (header absent) the cards saved in index.html
     if (ttl > 0) ctx.waitUntil(caches.default.put(key, res.clone()));
     return res;
   }

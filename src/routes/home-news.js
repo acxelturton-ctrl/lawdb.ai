@@ -25,6 +25,11 @@ export async function homeNewsSlice(env, { offset = 0, type = '', limit = STEP }
 
 // The sliding "latest from the firms" cards on the home page: the best-ranked posts that have a picture, one small JSON object each.
 export const SLIDER_POSTS = 8;
+// The slider shows the best-ranked posts that have a picture, one per firm. The article list under it (src/routes/home-showcase.js) continues where it stops.
+export const sliderPosts = (ranked) => {
+  const seen = new Set();
+  return ranked.filter((p) => safePostUrl(p.image) && !seen.has(p.firmSlug) && seen.add(p.firmSlug)).slice(0, SLIDER_POSTS);
+};
 export async function homeSliderApi({ request, env, exec }) {
   const url = new URL(request.url);
   const ttl = ttlOf(env);
@@ -34,8 +39,7 @@ export async function homeSliderApi({ request, env, exec }) {
     if (hit) return hit;
   }
   const ranked = rankPosts(await loadCandidates(env), {});
-  const seen = new Set();
-  const posts = ranked.filter((p) => safePostUrl(p.image) && !seen.has(p.firmSlug) && seen.add(p.firmSlug)).slice(0, SLIDER_POSTS).map((p) => ({
+  const posts = sliderPosts(ranked).map((p) => ({
     t: String(p.title || '').slice(0, 160), x: String(p.excerpt || '').replace(/\s+/g, ' ').slice(0, 170), i: p.image, d: p.publishedAt,
     f: p.firmName, c: p.city || '', s: p.state || '', u: storyPath(p.firmSlug, p.id, p.title),
   }));
