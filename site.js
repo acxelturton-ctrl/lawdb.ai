@@ -151,6 +151,6 @@
 // LawDB AI help bot: the round button at the bottom right of every public page (the home page loads it itself).
 (function(){
   if (window.__lawdbAI || /^\/(admin|account)(\/|$)/.test(location.pathname) || document.querySelector('script[src*="ai-search.js"]')) return;
-  var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ai-search.css?v=2'; document.head.appendChild(l);
-  var s = document.createElement('script'); s.src = '/ai-search.js?v=2'; s.defer = true; document.head.appendChild(s);
+  var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ai-search.css?v=4'; document.head.appendChild(l);
+  var s = document.createElement('script'); s.src = '/ai-search.js?v=3'; s.defer = true; document.head.appendChild(s);
 })();

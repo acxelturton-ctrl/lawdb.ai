@@ -165,6 +165,12 @@ function chipsHtml(f, v) {
   if (v) chips.push(`<li class="pf-chip is-verified">${TICK_SVG}<a href="#verified">Verified by LawDB</a></li>`);
   if (Object.hasOwn(AVAILABILITY, f.availability)) chips.push(`<li class="pf-chip is-${f.availability}"><i aria-hidden="true"></i>${esc(AVAILABILITY[f.availability])}</li>`);
   if (f.virtual === true) chips.push('<li class="pf-chip">Virtual consultations available</li>');
+  // from the firm's own website (the bio says so too): shown plainly, with the source in the tooltip
+  const pk = f.perks || {}, src = ' title="Stated on the firm\'s own website"';
+  if (pk.free) chips.push(`<li class="pf-chip"${src}>Free consultation</li>`);
+  if (pk.h24) chips.push(`<li class="pf-chip"${src}>Available 24/7</li>`);
+  if (pk.virtual && f.virtual !== true) chips.push(`<li class="pf-chip"${src}>Virtual consultations</li>`);
+  if (pk.contingency) chips.push(`<li class="pf-chip"${src}>Contingency fee cases</li>`);
   return chips.length ? `        <ul class="pf-chips" aria-label="Good to know">${chips.join('')}</ul>\n` : '';
 }
 
@@ -307,7 +313,7 @@ function likeAside(nearby, articlesHtml = '') {
 const TABS_JS = "<script>(function(){var t=document.querySelectorAll('.pf-tabs [role=tab]');function sel(b){for(var i=0;i<t.length;i++){var on=t[i]===b;t[i].setAttribute('aria-selected',on);t[i].tabIndex=on?0:-1;document.getElementById(t[i].getAttribute('aria-controls')).hidden=!on;}}for(var i=0;i<t.length;i++){t[i].addEventListener('click',function(){sel(this);});t[i].addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var o=t[0]===this?t[1]:t[0];o.focus();sel(o);}});}})();</script>";
 
 // The Message button opens the contact form it scrolls to.
-const CONTACT_JS = "<script>(function(){var bs=document.querySelectorAll('[data-open-contact]'),s=document.querySelector('.lead-slim');if(s)for(var i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){s.classList.add('open');});var a=(new URLSearchParams(location.search).get('ask')||'').slice(0,240),m=document.querySelector('.lead-slim textarea[name=message]');if(a&&m&&s){if(!m.value)m.value='Hello, I found your firm through LawDB AI. '+a;s.classList.add('open');}})();</script>";
+const CONTACT_JS = "<script>(function(){var bs=document.querySelectorAll('[data-open-contact]'),s=document.querySelector('.lead-slim');if(s)for(var i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){s.classList.add('open');});var a=(new URLSearchParams(location.search).get('ask')||'').slice(0,240),m=document.querySelector('.lead-slim textarea[name=message]');if(a&&m&&s){if(!m.value)m.value=(new URLSearchParams(location.search).get('lang')==='es'?'Hola, encontr\u00e9 su firma a trav\u00e9s de LawDB AI. (Escribo en espa\u00f1ol.) ':'Hello, I found your firm through LawDB AI. ')+a;s.classList.add('open');}})();</script>";
 
 
 // On a phone a bar stays at the bottom with Call and Request a consultation.

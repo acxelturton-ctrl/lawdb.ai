@@ -16,6 +16,8 @@ US law-firm directory. Everything is US only: 50 states + DC (`src/lib/us.js` is
 - If the model is missing, slow or wrong, a keyword matcher gives the same fields, so the feature always answers. The model's city/state are accepted only if they match a city that has a live firm.
 - Firms come from D1 (live firms of the case type in the state, ranked by distance, Featured firms a few miles closer). Spanish-speaking filter uses `details.languages`.
 - Nothing the visitor types is stored. Throttles: 30 requests per visitor per hour and `AI_DAILY_CAP` (default 3000) model calls a day, counted in `stats_daily`; past the cap the keyword matcher answers.
+- Filters: Spanish-speaking (`details.languages`), Free consultation and Available 24/7 (`perks` in the firm record: what the firm's own website says, from the crawl, shown as chips on the profile and as pills in the chat). A filter nobody satisfies is relaxed and the reply says so. Verified firms (a row in `firm_verifications`) rank 12 miles closer and show a Verified pill.
+- Spanish: written Spanish (or the EN/ES button in the chat header) switches every sentence, case-type name, safety note and the chat's own text to Spanish (`T.es` in `ai-match.js`, `UI.es` in `ai-search.js`). The one-line summary passed to the firm stays in English, with a note that the visitor writes Spanish.
 - "Request consultation" opens the firm page with `?ask=<summary>#contact`, which pre-fills the (editable) message.
 - Tests: `scripts/test-ai-match.mjs` (part of `npm run check`).
 
