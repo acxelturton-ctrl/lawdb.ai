@@ -2,8 +2,15 @@
 :root{ --wg1:#fffaf0; --wg2:#fbf3dc; --wg3:#f6ebc9; --wg4:#efdca0; --wg-line:#e6d4a4; --wg-deep:#8a6a1f; }
 
 /* hero */
-body .hero5{ color:#2a2a2a; background:var(--wg3); }
-body .hero5::before{ background:linear-gradient(180deg,rgba(255,250,240,.92) 0%,rgba(251,243,220,.88) 50%,rgba(239,220,160,.92) 100%); }
+body .hero5{ color:#2a2a2a; background:linear-gradient(180deg,var(--wg1) 0%,var(--wg2) 55%,var(--wg4) 100%); padding-top:232px; }
+body .hero5::before{ display:none; }
+/* the skyline photo: a banner that fades into the gold on phones and tablets, the right side of the hero on wide screens */
+body .h5-photo{ inset:0 0 auto 0; width:100%; height:244px; left:0; object-position:27% 28%; -webkit-mask-image:linear-gradient(180deg,#000 0,#000 48%,transparent 100%); mask-image:linear-gradient(180deg,#000 0,#000 48%,transparent 100%); }
+@media(min-width:900px){ body .hero5{ padding-top:76px; } body .h5-photo{ height:300px; } }
+@media(min-width:1100px){
+  body .hero5{ background:linear-gradient(90deg,var(--wg1) 0%,var(--wg2) 45%,var(--wg4) 100%); }
+  body .h5-photo{ inset:0 0 0 auto; left:auto; width:62%; height:100%; object-position:38% 30%; -webkit-mask-image:linear-gradient(90deg,transparent 0,transparent 20%,#000 55%); mask-image:linear-gradient(90deg,transparent 0,transparent 20%,#000 55%); }
+}
 body .h5-eyebrow{ color:var(--wg-deep); }
 body .hero5 h1{ color:#2a2a2a; }
 body .hero5 h1 em{ color:#a9812f; }
@@ -16,7 +23,6 @@ body .h5-go:hover{ background:#444444; }
 body .h5-formula{ background:rgba(255,255,255,.62); border:1px solid rgba(42,42,42,.14); }
 body .h5-formula strong{ color:#2a2a2a; } body .h5-formula small{ color:#5f5f5f; } body .h5-formula i{ color:#8c8c8c; }
 body .h5-formula .h5-sep{ background:rgba(42,42,42,.14); }
-body .h5-mark rect{ stroke:#c9a050; }
 
 /* stats strip */
 body .h5-stats{ background:var(--wg1); border-bottom:1px solid var(--wg-line); padding:26px 8px 24px; }
@@ -65,12 +71,4 @@ body .bsl .bsl-count{ color:#6b5a2e; }
 body .bsl .bsl-more a{ color:#2a2a2a; border-bottom:1.5px solid rgba(42,42,42,.4); }
 body .bsl .bsl-more a:hover{ text-decoration:none; border-bottom-color:#2a2a2a; }
 
-/* wide screens: the hero's side-to-side wash, in gold */
-@media(min-width:900px){
-  body .hero5::before{ background:linear-gradient(90deg,rgba(255,250,240,.94) 0%,rgba(251,243,220,.9) 45%,rgba(239,220,160,.85) 100%); }
-  body .h5-mark{ opacity:.35; }
-}
-
-/* the wide-screen homepage rules (home-wide.css) are more specific, so they are matched here */
-@media(min-width:1100px){ body.pg-home .hero5::before{ background:linear-gradient(90deg,rgba(255,250,240,.94) 0%,rgba(251,243,220,.9) 45%,rgba(239,220,160,.85) 100%); } }
-.d-note{ color:#6b5a2e !important; }
+.d-note{ color:#f4e9c8 !important; text-shadow:0 1px 3px rgba(0,0,0,.7); }
