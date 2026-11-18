@@ -157,7 +157,7 @@
   function applyLang() {
     htSub.textContent = t('sub'); input.placeholder = t('ph'); lab.textContent = t('label'); note.textContent = t('note');
     langBtn.textContent = t('toggle'); langBtn.setAttribute('aria-label', t('toggleAria')); closeBtn.setAttribute('aria-label', t('close'));
-    if (typeof launch !== 'undefined') { launch.setAttribute('aria-label', t('launchAria')); launch.lastChild.textContent = t('launch'); }
+    if (typeof launch !== 'undefined') { launch.setAttribute('aria-label', t('launchAria')); launch.title = t('launch'); launch.lastChild.textContent = t('launch'); }
     document.documentElement.setAttribute('data-aic-lang', lang);
   }
   langBtn.addEventListener('click', function () { if (S.busy) return; var next = lang === 'es' ? 'en' : 'es'; retire(); setLang(next); post({ messages: [], context: S.ctx, pick: { lang: next } }); });
@@ -166,7 +166,7 @@
 
   /* ---------- the button and the panel ---------- */
   var launch = el('button', 'aic-launch'); launch.type = 'button'; launch.setAttribute('aria-label', t('launchAria')); launch.setAttribute('aria-expanded', 'false');
-  launch.appendChild(svg(SPARK)); launch.appendChild(el('span', null, t('launch')));
+  launch.title = t('launch'); launch.appendChild(svg(SPARK)); launch.appendChild(el('i', null, 'AI')); launch.appendChild(el('span', null, t('launch')));
   var panel = el('div', 'aic-panel'); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'LawDB AI help bot');
   var nudge = null;
   document.body.appendChild(launch); document.body.appendChild(panel);

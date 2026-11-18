@@ -53,26 +53,19 @@
 .aic-note{ margin:0; padding:0 16px 14px; font:400 11.5px/1.5 Inter,sans-serif; color:#777; background:#fffdf8; flex:none; }
 .aic-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 
-/* in the home hero */
-.aic-mount{ position:relative; z-index:3; width:100%; max-width:620px; margin:26px auto 0; }
-@media (min-width:900px){
-  body.pg-home .hero5{ min-height:760px; }
-  .aic-mount{ position:absolute; right:max(32px,calc((100% - 1376px)/2 + 32px)); top:50%; transform:translateY(-50%); width:min(520px,42vw); margin:0; }
-  .aic-mount .aic-log{ max-height:300px; }
-  .h5-demo{ display:none !important; }
-}
-
-/* the round button, bottom right of every public page */
-.aic-launch{ position:fixed; right:18px; bottom:calc(18px + env(safe-area-inset-bottom,0px)); z-index:460; display:flex; align-items:center; gap:9px; height:56px; padding:0 20px 0 16px; border:0; border-radius:999px; background:#2a2a2a; color:#fff; font:700 15px Inter,sans-serif; cursor:pointer; box-shadow:0 16px 34px -12px rgba(42,42,42,.7),0 0 0 3px rgba(226,189,106,.55); transition:transform .18s,opacity .2s,box-shadow .2s; }
+/* the round AI icon, bottom right of every public page (the label is only for screen readers and the hover tip) */
+.aic-launch{ position:fixed; right:18px; bottom:calc(18px + env(safe-area-inset-bottom,0px)); z-index:460; display:grid; place-items:center; width:60px; height:60px; padding:0; border:0; border-radius:50%; background:#2a2a2a; color:#fff; cursor:pointer; box-shadow:0 16px 34px -12px rgba(42,42,42,.7),0 0 0 3px rgba(226,189,106,.55); transition:transform .18s,opacity .2s,box-shadow .2s; }
 .aic-launch:hover{ transform:translateY(-2px); box-shadow:0 20px 38px -12px rgba(42,42,42,.75),0 0 0 3px #e2bd6a; }
-.aic-launch svg{ width:22px; height:22px; fill:#f2d98f; flex:none; }
+.aic-launch svg{ width:28px; height:28px; fill:#f2d98f; }
+.aic-launch span{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.aic-launch i{ position:absolute; top:-4px; right:-4px; min-width:24px; height:20px; padding:0 6px; box-sizing:border-box; display:grid; place-items:center; border-radius:999px; background:linear-gradient(180deg,#e9c873,#d4ac55); color:#2a2a2a; font:800 11px/1 Inter,sans-serif; letter-spacing:.04em; font-style:normal; box-shadow:0 0 0 2px #fffdf8; }
 .aic-launch.hide{ opacity:0; pointer-events:none; transform:translateY(10px) scale(.9); }
 .aic-launch::after{ content:""; position:absolute; inset:-3px; border-radius:inherit; box-shadow:0 0 0 0 rgba(226,189,106,.65); animation:aicPulse 2.6s ease-out 1.5s 3; pointer-events:none; }
 @keyframes aicPulse{ 0%{ box-shadow:0 0 0 0 rgba(226,189,106,.65); } 100%{ box-shadow:0 0 0 18px rgba(226,189,106,0); } }
 @media (prefers-reduced-motion:reduce){ .aic-launch::after{ animation:none; } .aic-launch{ transition:none; } }
-@media (max-width:640px){ .aic-launch{ width:56px; padding:0; justify-content:center; } .aic-launch span{ display:none; } }
+@media (max-width:640px){ .aic-launch{ width:56px; height:56px; } .aic-launch svg{ width:26px; height:26px; } }
 /* keep clear of the other things that live at the bottom of a phone screen */
-body.aic-ready .to-top{ bottom:calc(88px + env(safe-area-inset-bottom,0px)); }
+body.aic-ready .to-top{ bottom:calc(92px + env(safe-area-inset-bottom,0px)); }
 @media (max-width:760px){
   body.has-sheet .aic-launch{ bottom:calc(120px + env(safe-area-inset-bottom,0px)); }
   body.has-sheet.aic-ready .to-top{ bottom:190px; }

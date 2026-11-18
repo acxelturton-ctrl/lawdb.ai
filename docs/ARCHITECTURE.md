@@ -11,7 +11,7 @@ US law-firm directory. Everything is US only: 50 states + DC (`src/lib/us.js` is
 - **Verification** (`src/lib/verification.js`): checks a lawyer against the state bar directory (`STATE_BARS`).
 
 ## LawDB AI (home page chat)
-`ai-search.js` / `ai-search.css` draw the chat in the hero (`#aiCard` in `index.html`). It posts to `POST /api/ai/match` (`src/routes/ai.js` -> `src/lib/ai-match.js`).
+`ai-search.js` / `ai-search.css` draw a round AI icon at the bottom right of every public page (loaded from `site.js`); tapping it opens the chat in a panel. It posts to `POST /api/ai/match` (`src/routes/ai.js` -> `src/lib/ai-match.js`).
 - The model (Cloudflare Workers AI, binding `AI`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`) only **reads** the situation: case type, city, state, a neutral one-line summary. It never writes text for the visitor and gives no legal advice; every sentence shown is a template in `ai-match.js`.
 - If the model is missing, slow or wrong, a keyword matcher gives the same fields, so the feature always answers. The model's city/state are accepted only if they match a city that has a live firm.
 - Firms come from D1 (live firms of the case type in the state, ranked by distance, Featured firms a few miles closer). Spanish-speaking filter uses `details.languages`.
