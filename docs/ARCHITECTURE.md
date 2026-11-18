@@ -10,6 +10,15 @@ US law-firm directory. Everything is US only: 50 states + DC (`src/lib/us.js` is
 - **Blog reader** (`src/lib/feeds.js`): follows each firm's blog feed and shows the latest posts on `/news` and the home slider.
 - **Verification** (`src/lib/verification.js`): checks a lawyer against the state bar directory (`STATE_BARS`).
 
+## LawDB AI (home page chat)
+`ai-search.js` / `ai-search.css` draw the chat in the hero (`#aiCard` in `index.html`). It posts to `POST /api/ai/match` (`src/routes/ai.js` -> `src/lib/ai-match.js`).
+- The model (Cloudflare Workers AI, binding `AI`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`) only **reads** the situation: case type, city, state, a neutral one-line summary. It never writes text for the visitor and gives no legal advice; every sentence shown is a template in `ai-match.js`.
+- If the model is missing, slow or wrong, a keyword matcher gives the same fields, so the feature always answers. The model's city/state are accepted only if they match a city that has a live firm.
+- Firms come from D1 (live firms of the case type in the state, ranked by distance, Featured firms a few miles closer). Spanish-speaking filter uses `details.languages`.
+- Nothing the visitor types is stored. Throttles: 30 requests per visitor per hour and `AI_DAILY_CAP` (default 3000) model calls a day, counted in `stats_daily`; past the cap the keyword matcher answers.
+- "Request consultation" opens the firm page with `?ask=<summary>#contact`, which pre-fills the (editable) message.
+- Tests: `scripts/test-ai-match.mjs` (part of `npm run check`).
+
 ## Data pipeline (`tools/us-data`)
 1. `pull_overture.py` reads US law-firm places from Overture Maps (open data) and filters them to the target state.
 2. `enrich.py` visits each firm's own website (robots.txt respected, 1 request/second/site) for logo, photos, about text, socials, blog feed and email.

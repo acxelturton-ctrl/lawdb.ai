@@ -46,6 +46,8 @@
   "r2_buckets": [
     { "binding": "IMAGES", "bucket_name": "lawdb-ai-images" }
   ],
+  // LawDB AI on the home page: Cloudflare Workers AI (no key needed). It only reads the visitor's situation; see src/lib/ai-match.js.
+  "ai": { "binding": "AI" },
   "d1_databases": [
     {
       "binding": "DB",

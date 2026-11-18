@@ -458,6 +458,7 @@
 <link rel="stylesheet" href="home-wide.css?v=1">
 <link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="/home-gold.css?v=1">
+<link rel="stylesheet" href="/ai-search.css?v=1">
 </head>
 <body class="pg-home">
 
@@ -569,6 +570,14 @@
       <button type="submit" class="h5-go">Search <svg width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
     </form>
     <div class="h5-formula"><div><b>1</b><span><strong>Kind of lawyer</strong><small>e.g. family lawyer</small></span></div><i>+</i><span class="h5-sep"></span><div><b>2</b><span><strong>City</strong><small>e.g. Miami</small></span></div></div>
+  </div>
+  <div class="aic" id="aiCard" role="region" aria-label="Ask LawDB AI">
+    <div class="aic-head"><span class="aic-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z"/></svg></span><div><b>LawDB AI</b><small>Describe your situation. I’ll find the right firms.</small></div></div>
+    <div class="aic-log" id="aiLog" role="log" aria-live="polite"></div>
+    <form class="aic-form" id="aiForm" autocomplete="off"><label class="aic-sr" for="aiInput">Describe your legal situation</label>
+      <textarea id="aiInput" rows="1" maxlength="500" placeholder="e.g. I was rear-ended in Tampa and need a lawyer"></textarea>
+      <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>
+    <p class="aic-note">LawDB AI matches you with law firms. It can’t give legal advice, and using it doesn’t create a lawyer-client relationship. Please don’t share confidential details.</p>
   </div>
 </div>
 <style>
@@ -982,6 +991,7 @@ section.citystrip{ padding:28px 20px 36px !important; }
 </script>
 <script src="site.js" defer></script>
 <script src="motion.js" defer></script>
+<script src="ai-search.js?v=1" defer></script>
 <script src="lwa.js?v=2" defer></script>
 <script src="/follow.js" defer></script>
 </body>

@@ -4,6 +4,7 @@
 // src/routes/   public.js (no login), auth.js (sign in/out), account.js (firm owners), admin.js (admins only)
 
 import * as homeNews from './routes/home-news.js';
+import * as ai from './routes/ai.js';
 import { json, HttpError, assertSameOrigin } from './lib/http.js';
 import * as pub from './routes/public.js';
 import * as auth from './routes/auth.js';
@@ -62,6 +63,7 @@ const ROUTES = [
   route('GET', '/api/home-news', homeNews.homeNewsApi),
   route('GET', '/api/home-slider', homeNews.homeSliderApi),
   route('GET', '/api/news', homeNews.newsNearApi),
+  route('POST', '/api/ai/match', ai.match),
   route('POST', '/api/leads', pub.createLead),
   route('POST', '/api/a', stats.collect),
 
