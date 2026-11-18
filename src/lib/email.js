@@ -166,6 +166,7 @@ const FEATURED_GETS = [
   'Listed first among nearby firms on other firms\' profiles and story pages',
   'A page for every office: each office gets its own page, in its own city and on the map, and the one plan covers them all',
   'An analytics dashboard: page views, visitors, which buttons were clicked, where visitors came from, their devices and regions, with trends and a spreadsheet export',
+  'A members-only Professional Network to find and connect with law firms in other cities and states',
   'An inquiries dashboard with filters, private notes, one-tap reply and a spreadsheet export',
   'A Featured badge on your stories in LawDB News, a LawDB page search engines can find for each article, and higher placement in the home page news strip',
 ];
@@ -278,5 +279,32 @@ export function paymentFailedEmail(origin, { firmName }) {
     subject: `Payment problem for ${firmName}`,
     text: `The latest Featured payment for ${firmName} did not go through. Stripe will try the card again. To update the card, open the billing page from your dashboard: ${link}`,
     html: `<p>The latest Featured payment for <b>${esc(firmName)}</b> did not go through. Stripe will try the card again. To update the card, open the billing page from your dashboard.</p>${button(link, 'Open my dashboard')}`,
+  };
+}
+
+// ---------------------------------------------------------------- Professional Network
+export function networkRequestEmail(origin, { toName, fromName, fromCity, fromState, person, message }) {
+  const link = `${origin}/account/#pro`;
+  const who = person ? `${person} at ${fromName}` : fromName;
+  return {
+    subject: `${fromName} would like to connect on the LawDB Professional Network`,
+    text: `${who} (${fromCity}, ${fromState}) asked to connect with ${toName} on the LawDB Professional Network.${message ? `\n\nTheir note: "${message}"` : ''}\n\nAccepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.\n\nAnswer the request: ${link}`,
+    html: `<p><b>${esc(who)}</b> (${esc(fromCity)}, ${esc(fromState)}) asked to connect with <b>${esc(toName)}</b> on the LawDB Professional Network.</p>${message ? `<p style="border-left:3px solid #e2bd6a;padding-left:12px">${esc(message)}</p>` : ''}${button(link, 'Answer the request')}${small('Accepting shares your name and email with their contact person, and theirs with you. Declining shares nothing.')}`,
+  };
+}
+export function networkAcceptedEmail(origin, { askerName, otherName }) {
+  const link = `${origin}/account/#pro`;
+  return {
+    subject: `${otherName} accepted your connection on LawDB`,
+    text: `${otherName} accepted the request from ${askerName}. You can now see their contact person under Connections.\n\n${link}`,
+    html: `<p><b>${esc(otherName)}</b> accepted the request from <b>${esc(askerName)}</b>. You can now see their contact person under Connections.</p>${button(link, 'Open Connections')}`,
+  };
+}
+export function networkReportEmail(origin, { reporterName, reportedName, reportedSlug, reason, detail }) {
+  const link = `${origin}/admin/#network`;
+  return {
+    subject: `Professional Network report: ${reportedName}`,
+    text: `${reporterName} reported ${reportedName} (${reportedSlug}) for: ${reason}.${detail ? `\n\n"${detail}"` : ''}\n\nReview: ${link}`,
+    html: `<p><b>${esc(reporterName)}</b> reported <b>${esc(reportedName)}</b> (${esc(reportedSlug)}) for: ${esc(reason)}.</p>${detail ? `<p style="border-left:3px solid #e2bd6a;padding-left:12px">${esc(detail)}</p>` : ''}${button(link, 'Review the report')}`,
   };
 }

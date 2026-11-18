@@ -5,6 +5,7 @@
 
 import * as homeNews from './routes/home-news.js';
 import * as ai from './routes/ai.js';
+import * as network from './routes/network.js';
 import { json, HttpError, assertSameOrigin } from './lib/http.js';
 import * as pub from './routes/public.js';
 import * as auth from './routes/auth.js';
@@ -148,6 +149,19 @@ const ROUTES = [
   route('GET', '/api/account/firms/:slug/leads', account.listLeads),
   route('GET', '/api/account/firms/:slug/leads.csv', account.exportLeads),
   route('GET', '/api/account/firms/:slug/plan', account.planGet),
+  route('GET', '/api/account/firms/:slug/network', network.get),
+  route('PATCH', '/api/account/firms/:slug/network', network.save),
+  route('GET', '/api/account/firms/:slug/network/facets', network.facets),
+  route('GET', '/api/account/firms/:slug/network/search', network.search),
+  route('POST', '/api/account/firms/:slug/network/ask', network.ask),
+  route('POST', '/api/account/firms/:slug/network/connections', network.connect),
+  route('PATCH', '/api/account/firms/:slug/network/connections/:id', network.decide),
+  route('POST', '/api/account/firms/:slug/network/blocks', network.block),
+  route('DELETE', '/api/account/firms/:slug/network/blocks/:other', network.unblock),
+  route('POST', '/api/account/firms/:slug/network/reports', network.report),
+  route('GET', '/api/admin/network/reports', network.adminReports),
+  route('PATCH', '/api/admin/network/reports/:id', network.adminReview),
+  route('PATCH', '/api/admin/network/firms/:slug', network.adminSuspend),
   route('GET', '/api/account/firms/:slug/analytics', account.analytics),
   route('GET', '/api/account/firms/:slug/analytics.csv', account.analyticsCsvDownload),
   route('POST', '/api/account/firms/:slug/trial', account.trialStart),

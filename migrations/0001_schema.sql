@@ -253,7 +253,7 @@ CREATE TABLE firm_trials (
   ended_at   TEXT,
   views      INTEGER,
   actions    INTEGER,
-  enquiries  INTEGER
+  inquiries  INTEGER
 );
 CREATE TABLE firm_verifications (
   firm_slug            TEXT PRIMARY KEY REFERENCES firms (slug) ON DELETE CASCADE,

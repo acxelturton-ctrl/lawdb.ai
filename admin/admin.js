@@ -36,7 +36,7 @@ function renderLogin() {
 let pendingCount = 0;
 let paymentCount = 0;
 let commentCount = 0;
-const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['logos', 'Logos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
+const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['network', 'Network'], ['logos', 'Logos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
 
 // The bar at the top shows the live counts and the clock; the user menu is on its right. The menu bar under it is the list of sections.
 let appStats = null;
@@ -1177,7 +1177,34 @@ async function viewActivity() {
 }
 
 // ---------------------------------------------------------------- router
-const VIEWS = { overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
+// ---------------------------------------------------------------- Professional Network (reports of firms in the members-only directory)
+async function viewNetwork() {
+  const status = ['new', 'reviewed', 'actioned'].includes(location.hash.split('/')[1]) ? location.hash.split('/')[1] : 'new';
+  const data = await api('GET', `/api/admin/network/reports?status=${status}`);
+  const out = h('div');
+  const act = (r, label, body) => {
+    const b = h('button', { type: 'button' }, label);
+    b.addEventListener('click', async () => {
+      if (body.suspend && !confirm(`Remove ${r.reportedName} from the Professional Network? Its waiting requests and connections end, and it cannot list itself again.`)) return;
+      b.disabled = true;
+      try { await api('PATCH', `/api/admin/network/reports/${r.id}`, body); render(me); } catch (err) { b.disabled = false; out.replaceChildren(note('msg-err', err.message)); }
+    });
+    return b;
+  };
+  const REASON = { 'not-a-lawyer': 'Not a practising lawyer', spam: 'Spam or solicitation', confidential: 'Shared confidential client information', fees: 'Asked about fee-sharing or referral fees', other: 'Something else' };
+  const row = (r) => h('div', { class: 'audit' },
+    h('div', null, h('b', null, r.reportedName), ' ', h('span', { class: 'muted' }, `reported by ${r.reporterName} · ${when(r.createdAt)} · ${REASON[r.reason] || r.reason}${r.suspended ? ' · REMOVED FROM NETWORK' : ''}`)),
+    r.detail && h('div', null, r.detail),
+    h('div', { class: 'row' }, r.status === 'new' ? act(r, 'Mark reviewed', { status: 'reviewed' }) : null, r.status !== 'actioned' ? act(r, r.suspended ? 'Mark actioned' : 'Remove from network and mark actioned', { status: 'actioned', suspend: !r.suspended }) : null,
+      h('a', { href: `/firms/${encodeURIComponent(r.reportedSlug)}`, target: '_blank', rel: 'noopener' }, 'Public page'),
+      r.suspended ? (() => { const b = h('button', { type: 'button' }, 'Restore to network'); b.addEventListener('click', async () => { b.disabled = true; try { await api('PATCH', `/api/admin/network/firms/${encodeURIComponent(r.reportedSlug)}`, { suspended: false, why: 'restored by admin' }); render(me); } catch (err) { b.disabled = false; out.replaceChildren(note('msg-err', err.message)); } }); return b; })() : null));
+  return h('div', null, h('h1', null, 'Professional Network'), out,
+    h('p', { class: 'muted' }, 'Reports from firms about other firms in the members-only directory. Removing a firm switches it off and ends its connections.'),
+    h('div', { class: 'row' }, ['new', 'reviewed', 'actioned'].map((st) => h('a', { href: `#network/${st}`, 'aria-current': st === status ? 'page' : false }, h('button', { type: 'button', class: st === status ? 'primary' : '' }, st === 'new' ? 'New' : st === 'reviewed' ? 'Reviewed' : 'Actioned')))),
+    h('div', { class: 'card' }, data.reports.length ? data.reports.map(row) : h('p', { class: 'muted' }, status === 'new' ? 'No new reports.' : 'Nothing here.')));
+}
+
+const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
 
 let me; // the signed-in admin, for re-rendering after an action
 // "#firms/edit/<username>", "#firms/new" and "#firms/import" are pages inside the Firms section; every other address is a section on its own.

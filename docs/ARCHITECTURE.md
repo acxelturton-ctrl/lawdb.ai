@@ -21,6 +21,16 @@ US law-firm directory. Everything is US only: 50 states + DC (`src/lib/us.js` is
 - "Request consultation" opens the firm page with `?ask=<summary>#contact`, which pre-fills the (editable) message.
 - Tests: `scripts/test-ai-match.mjs` (part of `npm run check`).
 
+## Professional Network (Featured plan, $89/month)
+A members-only directory where Featured firms find and connect with firms in other cities and states. Code: `src/lib/network.js` (logic), `src/routes/network.js` (API under `/api/account/firms/:slug/network/...` and `/api/admin/network/...`), `account/network.js` + `network.css` (the "Network" tab in the firm dashboard), `admin/admin.js` (the "Network" admin tab: reports, remove/restore). Tables: `network_profiles`, `network_connections`, `network_blocks`, `network_reports` (`migrations/0002_network.sql`).
+- **Who is listed:** a firm that is live, Featured (paid or the free month), has switched itself on and accepted the rules, and is not suspended. A firm that stops being Featured leaves the directory by itself (the queries join `firms.featured`). A Basic firm sees a locked preview made of clearly labelled sample firms (`account/network-sample.js`) and a button to start the free month.
+- **What is shown:** what LawDB verified (`firm_verifications`) is kept apart from what the firm reports about itself. "Accepting referrals" appears only if the firm set it, with the date.
+- **Search:** structured filters (practice area, state, city, open to, language, kind of firm, accepting referrals, verified) plus a plain-language bar. The AI (Workers AI, same model and daily cap as the public chat) only turns the sentence into filters; if it is missing or wrong a keyword reader does it. "Why this matches" is built only from filters that matched and never says anything about skill.
+- **Connections:** request with a note (300 characters, no markup), the other firm accepts or declines. Limits: 10 requests a day and 25 waiting per firm, no re-asking for 30 days after a decline. Accepting shares the two contact people's names and emails; nothing is shared before. Either side can end a connection. Blocking hides both firms from each other and ends the connection. Both firms must still be listed to accept. Requests and acceptances send an email.
+- **Trust and safety:** firms accept the rules (`RULES` in `network.js`, version recorded) before listing; reports go to the admin tab and by email; the admin can remove a firm (its requests and connections end and it cannot list itself again) and restore it. All actions are in the audit log.
+- **No fees:** LawDB charges and takes nothing on referrals. Referral and fee-sharing rules differ by state; a US attorney must review this feature before launch.
+- **Not built yet:** posting referral opportunities, tracking referrals, messaging, AI referral drafting, a network map. Tests: `scripts/test-network.mjs` (real SQLite, part of `npm run check`).
+
 ## Data pipeline (`tools/us-data`)
 1. `pull_overture.py` reads US law-firm places from Overture Maps (open data) and filters them to the target state.
 2. `enrich.py` visits each firm's own website (robots.txt respected, 1 request/second/site) for logo, photos, about text, socials, blog feed and email.

@@ -3,6 +3,7 @@
 
 import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, planPanel, lockIcon, STATES } from '/admin/ui.js';
 import { analyticsView, analyticsPreview } from '/admin/firm-analytics.js';
+import { viewPro } from '/account/network.js';
 import { profileEditor } from '/admin/profile-editor.js';
 
 const app = document.getElementById('app');
@@ -89,8 +90,9 @@ function shell(active, content, { wide = false } = {}) {
     ['firms', mine.length > 1 ? 'My firms' : mine.length ? 'My firm' : 'Your firm'],
     ['stats', 'Analytics', !unlocked],
     ['leads', 'Inquiries', !unlocked],
+    ['pro', 'Network', !unlocked],
   ];
-  const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'My network'], ['saved', 'Saved']];
+  const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'Following'], ['saved', 'Saved']];
   const moreActive = more.some(([id]) => id === active);
   const initial = (user.name || user.email || '?').trim()[0].toUpperCase();
   const stat = (label, n) => h('span', null, label, ' ', h('b', null, n));
@@ -502,7 +504,7 @@ async function viewNetwork() {
       } catch (err) { results.replaceChildren(note('msg-err', err.message)); }
     }, 250);
   });
-  return h('div', null, h('h1', null, 'My network'),
+  return h('div', null, h('h1', null, 'Following'),
     h('p', { class: 'muted' }, 'Follow firms to see their newest articles in your feed. Only you can see who you follow; firms see just how many people follow them.'),
     h('div', { class: 'card' }, search, results),
     h('h2', null, 'Firms you may want to follow'), suggest,
@@ -699,8 +701,8 @@ async function render() {
   const seq = ++renderSeq; // a slower, older render must never overwrite a newer one
   document.body.classList.toggle('lw-focus', !!(user && !user.onboarded));
   if (user && !user.onboarded) return renderWizard();
-  const [name, arg] = location.hash.slice(1).split('/');
-  const tab = ['feed', 'network', 'saved', 'profile', 'find', 'leads', 'stats'].includes(name) ? name : name === 'following' ? 'network' : 'firms';
+  const [name, arg, sub] = location.hash.slice(1).split('/');
+  const tab = ['feed', 'network', 'saved', 'profile', 'find', 'leads', 'stats', 'pro'].includes(name) ? name : name === 'following' ? 'network' : 'firms';
   mount(shell(tab, h('p', { class: 'muted' }, 'Loading…')));
   try {
     let view;
@@ -712,6 +714,7 @@ async function render() {
     else if (name === 'edit' && arg) { view = await viewEdit(arg); if (seq !== renderSeq) return; return mount(shell('firms', view, { wide: true })); }
     else if (name === 'leads') view = await viewLeads(arg);
     else if (name === 'stats') view = viewStats(arg);
+    else if (name === 'pro') view = await viewPro({ mine: approved(), slug: arg, tab: sub, onPlanChange: () => loadMe().catch(() => {}) });
     else { await loadMe(); view = viewFirms(); }
     if (seq !== renderSeq) return;
     mount(shell(tab, view));

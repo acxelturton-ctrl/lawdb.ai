@@ -94,7 +94,7 @@
 
     // bottom tab bar on phones
     var bar = document.createElement('nav'); bar.className = 'lw-tabbar'; bar.setAttribute('aria-label', 'Member navigation');
-    var tabs = [['home', 'Home', '/'], ['find', 'Find', '/find-lawyers'], ['network', 'Network', '/account/#network'], ['feed', 'Feed', '/account/#feed']];
+    var tabs = [['home', 'Home', '/'], ['find', 'Find', '/find-lawyers'], ['network', 'Following', '/account/#network'], ['feed', 'Feed', '/account/#feed']];
     bar.innerHTML = tabs.map(function (t) { return '<a href="' + t[2] + '" data-t="' + t[0] + '">' + (ICON[t[0]] || ICON.users) + t[1] + '</a>'; }).join('') +
       '<button type="button" data-t="me"><span class="lw-ava">' + face(m) + '</span>Me</button>';
     document.body.appendChild(bar); document.body.classList.add('lw-has-tabs');
