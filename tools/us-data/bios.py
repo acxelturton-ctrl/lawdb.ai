@@ -1,4 +1,4 @@
-"""Writes a firm's biography from FACTS the crawler found (practice areas, year founded, languages, consultation terms, recent blog topics).
+"""Writes a firm's biography from FACTS the crawler found (practice areas, year founded, recent blog topics). It never repeats what the profile already shows: address, phone, languages, hours or consultation terms.
 Nothing is copied from a firm's own wording. Wording varies by firm (chosen from the slug), so two firms do not read alike.
 Claims the firm makes about itself are attributed ("according to its own website"); there are no rankings, no "best", no promises of results.
 """
@@ -52,6 +52,41 @@ KNOW = {
  'Intellectual property': ['Trademarks, copyrights and patents are protected in different ways, and a lawyer can explain which applies to a name, a work or an invention.'],
  'Tax law': ['Tax disputes and planning questions usually start with notices and filings, so people are asked to bring any letters they have received.'],
 }
+# A second sentence per area, so a firm with two areas reads as more than a list. Same rules: general, careful, no promises, no rankings.
+MORE = {
+ 'Personal injury': ['Insurance companies often make an early offer, and it can be hard to judge whether it reflects the full cost of medical care and lost work.',
+                     'The value of an injury claim usually depends on the medical treatment received, the time away from work and how clearly fault can be shown.',
+                     'Many injury lawyers handle claims on a contingency basis, which means the fee is taken from any recovery rather than paid up front.'],
+ 'Car accidents': ['Fault, insurance coverage and medical bills can all be disputed after a crash, which is why the paperwork gathered early tends to matter.',
+                   'Even a minor collision can lead to injuries that appear days later, so records of when symptoms began can be useful.'],
+ 'Criminal defense': ['The charge, the court and any earlier record all affect what options are available, from dismissal to a plea or a trial.',
+                      'Bail, court dates and conditions of release are set quickly, and a lawyer can explain what each one requires.'],
+ 'DUI': ['Penalties for a DUI vary with the circumstances and any prior record, and the hearing about the driver’s license often has a short deadline.'],
+ 'Family law': ['Courts generally decide custody around the child’s best interests, and support is usually calculated from a set of financial figures both sides must disclose.',
+                'Agreements reached outside court still need to be written down and approved, which is where a lawyer’s drafting can matter.'],
+ 'Immigration': ['Small errors on a form can cause long delays, so applicants often have a lawyer check the paperwork before it is filed.',
+                 'Visa, green card and citizenship cases follow different rules and timelines, and the right path depends on a person’s status and family or work ties.'],
+ 'Wills, trusts & probate': ['A will names who receives property and who is in charge of the estate, while a trust can let assets pass without going through probate.',
+                             'Keeping documents up to date after a marriage, a birth or a move to another state helps make sure they still do what the person intends.'],
+ 'Elder law': ['Planning ahead for long-term care costs and for who can make decisions if someone becomes unable to is easier before a crisis than during one.'],
+ 'Real estate': ['Closing problems usually trace back to the title, the survey or the terms of the contract, so those are the first things a lawyer reviews.',
+                 'Landlord and tenant, boundary and zoning questions each have their own procedures, and deadlines in notices are easy to miss.'],
+ 'Employment': ['Many workplace claims have short filing windows with a government agency before a lawsuit can begin, so timing matters.',
+                'Written warnings, performance reviews, pay records and messages from a supervisor are the kinds of documents that tend to come up.'],
+ 'Workers’ compensation': ['Benefits typically cover medical care and part of lost wages, and a denied claim can usually be appealed within a set period.'],
+ 'Bankruptcy': ['Which debts can be discharged, what property is protected and how long the process takes depend on the chapter filed and on state exemptions.'],
+ 'Business & corporate': ['Choices made at the start, such as the type of company and who owns what, are far easier to set up well than to change later.',
+                          'A written agreement between owners, or with a customer or supplier, spells out what happens when the relationship changes or ends.'],
+ 'Medical malpractice': ['These claims usually require an expert’s opinion that the care fell below accepted standards, which is why they take careful preparation.'],
+ 'Wrongful death': ['The law decides which family members may bring a claim and what losses can be recovered, and the time limits can be shorter than people expect.'],
+ 'Social Security disability': ['Decisions turn on medical records and on how a condition limits work, and appeals have strict deadlines after each denial.'],
+ 'Traffic tickets': ['Paying a ticket is often treated as an admission, so people sometimes talk to a lawyer first about points, fines and insurance effects.'],
+ 'Civil litigation': ['Most civil cases settle before trial, and a lawyer can explain the costs and risks of settling compared with going to court.'],
+ 'Intellectual property': ['Registering a trademark or copyright can make it easier to enforce later, and a lawyer can check for conflicts before a name is chosen.'],
+ 'Tax law': ['Tax notices carry response deadlines, and a lawyer can explain payment plans, penalties and what to do about an audit.'],
+ 'Insurance claims': ['When a claim is delayed or denied, the policy wording and the insurer’s letters are the starting point for deciding what to do next.'],
+}
+
 MIN_WORDS = 90   # a firm needs at least this many words of biography to be listed; thinner ones stay hidden until we know more
 GENERIC_KNOW = 'A first consultation is usually the quickest way to learn whether the firm handles a particular kind of matter.'
 
@@ -98,35 +133,26 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
     p1 = pick(slug, 'intro', intros)
     if reg and city.lower() not in reg.lower() and 'serves people in' not in p1:
         p1 += pick(slug, 'reg', [f' Its clients come from {city} and across {reg}.', f' The firm works with clients throughout {reg}.', f' Its practice covers {city} and the surrounding ' + (reg.replace("the ", "") if reg.lower().endswith(("region", "area", "coast")) else reg.replace("the ", "") + ' region') + '.'])
-    # ---- paragraph 2: what they do
+    # ---- paragraph 2: what the work involves (general, careful statements about each area; no claims about the firm itself)
     lines = []
-    for a in areas[:2]:
+    for a in areas[:3]:
         opts = KNOW.get(a)
         if opts: lines.append(pick(slug, 'know' + a, opts))
+        more = MORE.get(a)
+        if more and a in areas[:2]: lines.append(pick(slug, 'more' + a, more))
     if not lines: lines.append(GENERIC_KNOW)
     if len(names) > 3:
         lines.insert(0, pick(slug, 'also', [f'The firm also lists {join_list(names[3:])} among its work.', f'Its work extends to {join_list(names[3:])}.']))
-    if langs:
-        ls = join_list(sorted(langs))
-        lines.append(pick(slug, 'lang', [f'The firm says it can work with clients in {ls} as well as English.', f'Language support is listed on its website: {ls}, as well as English.']))
     p2 = ' '.join(lines)
-    # ---- paragraph 3: how it works with clients + what it writes about + where to find it
-    terms = []
-    if facts.get('free_consultation'): terms.append('offers a free initial consultation')
-    if facts.get('contingency'): terms.append('takes some cases on a contingency-fee basis, with no fee unless there is a recovery')
-    if facts.get('available_24_7'): terms.append('is available around the clock')
-    if facts.get('virtual_consultations'): terms.append('offers virtual consultations')
-    if facts.get('board_certified'): terms.append('mentions board certification among its attorneys')
+    # ---- paragraph 3: what the firm writes about, and how to choose. Nothing here repeats what the profile already shows (address, phone, languages, consultation terms, hours).
     bits = []
-    if terms: bits.append(pick(slug, 'terms', ['According to its own website, the firm ', 'The firm’s website states that it ', 'By its own description, the firm ']) + join_list(terms) + '.')
     tt = [t for t in (clean_title(p.get('title')) for p in (posts or [])) if t][:2]
     if len(tt) == 2: bits.append(pick(slug, 'blog', [f'Its blog has recently covered “{tt[0]}” and “{tt[1]}”.', f'Recent articles on the firm’s blog include “{tt[0]}” and “{tt[1]}”.']))
     elif tt: bits.append(pick(slug, 'blog1', [f'A recent article on its blog is “{tt[0]}”.', f'Its latest writing includes “{tt[0]}”.']))
-    ph = phone_fmt(phone)
-    street = (address or '').split(',')[0].strip()
-    bits.append(pick(slug, 'close', [
-        f'The office is at {address}' + (f', and the phone number is {ph}' if ph else '') + '.' if address else f'To reach the firm, call {ph}.' if ph else '',
-        (f'To get in touch, call {ph} or ' if ph else 'To get in touch, ') + f'send a request through this page.',
-        (f'Visit {street}' if street else 'Visit the office') + (f' or call {ph}' if ph else '') + ' to talk about your situation.']))
+    bits.append(pick(slug, 'choose', [
+        f'Before choosing a lawyer in {city}, it helps to ask about experience with similar matters, how fees work and how the firm keeps clients updated.',
+        f'When comparing firms in {city}, many people ask how long a case like theirs usually takes, who will handle it day to day and what it is likely to cost.',
+        f'A good first conversation with a {city} firm covers what the lawyer needs from you, what the realistic options are and what the next step would be.',
+        f'People looking for a lawyer in {city} often start by writing down their questions and gathering their paperwork, which makes a first call far more productive.']))
     p3 = ' '.join(b for b in bits if b)
     return '\n\n'.join(p for p in (p1, p2, p3) if p)
