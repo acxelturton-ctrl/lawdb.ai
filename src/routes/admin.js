@@ -20,6 +20,7 @@ import { placeFor } from '../lib/geocode.js';
 import { signinCheck } from '../lib/oauth.js';
 import { findLogos, fetchPicture } from '../lib/logo-finder.js';
 import { firmAnalytics, RANGES } from '../lib/firm-analytics.js';
+import { parseCollectInput, recentRuns, startCollect, loadedByState } from '../lib/collect.js';
 import { startTrial, endTrial, getTrial, trialFunnel, trialAdminChanged } from '../lib/trial.js';
 
 export { CASE_TYPES };
@@ -604,4 +605,20 @@ export async function firmLocationLink({ request, env, params }) {
 export async function firmLocationUnlink({ request, env, params }) {
   const admin = await requireAdmin(env, request);
   return reply({ ok: true, ...(await unlinkLocation(env, admin, params.slug)) });
+}
+
+// ---------------------------------------------------------------- Collect firms (starts the US firm workflow on GitHub)
+export async function collectGet({ request, env }) {
+  await requireAdmin(env, request);
+  const connected = !!env.GITHUB_TOKEN;
+  const [loaded, runs] = await Promise.all([loadedByState(env), connected ? recentRuns(env).catch((err) => ({ error: err.message })) : []]);
+  return reply({ connected, loaded, runs: Array.isArray(runs) ? runs : [], runsError: Array.isArray(runs) ? '' : runs.error });
+}
+
+export async function collectRun({ request, env }) {
+  const admin = await requireAdmin(env, request);
+  const input = parseCollectInput(await readJson(request, 2000));
+  await startCollect(env, input);
+  await audit(env, admin, 'collect.start', 'site', 'us-states', input);
+  return reply({ ok: true, ...input });
 }

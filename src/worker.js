@@ -128,6 +128,8 @@ const ROUTES = [
   route('GET', '/api/admin/search', admin.searchGet),
   route('POST', '/api/admin/search/run', admin.searchRun),
   route('POST', '/api/admin/search/inspect', admin.searchInspect),
+  route('GET', '/api/admin/collect', admin.collectGet),
+  route('POST', '/api/admin/collect', admin.collectRun),
   route('GET', '/api/admin/news', admin.newsGet),
   route('PATCH', '/api/admin/news', admin.newsSettings),
   route('GET', '/api/admin/firms/:slug/feed', admin.feedGet),
