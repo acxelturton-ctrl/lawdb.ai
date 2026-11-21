@@ -163,6 +163,15 @@ function articleRowHtml(p) {
     `<span class="fa-meta">${when ? `<time datetime="${esc(when.iso)}">${esc(when.label)}</time> · ` : ''}${GLOBE}</span></a>${pic}</article>`;
 }
 
+// The Articles tab: the same rows as the profile, longer (up to 20).
+export function renderFirmArticlesPage({ firmName, posts }) {
+  const shown = (posts || []).slice(0, 20).filter((p) => safePostUrl(p.url));
+  if (!shown.length) return '';
+  return `${ARTICLES_CSS}<section class="fa pf-tabpage" aria-label="Articles by ${esc(firmName)}"><h2>Articles by ${esc(firmName)}</h2>` +
+    shown.map(articleRowHtml).join('') +
+    `<p class="fa-note">Headlines and short excerpts come from the firm's public blog. The articles belong to ${esc(firmName)}; the full text is on their website.</p></section>`;
+}
+
 export function renderFirmArticles({ firmName, posts }) {
   const shown = (posts || []).slice(0, 5).filter((p) => safePostUrl(p.url));
   if (!shown.length) return '';

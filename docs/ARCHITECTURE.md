@@ -46,6 +46,14 @@ A members-only directory where Featured firms find and connect with firms in oth
 - **No fees:** LawDB charges and takes nothing on referrals. Referral and fee-sharing rules differ by state; a US attorney must review this feature before launch.
 - **Not built yet:** posting referral opportunities, tracking referrals, messaging, AI referral drafting, a network map. Tests: `scripts/test-network.mjs` (real SQLite, part of `npm run check`).
 
+## Firm profile tabs
+`/firms/<slug>` is the Overview (the whole profile, unchanged address). Two sub-pages can sit beside it: `/firms/<slug>/lawyers` and `/firms/<slug>/articles`. Each is a real page with its own title, description, canonical and breadcrumb item (the tab bar is plain links, not a script). Code: `src/render/firm-tabs.js` (rules, tab bar, Lawyers body), `renderFirmArticlesPage` in `src/render/blog-cards.js`, `renderFirmPage({ tab, tabs, allPosts })`, the route in `src/routes/firm-page.js`, and `src/routes/firm-sitemap.js`.
+- **A tab exists only when the firm has real content for it** (`tabsFor`): Lawyers needs 2 or more lawyers in `details.lawyers` (the names the firm itself shows on its website, after `cleanDetails`); Articles needs 3 or more posts from the firm's enabled blog feed. Otherwise there is no tab button and the address is a plain 404, so no thin page is published. A firm with only an Overview shows no tab bar.
+- The sitemap lists a tab address only for firms that have it, with the same rule. Tab pages are `noindex` while the firm has no real description, like the Overview.
+- Tab pages are one folder deeper than the Overview, so the shared header/footer links are made absolute in `renderFirmPage`.
+- Not built yet: Practice areas and Reviews tabs (no data of their own yet), a page per lawyer (needs bios and photos from the firm: `details.lawyers` holds only name and title), and per-tab view counts (`FIRM_PATH` in `stats.js` counts the Overview only).
+- Tests: `scripts/test-firm-tabs.mjs` (part of `npm run check`).
+
 ## Data pipeline (`tools/us-data`)
 1. `pull_overture.py` reads US law-firm places from Overture Maps (open data) and filters them to the target state.
 2. `enrich.py` visits each firm's own website (robots.txt respected, 1 request/second/site) for logo, photos, about text, socials, blog feed and email.
