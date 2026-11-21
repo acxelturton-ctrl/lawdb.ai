@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bios import make_bio, MIN_WORDS
 
 ST = (sys.argv[1] if len(sys.argv) > 1 else 'FL').upper()
+KEEP = int(sys.argv[sys.argv.index('--keep') + 1]) if '--keep' in sys.argv else 0   # 0 = keep every picked firm; N = only the first N that can go live (the rest are dropped)
 D = os.path.join('data', 'states', ST)
 
 # practice area label (from the crawler) -> the site's ten case types (ids used by search and the case pages)
@@ -109,6 +110,7 @@ for r in rows:
     about = make_bio(slug, r['name'], r['city'], ST, rec['region'], areas, e.get('facts') or {}, [l for l in (e.get('languages') or []) if l in LANGS], e.get('posts') or [], addr, rec['phone']) if has_pics else None
     is_live = bool(about and len(about.split()) >= MIN_WORDS)
     if not is_live: about = None
+    if KEEP and (not is_live or len(live_rows) >= KEEP): continue
     if about: bios[slug] = about
     if perks: perk_rows.append((slug, perks))
     out.append('INSERT OR IGNORE INTO firms (slug,name,city,state,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES ('
@@ -138,4 +140,4 @@ with open(os.path.join(D, 'perks.sql'), 'w') as f:
 # the firms that go live (logo + cover photo): the Find page lists only their cities
 with open(os.path.join(D, 'live.csv'), 'w', newline='') as f:
     w = csv.writer(f); w.writerow(['city', 'lat', 'lng', 'region']); w.writerows(live_rows)
-print(stats, '->', os.path.join(D, 'import.sql'), os.path.getsize(os.path.join(D, 'import.sql')) // 1024, 'KB')
+print(stats, 'live:', len(live_rows), '->', os.path.join(D, 'import.sql'), os.path.getsize(os.path.join(D, 'import.sql')) // 1024, 'KB')

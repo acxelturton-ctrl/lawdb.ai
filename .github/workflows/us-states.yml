@@ -10,14 +10,14 @@ on:
         description: 'State codes, space separated'
         default: 'CA NY'
       target:
-        description: 'Firms to pick per state'
+        description: 'Good firms to keep per state (a firm is good when its site was read and it has a logo, a cover photo and a 90+ word description)'
         default: '100'
+      pool:
+        description: 'Candidate firms to look at per state to find the good ones (about 3x target)'
+        default: '300'
       limit:
         description: 'Visit only N firms per state (0 = all picked), for a quick test'
         default: '0'
-      diag:
-        description: 'Only print why the Overture pull is small (no crawl, no SQL)'
-        default: 'false'
 
 jobs:
   collect:
@@ -28,19 +28,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install duckdb requests beautifulsoup4 Pillow
-      - name: Diagnose Overture pull
-        if: ${{ inputs.diag == 'true' }}
-        run: python3 tools/us-data/diag_overture.py CA
+      - run: pip install duckdb requests beautifulsoup4 lxml Pillow
       - name: Pull, crawl and build SQL
-        if: ${{ inputs.diag != 'true' }}
         run: |
           set -e
           for st in ${{ inputs.states }}; do
             echo "::group::$st"
-            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.target }}"
+            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.pool }}"
             python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
-            python3 tools/us-data/build_import_sql.py "$st"
+            python3 tools/us-data/build_import_sql.py "$st" --keep "${{ inputs.target }}"
+            python3 tools/us-data/preview.py "$st"
             echo "::endgroup::"
           done
       - uses: actions/upload-artifact@v4

@@ -123,8 +123,8 @@ def fetch(con, lst, where_geo, spool=None):
     q = f"""SELECT id, names.primary AS name, taxonomy.primary AS cat, addresses[1].freeform AS street, addresses[1].locality AS city, addresses[1].postcode AS zip, addresses[1].region AS region,
         phones[1] AS phone, websites[1] AS website, emails[1] AS email, socials AS socials, confidence, ST_Y(geometry) AS lat, ST_X(geometry) AS lng
       FROM read_parquet({lst})
-      WHERE {where_geo} AND operating_status = 'open'
-        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
+      WHERE {where_geo} AND (operating_status IS NULL OR operating_status = 'open')
+        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR taxonomy.primary LIKE '%\\_law' ESCAPE '\\' OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
     if spool:
         os.makedirs(os.path.dirname(spool), exist_ok=True)
         con.execute("SET memory_limit='2GB'; SET threads=2;")
