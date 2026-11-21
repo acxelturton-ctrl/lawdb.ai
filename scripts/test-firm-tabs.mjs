@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { renderFirmPage } from '../src/render/firm-page.js';
 import { tabsFor, tabPath, MIN_LAWYERS, MIN_ARTICLES } from '../src/render/firm-tabs.js';
 import { firmSitemap } from '../src/routes/firm-sitemap.js';
+import { cleanLawyer, lawyerSlug } from '../src/lib/lawyers.js';
+import { lawyerAbout } from '../src/lib/lawyer-bio.js';
 
 const lawyers = [{ name: 'Jane Roe', title: 'Partner' }, { name: 'John Doe', title: 'Associate' }];
 const firm = { slug: 'test-law', name: 'Test Law', city: 'Miami', state: 'FL', phone: '+13055550100', website: 'https://example.com', about: 'We help people with injuries. '.repeat(30), details: { lawyers, areas: ['Personal injury'] }, tags: ['Personal injury'] };
@@ -52,9 +54,45 @@ const rows = [
   { slug: 'c-firm', updatedAt: null, about: firm.about, details: null, posts: 0 },
   { slug: 'd-firm', updatedAt: null, about: '', details: JSON.stringify({ lawyers }), posts: 9 }, // no real description yet: stays out
 ];
-const env = { SITE_ORIGIN: 'https://lawdb.ai', DB: { prepare: () => ({ all: async () => ({ results: rows }) }) } };
+const people = [{ firm: 'c-firm', slug: 'maria-lopez' }, { firm: 'c-firm', slug: 'sam-lee' }];
+const env = { SITE_ORIGIN: 'https://lawdb.ai', DB: { prepare: (sql) => ({ all: async () => ({ results: /firm_lawyers/.test(sql) ? people : rows }) }) } };
 const xml = await (await firmSitemap({ request: new Request('https://lawdb.ai/sitemap-firms.xml'), env })).text();
 const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-assert.deepEqual(locs, ['https://lawdb.ai/firms/a-firm', 'https://lawdb.ai/firms/a-firm/lawyers', 'https://lawdb.ai/firms/b-firm', 'https://lawdb.ai/firms/b-firm/articles', 'https://lawdb.ai/firms/c-firm']);
+assert.deepEqual(locs, ['https://lawdb.ai/firms/a-firm', 'https://lawdb.ai/firms/a-firm/lawyers', 'https://lawdb.ai/firms/b-firm', 'https://lawdb.ai/firms/b-firm/articles', 'https://lawdb.ai/firms/c-firm', 'https://lawdb.ai/firms/c-firm/lawyers', 'https://lawdb.ai/firms/c-firm/lawyers/maria-lopez', 'https://lawdb.ai/firms/c-firm/lawyers/sam-lee']);
+
+// --- lawyer rows: only what is safe and complete reaches a page
+const raw = { slug: 'maria-lopez', name: 'Maria Lopez', title: 'Partner', photo_url: 'https://example.com/maria.jpg', phone: '(305) 555-0199', email: 'maria@example.com', source_url: 'https://example.com/team/maria',
+  socials: JSON.stringify({ linkedin: 'https://www.linkedin.com/in/maria-lopez', x: 'https://evil.example/x', facebook: 'javascript:alert(1)' }), areas: JSON.stringify(['Personal injury', '<b>x</b>']) };
+const maria = cleanLawyer(raw);
+assert.equal(maria.phone, '3055550199');
+assert.deepEqual(Object.keys(maria.socials), ['linkedin'], 'only recognised personal profiles are kept');
+assert.deepEqual(maria.areas, ['Personal injury']);
+assert.equal(cleanLawyer({ ...raw, photo_url: '' }), null, 'no photo, no profile');
+assert.equal(cleanLawyer({ ...raw, photo_url: 'http://example.com/a.jpg' }), null, 'photo must be https');
+assert.equal(cleanLawyer({ ...raw, email: 'info@example.com' }).email, '', 'a general office address is not a lawyer contact');
+assert.equal(lawyerSlug('José  Núñez-Smith, Esq.'), 'jose-nunez-smith-esq');
+const sam = cleanLawyer({ slug: 'sam-lee', name: 'Sam Lee', title: '', photo_url: 'https://example.com/sam.jpg', source_url: '' });
+assert.equal(tabsFor({ details: null }, 0, 1).includes('lawyers'), true, 'one full profile is enough for the tab');
+
+// --- a lawyer's page
+const ls = [maria, sam];
+const lp = renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: ls, lawyer: maria });
+assert.match(lp, /<title>Maria Lopez - Partner at Test Law \| Miami, FL \| LawDB<\/title>/);
+assert.match(lp, /rel="canonical" href="https:\/\/lawdb\.ai\/firms\/test-law\/lawyers\/maria-lopez"/);
+assert.match(lp, /"@type": "Person"/); assert.match(lp, /"jobTitle": "Partner"/);
+assert.match(lp, /href="tel:\+13055550199"/); assert.match(lp, /href="mailto:maria@example\.com"/);
+assert.match(lp, /linkedin\.com\/in\/maria-lopez/);
+assert.match(lp, /<img src="https:\/\/example\.com\/maria\.jpg" alt="Maria Lopez, Partner at Test Law"/);
+assert.match(lp, /"name": "Lawyers",\s+"item": "https:\/\/lawdb\.ai\/firms\/test-law\/lawyers"/);
+assert.match(lp, /Other lawyers at Test Law/); assert.match(lp, /Sam Lee/);
+assert.doesNotMatch(lp, /(?:href|src)="\.\.\//);
+const lst = renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: ls });
+assert.match(lst, /href="\/firms\/test-law\/lawyers\/maria-lopez"/);
+
+// --- descriptions differ from lawyer to lawyer
+const names = ['Ana Ruiz', 'Ben Cole', 'Cara Diaz', 'Dan Eng', 'Eva Fox', 'Gus Hill', 'Hal Ito', 'Ivy Jay'];
+const texts = new Set(names.map((n) => { const l = { slug: lawyerSlug(n), name: n, title: 'Partner', areas: ['Personal injury'] }; return lawyerAbout({ lawyer: l, firmName: 'Test Law', city: 'Miami', state: 'FL' }).paragraphs.join(' ').replace(n, 'X').replace(n.split(' ')[0], 'X'); }));
+assert.ok(texts.size >= 4, 'wording varies across lawyers');
+assert.doesNotMatch([...texts].join(' '), /\b(best|top-rated|guarantee|leading)\b/i, 'no rankings or promises');
 
 console.log('firm tabs: ok');
