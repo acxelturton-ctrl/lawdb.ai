@@ -1,4 +1,5 @@
 name: Collect US firms
+run-name: Collect US firms (${{ inputs.states }}, ${{ inputs.target }} each)
 # Run by hand (Actions tab -> Collect US firms -> Run workflow). For each state it pulls law firms from Overture Maps (open data), visits each
 # firm's own website politely (robots.txt, one request a second per site), and builds the SQL that loads them into the firms table.
 # Nothing is written to the live database by this workflow: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review.

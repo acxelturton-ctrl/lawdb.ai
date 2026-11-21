@@ -36,7 +36,7 @@ function renderLogin() {
 let pendingCount = 0;
 let paymentCount = 0;
 let commentCount = 0;
-const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['network', 'Connect'], ['logos', 'Logos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
+const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['collect', 'Collect'], ['network', 'Connect'], ['logos', 'Logos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
 
 // The bar at the top shows the live counts and the clock; the user menu is on its right. The menu bar under it is the list of sections.
 let appStats = null;
@@ -1122,6 +1122,53 @@ async function viewNews() {
     h('div', { class: 'card' }, data.firms.length ? data.firms.map(row) : h('p', { class: 'muted' }, 'No firms have blog cards yet.')));
 }
 
+// ---------------------------------------------------------------- Collect firms: starts the US firm workflow on GitHub and shows how it is going
+async function viewCollect() {
+  const data = await api('GET', '/api/admin/collect');
+  const out = h('div');
+  const picked = new Set(['CA', 'NY']);
+  const target = h('input', { type: 'number', min: 10, max: 300, value: 100, id: 'col-target' });
+  const limit = h('input', { type: 'number', min: 0, max: 300, value: 0, id: 'col-limit' });
+  const stateBtns = Object.entries(STATES).map(([code, name]) => {
+    const b = h('button', { type: 'button', title: name, 'aria-pressed': picked.has(code) }, code);
+    b.classList.toggle('primary', picked.has(code));
+    b.addEventListener('click', () => {
+      if (picked.has(code)) picked.delete(code); else if (picked.size < 4) picked.add(code); else return out.replaceChildren(note('msg-err', 'Pick at most 4 states at a time.'));
+      b.classList.toggle('primary', picked.has(code)); b.setAttribute('aria-pressed', picked.has(code));
+    });
+    return b;
+  });
+  const busy = data.runs.some((r) => r.status !== 'completed');
+  const go = h('button', { class: 'primary', type: 'button', disabled: !data.connected || busy }, 'Start collecting');
+  go.addEventListener('click', async () => {
+    if (!picked.size) return out.replaceChildren(note('msg-err', 'Pick at least one state.'));
+    if (!confirm(`Collect up to ${target.value} firms for ${[...picked].join(', ')}? This visits firm websites and can take an hour or more. Nothing goes live until you load the results.`)) return;
+    go.disabled = true;
+    try { await api('POST', '/api/admin/collect', { states: [...picked], target: Number(target.value), limit: Number(limit.value) }); out.replaceChildren(note('msg-ok', 'Started. It shows below in a few seconds.')); setTimeout(() => render(me), 4000); }
+    catch (err) { out.replaceChildren(note('msg-err', err.message)); go.disabled = false; }
+  });
+  const runText = (r) => r.status === 'completed' ? (r.conclusion === 'success' ? 'Finished' : r.conclusion === 'cancelled' ? 'Cancelled' : 'Failed') : r.status === 'queued' ? 'Waiting to start' : 'Running';
+  const loaded = Object.entries(data.loaded).sort((a, b) => b[1].total - a[1].total);
+  return h('div', null, h('h1', null, 'Collect firms'),
+    !data.connected && h('div', { class: 'card' }, h('b', null, 'GitHub is not connected yet.'),
+      h('ol', null,
+        h('li', null, 'On GitHub, open Settings, Developer settings, Fine-grained tokens, and create a token for the lawdb.ai repository only, with Actions set to Read and write.'),
+        h('li', null, 'In Cloudflare, open Workers & Pages, lawdb-ai, Settings, Variables and Secrets, and add a Secret named GITHUB_TOKEN with that token.'),
+        h('li', null, 'Reload this page.'))),
+    h('div', { class: 'card' },
+      h('p', { class: 'muted' }, 'Pick up to four states. For each one we find law firms in open map data, read each firm\'s own website (politely, one request a second), and prepare them to be added. Nothing goes live from here; the results wait to be reviewed and loaded.'),
+      h('div', { class: 'row' }, stateBtns),
+      h('div', { class: 'row' }, h('label', { for: 'col-target' }, 'Firms per state'), target, h('label', { for: 'col-limit' }, 'Test run: only visit this many (0 = all)'), limit),
+      h('div', { class: 'row' }, go, busy && h('span', { class: 'muted' }, 'A collection is already running.')), out),
+    h('div', { class: 'card' }, h('b', null, 'Recent runs'),
+      data.runsError && note('msg-err', data.runsError),
+      data.runs.length ? data.runs.map((r) => h('div', { class: 'audit' },
+        h('div', null, h('b', null, r.title || 'Collect US firms'), ' ', h('span', { class: 'muted' }, `${runText(r)} · ${when(r.startedAt)}`)),
+        h('div', { class: 'row' }, h('a', { href: r.url, target: '_blank', rel: 'noopener' }, r.status === 'completed' && r.conclusion === 'success' ? 'Open the run to download the results' : 'Open the run on GitHub')))) : h('p', { class: 'muted' }, data.connected ? 'No runs yet.' : 'Connect GitHub to see runs.')),
+    h('div', { class: 'card' }, h('b', null, 'Firms in the database now'),
+      loaded.length ? h('div', null, loaded.map(([st, n]) => h('div', { class: 'audit' }, `${STATES[st] || st}: ${n.live} live of ${n.total}`))) : h('p', { class: 'muted' }, 'None yet.')));
+}
+
 // ---------------------------------------------------------------- people
 async function viewPeople() {
   const list = h('div');
@@ -1204,7 +1251,7 @@ async function viewNetwork() {
     h('div', { class: 'card' }, data.reports.length ? data.reports.map(row) : h('p', { class: 'muted' }, status === 'new' ? 'No new reports.' : 'Nothing here.')));
 }
 
-const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
+const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, collect: viewCollect, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
 
 let me; // the signed-in admin, for re-rendering after an action
 // "#firms/edit/<username>", "#firms/new" and "#firms/import" are pages inside the Firms section; every other address is a section on its own.

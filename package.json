@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "for f in src/*.js src/lib/*.js src/routes/*.js src/render/*.js scripts/*.mjs admin/*.js account/*.js; do node --check $f || exit 1; done && node scripts/build-case-pages.mjs --check && node scripts/test-ai-match.mjs && node --no-warnings scripts/test-network.mjs && node --no-warnings scripts/test-home-showcase.mjs && node --no-warnings scripts/test-signup.mjs && node --no-warnings scripts/test-firm-tabs.mjs && node --no-warnings scripts/test-whereami.mjs && wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "check": "for f in src/*.js src/lib/*.js src/routes/*.js src/render/*.js scripts/*.mjs admin/*.js account/*.js; do node --check $f || exit 1; done && node scripts/build-case-pages.mjs --check && node scripts/test-ai-match.mjs && node --no-warnings scripts/test-network.mjs && node --no-warnings scripts/test-home-showcase.mjs && node --no-warnings scripts/test-signup.mjs && node --no-warnings scripts/test-firm-tabs.mjs && node --no-warnings scripts/test-collect.mjs && node --no-warnings scripts/test-whereami.mjs && wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "db:import:remote": "wrangler d1 execute DB --remote --file=data/states/FL/import.sql",
