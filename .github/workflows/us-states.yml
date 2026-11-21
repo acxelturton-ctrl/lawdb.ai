@@ -15,6 +15,9 @@ on:
       limit:
         description: 'Visit only N firms per state (0 = all picked), for a quick test'
         default: '0'
+      diag:
+        description: 'Only print why the Overture pull is small (no crawl, no SQL)'
+        default: 'false'
 
 jobs:
   collect:
@@ -26,7 +29,11 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install duckdb requests beautifulsoup4 Pillow
+      - name: Diagnose Overture pull
+        if: ${{ inputs.diag == 'true' }}
+        run: python3 tools/us-data/diag_overture.py CA
       - name: Pull, crawl and build SQL
+        if: ${{ inputs.diag != 'true' }}
         run: |
           set -e
           for st in ${{ inputs.states }}; do
