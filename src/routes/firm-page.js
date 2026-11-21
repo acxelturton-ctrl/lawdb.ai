@@ -3,6 +3,7 @@
 // If the database cannot answer, the saved copy of the page in the site files is served instead (an emergency copy, never a second kind of page).
 import { storyPath } from '../lib/stories.js';
 import { renderFirmPage } from '../render/firm-page.js';
+import { tabsFor, TAB_SLUGS } from '../render/firm-tabs.js';
 import { isIndexable } from '../lib/indexing.js';
 import { getVerification, publicView } from '../lib/verification.js';
 import { redirectTarget } from '../lib/firm-slug.js';
@@ -10,7 +11,7 @@ import { siblingsOf } from '../lib/locations.js';
 import { firmStats } from '../lib/firm-stats.js';
 import { bookingRow } from '../render/booking.js';
 
-const CACHE_GENERATION = 3; // 3: one page for every firm (the hand-built path is gone); 2: Book a call is locked until a firm is Featured
+const CACHE_GENERATION = 4; // 4: tab bar and tab pages; 3: one page for every firm (the hand-built path is gone); 2: Book a call is locked until a firm is Featured
 
 const ttlOf = (env) => {
   const n = Number(env.PUBLIC_CACHE_TTL ?? 60);
@@ -36,12 +37,12 @@ async function nearbyFirms(env, f) {
 }
 
 // The firm's latest blog posts (for the cards), only when its feed is switched on.
-async function feedPosts(env, slug) {
+async function feedPosts(env, slug, limit = 3) {
   try {
     const { results } = await env.DB.prepare(
       `SELECT p.id, p.title, p.url, p.published_at AS publishedAt, p.excerpt, p.image_url AS image, (f.page_only = 1 AND m.featured = 0) AS pageOnly
        FROM firm_posts p JOIN firm_feeds f ON f.firm_slug = p.firm_slug JOIN firms m ON m.slug = p.firm_slug
-       WHERE p.firm_slug = ? AND f.enabled = 1 ORDER BY p.published_at DESC, p.id DESC LIMIT 3`
+       WHERE p.firm_slug = ? AND f.enabled = 1 ORDER BY p.published_at DESC, p.id DESC LIMIT ${Math.max(1, Math.min(20, limit | 0))}`
     ).bind(slug).all();
     // Page-only cards go straight to the firm's own article; there is no LawDB story page for them.
     return results.map((r) => (r.pageOnly ? { id: null, title: r.title, url: r.url, publishedAt: r.publishedAt, excerpt: r.excerpt, image: r.image } : { ...r, storyHref: storyPath(slug, r.id, r.title) }));
@@ -72,8 +73,11 @@ const nameOf = (row) => { try { return JSON.parse(row.data).name || 'This firm';
 
 export async function firmPage({ request, env, ctx }) {
   const url = new URL(request.url);
-  const m = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)\/?$/);
+  // /firms/<slug> is the Overview; /firms/<slug>/lawyers and /articles are sub-pages that exist only for firms with that content (see src/render/firm-tabs.js).
+  const m = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles))?\/?$/);
   if (!m) return env.ASSETS.fetch(request);
+  const tab = m[2] || 'overview';
+  if (tab !== 'overview' && !TAB_SLUGS.includes(tab)) return env.ASSETS.fetch(request);
 
   const ttl = ttlOf(env);
   const key = new Request(url.origin + url.pathname + '?g=' + CACHE_GENERATION, { method: 'GET' });
@@ -94,7 +98,7 @@ export async function firmPage({ request, env, ctx }) {
   if (!row) {
     let moved = null;
     try { moved = await redirectTarget(env, m[1]); } catch (err) { console.error('firm redirect lookup failed', m[1], err); }
-    if (moved) return new Response(null, { status: 301, headers: { location: `/firms/${moved}${url.search}`, 'cache-control': 'public, max-age=3600' } });
+    if (moved) return new Response(null, { status: 301, headers: { location: `/firms/${moved}${tab === 'overview' ? '' : '/' + tab}${url.search}`, 'cache-control': 'public, max-age=3600' } });
   }
 
   // A firm switched off in the admin is shown nowhere. A firm that is not live (waiting for approval) or not listed at all has no page.
@@ -107,7 +111,11 @@ export async function firmPage({ request, env, ctx }) {
     const hours = row.hours ? JSON.parse(row.hours) : null;
     const photos = (await env.DB.prepare("SELECT id, alt FROM firm_images WHERE firm_slug = ? AND kind = 'photo' ORDER BY created_at, id").bind(m[1]).all()).results;
     const verified = publicView(await getVerification(env, m[1])); // only a firm the admin has checked; never the name or number the firm gave us
-    html = renderFirmPage({ firm, hours, images: photos, posts: await feedPosts(env, m[1]), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
+    const allPosts = await feedPosts(env, m[1], 20);
+    const tabs = tabsFor(firm, allPosts.length);
+    // A tab the firm has no content for has no page (a plain 404, not a thin page).
+    if (!tabs.includes(tab)) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-tab__'));
+    html = renderFirmPage({ firm, hours, images: photos, tab, tabs, allPosts, posts: allPosts.slice(0, 3), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
   } catch (err) {
     console.error('profile render failed, serving the saved copy', m[1], err);
     return env.ASSETS.fetch(request);
