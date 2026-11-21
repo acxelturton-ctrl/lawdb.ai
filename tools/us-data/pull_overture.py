@@ -13,7 +13,7 @@ BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1), 'CA': (-124.5, -114.1, 32.5, 42.1), 'N
 BASE = 'https://overturemaps-us-west-2.s3.amazonaws.com/'
 
 FIRM_WORDS = re.compile(r"\b(law|laws|lawyer|lawyers|attorney|attorneys|legal|firm|offices?|counsel|associates|group|p\.?\s?a\.?|pllc|p\.?l\.?l\.?c\.?|llp|l\.?l\.?p\.?|llc|p\.?c\.?|chartered|esq\.?)\b", re.I)
-NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
+NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|district attorney|attorney general|prosecutor|law school|school of law|universit(y|ies)|college|law librar(y|ies)|legal runner|runners?|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
 AGGREGATORS = {'avvo.com','lawyers.com','justia.com','findlaw.com','martindale.com','yelp.com','facebook.com','instagram.com','linkedin.com','yellowpages.com','superpages.com','mapquest.com','bbb.org','google.com','nolo.com','lawinfo.com','linktr.ee','wixsite.com','business.site','godaddysites.com','sites.google.com','weebly.com','squarespace.com','wordpress.com'}
 
 def latest_release():

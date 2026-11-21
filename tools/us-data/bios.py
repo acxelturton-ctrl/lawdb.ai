@@ -97,7 +97,7 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
     ]
     p1 = pick(slug, 'intro', intros)
     if reg and city.lower() not in reg.lower() and 'serves people in' not in p1:
-        p1 += pick(slug, 'reg', [f' Its clients come from {city} and across {reg}.', f' The firm works with clients throughout {reg}.', f' Its practice covers {city} and the surrounding {reg.replace("the ", "")} region.'])
+        p1 += pick(slug, 'reg', [f' Its clients come from {city} and across {reg}.', f' The firm works with clients throughout {reg}.', f' Its practice covers {city} and the surrounding ' + (reg.replace("the ", "") if reg.lower().endswith(("region", "area", "coast")) else reg.replace("the ", "") + ' region') + '.'])
     # ---- paragraph 2: what they do
     lines = []
     for a in areas[:2]:

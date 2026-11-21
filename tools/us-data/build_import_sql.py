@@ -30,6 +30,15 @@ def region_nearest(st, lat, lng):
     if st not in REGIONS: return ''
     return min(REGIONS[st]['regions'], key=lambda r: (r['lat'] - lat) ** 2 + ((r['lng'] - lng) * 0.85) ** 2)['id']
 
+def region_if_near(st, rid, lat, lng, miles=50):
+    """The region's name goes into a firm's description only when the firm is within `miles` of its centre; far-off firms get no region sentence rather than a wrong one."""
+    if st == 'FL' or st not in REGIONS: return rid
+    c = next((r for r in REGIONS[st]['regions'] if r['id'] == rid), None)
+    if not c: return ''
+    import math
+    dy = (lat - c['lat']) * 69.0; dx = (lng - c['lng']) * 69.0 * math.cos(math.radians(lat))
+    return rid if math.hypot(dx, dy) <= miles else ''
+
 def region_of(lat, lng):
     if lat < 27.0 and lng > -81.3: return 'fl-south'
     if lat < 27.1 and lng <= -81.3: return 'fl-southwest'
@@ -107,7 +116,7 @@ for r in rows:
     if perks: rec['perks'] = perks
     if areas: stats['with_areas'] += 1
     has_pics = bool(rec.get('src') and rec.get('heroImage'))
-    about = make_bio(slug, r['name'], r['city'], ST, rec['region'], areas, e.get('facts') or {}, [l for l in (e.get('languages') or []) if l in LANGS], e.get('posts') or [], addr, rec['phone']) if has_pics else None
+    about = make_bio(slug, r['name'], r['city'], ST, region_if_near(ST, rec['region'], lat, lng), areas, e.get('facts') or {}, [l for l in (e.get('languages') or []) if l in LANGS], e.get('posts') or [], addr, rec['phone']) if has_pics else None
     is_live = bool(about and len(about.split()) >= MIN_WORDS)
     if not is_live: about = None
     if KEEP and (not is_live or len(live_rows) >= KEEP): continue
