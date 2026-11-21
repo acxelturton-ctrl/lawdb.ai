@@ -8,6 +8,7 @@ import * as ai from './routes/ai.js';
 import * as network from './routes/network.js';
 import { json, HttpError, assertSameOrigin } from './lib/http.js';
 import * as pub from './routes/public.js';
+import { mapPoints } from './routes/map.js';
 import * as auth from './routes/auth.js';
 import * as admin from './routes/admin.js';
 import * as account from './routes/account.js';
@@ -58,6 +59,7 @@ const ROUTES = [
   }),
 
   route('GET', '/api/firms', pub.listFirms),
+  route('GET', '/api/map', mapPoints),
   route('GET', '/api/totals', pub.totals),
   route('GET', '/api/firms/:slug', pub.getFirm),
   route('GET', '/api/blog', pub.listBlog),
