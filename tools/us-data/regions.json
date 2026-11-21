@@ -11,5 +11,52 @@
       {"id": "tx-east", "label": "East Texas (Tyler, Longview, Beaumont)", "lat": 31.8, "lng": -94.6},
       {"id": "tx-west", "label": "West Texas & Panhandle (El Paso, Lubbock, Amarillo, Midland)", "lat": 32.4, "lng": -102.0}
     ]
+  },
+  "CA": {
+    "name": "California",
+    "popular": ["Los Angeles", "San Diego", "San Jose", "San Francisco", "Sacramento", "Irvine", "Oakland", "Fresno"],
+    "regions": [
+      {"id": "ca-la", "label": "Los Angeles Area (Los Angeles, Pasadena, Long Beach, Beverly Hills)", "lat": 34.05, "lng": -118.3},
+      {"id": "ca-oc", "label": "Orange County (Irvine, Anaheim, Santa Ana, Newport Beach)", "lat": 33.72, "lng": -117.85},
+      {"id": "ca-inland", "label": "Inland Empire (Riverside, San Bernardino, Ontario)", "lat": 34.0, "lng": -117.35},
+      {"id": "ca-sd", "label": "San Diego Area (San Diego, Chula Vista, Carlsbad)", "lat": 32.9, "lng": -117.1},
+      {"id": "ca-bay", "label": "San Francisco Bay Area (San Francisco, Oakland, San Jose)", "lat": 37.6, "lng": -122.1},
+      {"id": "ca-sac", "label": "Sacramento & Northern California (Sacramento, Redding, Chico)", "lat": 38.9, "lng": -121.5},
+      {"id": "ca-central", "label": "Central Valley & Central Coast (Fresno, Bakersfield, Santa Barbara)", "lat": 35.9, "lng": -119.6}
+    ]
+  },
+  "NY": {
+    "name": "New York",
+    "popular": ["New York", "Brooklyn", "Buffalo", "Rochester", "Albany", "White Plains", "Syracuse", "Garden City"],
+    "regions": [
+      {"id": "ny-nyc", "label": "New York City (Manhattan, Brooklyn, Queens, Bronx, Staten Island)", "lat": 40.73, "lng": -73.95},
+      {"id": "ny-long-island", "label": "Long Island (Garden City, Hauppauge, Melville)", "lat": 40.8, "lng": -73.2},
+      {"id": "ny-hudson", "label": "Hudson Valley & Westchester (White Plains, Yonkers, Poughkeepsie)", "lat": 41.3, "lng": -73.9},
+      {"id": "ny-capital", "label": "Capital Region (Albany, Saratoga Springs, Schenectady)", "lat": 42.8, "lng": -73.8},
+      {"id": "ny-central", "label": "Central New York (Syracuse, Utica, Binghamton)", "lat": 42.9, "lng": -76.0},
+      {"id": "ny-western", "label": "Western New York (Buffalo, Rochester, Niagara Falls)", "lat": 43.0, "lng": -78.4}
+    ]
+  },
+  "GA": {
+    "name": "Georgia",
+    "popular": ["Atlanta", "Savannah", "Marietta", "Alpharetta", "Decatur", "Augusta", "Macon", "Columbus"],
+    "regions": [
+      {"id": "ga-atlanta", "label": "Atlanta Area (Atlanta, Marietta, Alpharetta, Decatur)", "lat": 33.85, "lng": -84.4},
+      {"id": "ga-north", "label": "North Georgia (Gainesville, Athens, Dalton)", "lat": 34.4, "lng": -83.9},
+      {"id": "ga-central", "label": "Middle Georgia (Macon, Columbus, Warner Robins)", "lat": 32.7, "lng": -83.8},
+      {"id": "ga-coast", "label": "Savannah & Coastal Georgia (Savannah, Brunswick)", "lat": 31.7, "lng": -81.3},
+      {"id": "ga-south", "label": "South Georgia (Valdosta, Albany, Tifton)", "lat": 31.4, "lng": -83.6}
+    ]
+  },
+  "IL": {
+    "name": "Illinois",
+    "popular": ["Chicago", "Naperville", "Aurora", "Rockford", "Springfield", "Peoria", "Joliet", "Schaumburg"],
+    "regions": [
+      {"id": "il-chicago", "label": "Chicago (Downtown, North Side, South Side)", "lat": 41.88, "lng": -87.65},
+      {"id": "il-suburbs", "label": "Chicago Suburbs (Naperville, Schaumburg, Oak Brook, Evanston)", "lat": 41.92, "lng": -88.0},
+      {"id": "il-north", "label": "Northern Illinois (Rockford, Elgin, Waukegan)", "lat": 42.2, "lng": -88.7},
+      {"id": "il-central", "label": "Central Illinois (Springfield, Peoria, Champaign)", "lat": 40.2, "lng": -89.4},
+      {"id": "il-south", "label": "Southern Illinois (Carbondale, Belleville, Marion)", "lat": 38.1, "lng": -89.4}
+    ]
   }
 }

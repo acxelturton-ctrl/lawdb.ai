@@ -1,0 +1,48 @@
+name: Collect US firms
+# Run by hand (Actions tab -> Collect US firms -> Run workflow). For each state it pulls law firms from Overture Maps (open data), visits each
+# firm's own website politely (robots.txt, one request a second per site), and builds the SQL that loads them into the firms table.
+# Nothing is written to the live database by this workflow: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review.
+on:
+  workflow_dispatch:
+    inputs:
+      states:
+        description: 'State codes, space separated'
+        default: 'CA NY'
+      target:
+        description: 'Firms to pick per state'
+        default: '100'
+      limit:
+        description: 'Visit only N firms per state (0 = all picked), for a quick test'
+        default: '0'
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install duckdb requests beautifulsoup4 Pillow
+      - name: Pull, crawl and build SQL
+        run: |
+          set -e
+          for st in ${{ inputs.states }}; do
+            echo "::group::$st"
+            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.target }}"
+            python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
+            python3 tools/us-data/build_import_sql.py "$st"
+            echo "::endgroup::"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: us-states
+          path: |
+            data/states/*/import.sql
+            data/states/*/bios.sql
+            data/states/*/perks.sql
+            data/states/*/live.csv
+            data/states/*/selected.csv
+            data/states/*/candidates.csv
+            data/states/*/enriched.jsonl

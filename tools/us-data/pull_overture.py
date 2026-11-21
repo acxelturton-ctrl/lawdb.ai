@@ -9,7 +9,7 @@ import argparse, csv, os, re, sys, urllib.parse, urllib.request, collections
 import duckdb
 
 # Rough bounding boxes make the read fast (parquet row groups are skipped). A state missing here still works, just slower.
-BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1)}
+BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1), 'CA': (-124.5, -114.1, 32.5, 42.1), 'NY': (-79.8, -71.8, 40.4, 45.1), 'GA': (-85.7, -80.7, 30.3, 35.1), 'IL': (-91.6, -87.0, 36.9, 42.6)}
 BASE = 'https://overturemaps-us-west-2.s3.amazonaws.com/'
 
 FIRM_WORDS = re.compile(r"\b(law|laws|lawyer|lawyers|attorney|attorneys|legal|firm|offices?|counsel|associates|group|p\.?\s?a\.?|pllc|p\.?l\.?l\.?c\.?|llp|l\.?l\.?p\.?|llc|p\.?c\.?|chartered|esq\.?)\b", re.I)
