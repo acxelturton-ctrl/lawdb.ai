@@ -13,8 +13,14 @@ AREA = {'Personal injury': 'personal injury', 'Car accidents': 'car accident cla
 REGION = {'fl-south': 'South Florida', 'fl-treasure': 'the Treasure Coast', 'fl-southwest': 'Southwest Florida', 'fl-tampa-bay': 'the Tampa Bay area',
           'fl-central': 'Central Florida', 'fl-north': 'North Florida', 'fl-panhandle': 'the Florida Panhandle',
           'tx-dfw': 'the Dallas–Fort Worth area', 'tx-houston': 'the Houston area', 'tx-central': 'Central Texas', 'tx-san-antonio': 'the San Antonio area',
-          'tx-south': 'South Texas', 'tx-east': 'East Texas', 'tx-west': 'West Texas'}
-STATE = {'FL': 'Florida', 'TX': 'Texas'}
+          'tx-south': 'South Texas', 'tx-east': 'East Texas', 'tx-west': 'West Texas',
+          'ca-la': 'the Los Angeles area', 'ca-oc': 'Orange County', 'ca-inland': 'the Inland Empire', 'ca-sd': 'the San Diego area',
+          'ca-bay': 'the San Francisco Bay Area', 'ca-sac': 'Sacramento and Northern California', 'ca-central': 'the Central Valley and Central Coast',
+          'ny-nyc': 'New York City', 'ny-long-island': 'Long Island', 'ny-hudson': 'the Hudson Valley', 'ny-capital': 'the Capital Region',
+          'ny-central': 'Central New York', 'ny-western': 'Western New York',
+          'ga-atlanta': 'the Atlanta area', 'ga-north': 'North Georgia', 'ga-central': 'Central Georgia', 'ga-coast': 'the Georgia coast', 'ga-south': 'South Georgia',
+          'il-chicago': 'Chicago', 'il-suburbs': 'the Chicago suburbs', 'il-north': 'Northern Illinois', 'il-central': 'Central Illinois', 'il-south': 'Southern Illinois'}
+STATE = {'FL': 'Florida', 'TX': 'Texas', 'CA': 'California', 'NY': 'New York', 'GA': 'Georgia', 'IL': 'Illinois'}
 # One plain, useful sentence per practice area (a few wordings each). These describe the area; they are not legal advice.
 KNOW = {
  'Personal injury': ['People hurt in an accident usually arrive with medical records, photos and insurance paperwork, and having them together makes a first conversation more useful.',
@@ -86,7 +92,7 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
     intros = [
         f'{name} is a law firm in {where}' + (f' that has been in practice {when}' if when else '') + f', working in {focus}.',
         f'Based in {where}, {name} focuses on {focus}' + (f' and has been serving clients {when}' if when else '') + '.',
-        f'{name} serves people in {city} and {reg or stn} with {focus}' + (f', and has done so {when}' if when else '') + '.',
+        f'{name} serves people in {city}' + (f' and {reg}' if reg and city.lower() not in reg.lower() else f' and across {stn}') + f' with {focus}' + (f', and has done so {when}' if when else '') + '.',
         f'In {city}, {stn}, {name} handles {focus}' + (f' and has been in practice {when}' if when else '') + '.',
     ]
     p1 = pick(slug, 'intro', intros)
