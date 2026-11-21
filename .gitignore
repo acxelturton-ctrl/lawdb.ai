@@ -8,3 +8,4 @@ db/seed.sql
 
 # US state firm data is generated and imported into the database; never committed
 data/states/
+__pycache__/

@@ -51,8 +51,16 @@ A members-only directory where Featured firms find and connect with firms in oth
 - **A tab exists only when the firm has real content for it** (`tabsFor`): Lawyers needs 2 or more lawyers in `details.lawyers` (the names the firm itself shows on its website, after `cleanDetails`); Articles needs 3 or more posts from the firm's enabled blog feed. Otherwise there is no tab button and the address is a plain 404, so no thin page is published. A firm with only an Overview shows no tab bar.
 - The sitemap lists a tab address only for firms that have it, with the same rule. Tab pages are `noindex` while the firm has no real description, like the Overview.
 - Tab pages are one folder deeper than the Overview, so the shared header/footer links are made absolute in `renderFirmPage`.
-- Not built yet: Practice areas and Reviews tabs (no data of their own yet), a page per lawyer (needs bios and photos from the firm: `details.lawyers` holds only name and title), and per-tab view counts (`FIRM_PATH` in `stats.js` counts the Overview only).
+- Not built yet: Practice areas and Reviews tabs (no data of their own yet) and per-tab view counts (`FIRM_PATH` in `stats.js` counts the Overview only).
 - Tests: `scripts/test-firm-tabs.mjs` (part of `npm run check`).
+
+## Lawyer profiles
+Each lawyer a firm shows on its own website can have a page at `/firms/<slug>/lawyers/<lawyer>` (Person schema, photo, title, direct phone/email and personal social profiles if the firm's page shows them, a link to the firm's own profile of them, other lawyers at the firm). Table `firm_lawyers` (`migrations/0003_lawyers.sql`); code in `src/lib/lawyers.js` (reading and cleaning rows), `src/lib/lawyer-bio.js` (the page text), `src/render/firm-tabs.js` (cards and profile), the route in `src/routes/firm-page.js` and the sitemap.
+- **Only lawyers with a checked photo are stored** (`tools/us-data/lawyers.py`): it must download as a real image, be at least 200 px each side, not be near-blank, and not be the same picture as another lawyer's at that firm. A page counts as a lawyer's only if it says so (attorney-type title, "Esq.", "admitted to the bar"); staff are skipped. `cleanLawyer` drops any row without an https photo.
+- **No text is copied from the firm.** The description is written from facts (name, title, firm, city, practice areas the page mentions) with wording chosen from the lawyer's address, so profiles do not read alike, and it names no rankings or results. The firm's phone, general email and social accounts (those on its home page) are never attached to a person.
+- The Lawyers tab exists for a firm with one or more profiles (or 2+ names in `details.lawyers`). A profile address that does not exist is a plain 404. The sitemap lists each profile.
+- **Loading data:** run the "Collect lawyers" workflow (Actions tab; `limit` 25 first), download the `lawyers` artifact, read `lawyers.jsonl`, then load it: `wrangler d1 migrations apply DB --remote` (once, creates the table) and `wrangler d1 execute DB --remote --file=lawyers.sql`. Until the migration is applied the site works as before (the lookup fails quietly and returns no lawyers).
+- Tests: `scripts/test-firm-tabs.mjs` (part of `npm run check`) and `python3 tools/us-data/test_lawyers.py` (crawler against a local site; needs requests, beautifulsoup4, Pillow).
 
 ## Data pipeline (`tools/us-data`)
 1. `pull_overture.py` reads US law-firm places from Overture Maps (open data) and filters them to the target state.
