@@ -365,6 +365,7 @@
 <link rel="stylesheet" href="desktop.css">
 <link rel="stylesheet" href="site.css">
 <link rel="stylesheet" href="lawdb-search.css?v=1">
+<link rel="stylesheet" href="/home-map.css?v=2">
 <script src="lawdb-places.js?v=1"></script>
 <script src="suggest.js?v=5"></script>
 <style>
@@ -503,6 +504,14 @@
     <div class="res-guides" id="resGuides" style="display:none;"></div>
   </div>
 </div>
+
+<section class="hm" id="usmap" aria-labelledby="hmTitle">
+  <div class="hm-in">
+    <div class="hm-head"><span class="hm-eyebrow">Directory coverage</span><h2 id="hmTitle">Law firms across the United States</h2><p id="hmSub">Browse law firms by state and city.</p></div>
+    <div class="hm-scroll" id="hmScroll"><div class="hm-map" id="hmMap"><img class="hm-bg" src="/images/us-map.svg" alt="Map of the United States showing where LawDB lists law firms" width="975" height="610"></div></div>
+    <p class="hm-foot"><a href="#browse">Browse firms by city</a></p>
+  </div>
+</section>
 
 <!--browse-links--><section class="browse" id="browse" aria-labelledby="browseH"><h2 id="browseH">Browse lawyers by state, city and case type</h2><p class="browse-lede">Pick a city to search the law firms LawDB lists there, or read a guide to a kind of case before you choose.</p><div class="browse-prov"><h3><a href="/find-lawyers?q=lawyer+in+Florida">Lawyers in Florida</a></h3><p class="browse-label">Cities</p><p class="browse-cities"><a href="/find-lawyers?q=lawyer+in+Altamonte+Springs%2C+FL">Altamonte Springs</a> <a href="/find-lawyers?q=lawyer+in+Aventura%2C+FL">Aventura</a> <a href="/find-lawyers?q=lawyer+in+Boca+Raton%2C+FL">Boca Raton</a> <a href="/find-lawyers?q=lawyer+in+Boynton+Beach%2C+FL">Boynton Beach</a> <a href="/find-lawyers?q=lawyer+in+Bradenton%2C+FL">Bradenton</a> <a href="/find-lawyers?q=lawyer+in+Brandon%2C+FL">Brandon</a> <a href="/find-lawyers?q=lawyer+in+Clearwater%2C+FL">Clearwater</a> <a href="/find-lawyers?q=lawyer+in+Coral+Gables%2C+FL">Coral Gables</a> <a href="/find-lawyers?q=lawyer+in+Coral+Springs%2C+FL">Coral Springs</a> <a href="/find-lawyers?q=lawyer+in+Davie%2C+FL">Davie</a> <a href="/find-lawyers?q=lawyer+in+Daytona+Beach%2C+FL">Daytona Beach</a> <a href="/find-lawyers?q=lawyer+in+Delray+Beach%2C+FL">Delray Beach</a> <a href="/find-lawyers?q=lawyer+in+Doral%2C+FL">Doral</a> <a href="/find-lawyers?q=lawyer+in+Fort+Lauderdale%2C+FL">Fort Lauderdale</a> <a href="/find-lawyers?q=lawyer+in+Fort+Myers%2C+FL">Fort Myers</a> <a href="/find-lawyers?q=lawyer+in+Fort+Pierce%2C+FL">Fort Pierce</a> <a href="/find-lawyers?q=lawyer+in+Gainesville%2C+FL">Gainesville</a> <a href="/find-lawyers?q=lawyer+in+Hollywood%2C+FL">Hollywood</a> <a href="/find-lawyers?q=lawyer+in+Jacksonville%2C+FL">Jacksonville</a> <a href="/find-lawyers?q=lawyer+in+Jupiter%2C+FL">Jupiter</a> <a href="/find-lawyers?q=lawyer+in+Kissimmee%2C+FL">Kissimmee</a> <a href="/find-lawyers?q=lawyer+in+Lake+Mary%2C+FL">Lake Mary</a> <a href="/find-lawyers?q=lawyer+in+Lakeland%2C+FL">Lakeland</a> <a href="/find-lawyers?q=lawyer+in+Maitland%2C+FL">Maitland</a> <a href="/find-lawyers?q=lawyer+in+Melbourne%2C+FL">Melbourne</a> <a href="/find-lawyers?q=lawyer+in+Miami%2C+FL">Miami</a> <a href="/find-lawyers?q=lawyer+in+Miami+Beach%2C+FL">Miami Beach</a> <a href="/find-lawyers?q=lawyer+in+Miami+Lakes%2C+FL">Miami Lakes</a> <a href="/find-lawyers?q=lawyer+in+Naples%2C+FL">Naples</a> <a href="/find-lawyers?q=lawyer+in+New+Port+Richey%2C+FL">New Port Richey</a> <a href="/find-lawyers?q=lawyer+in+North+Miami%2C+FL">North Miami</a> <a href="/find-lawyers?q=lawyer+in+Ocala%2C+FL">Ocala</a> <a href="/find-lawyers?q=lawyer+in+Orlando%2C+FL">Orlando</a> <a href="/find-lawyers?q=lawyer+in+Palm+Beach+Gardens%2C+FL">Palm Beach Gardens</a> <a href="/find-lawyers?q=lawyer+in+Panama+City%2C+FL">Panama City</a> <a href="/find-lawyers?q=lawyer+in+Pembroke+Pines%2C+FL">Pembroke Pines</a> <a href="/find-lawyers?q=lawyer+in+Pensacola%2C+FL">Pensacola</a> <a href="/find-lawyers?q=lawyer+in+Plantation%2C+FL">Plantation</a> <a href="/find-lawyers?q=lawyer+in+Pompano+Beach%2C+FL">Pompano Beach</a> <a href="/find-lawyers?q=lawyer+in+Sarasota%2C+FL">Sarasota</a> <a href="/find-lawyers?q=lawyer+in+St+Augustine%2C+FL">St Augustine</a> <a href="/find-lawyers?q=lawyer+in+St+Petersburg%2C+FL">St Petersburg</a> <a href="/find-lawyers?q=lawyer+in+Stuart%2C+FL">Stuart</a> <a href="/find-lawyers?q=lawyer+in+Tallahassee%2C+FL">Tallahassee</a> <a href="/find-lawyers?q=lawyer+in+Tampa%2C+FL">Tampa</a> <a href="/find-lawyers?q=lawyer+in+West+Palm+Beach%2C+FL">West Palm Beach</a> <a href="/find-lawyers?q=lawyer+in+Weston%2C+FL">Weston</a> <a href="/find-lawyers?q=lawyer+in+Winter+Park%2C+FL">Winter Park</a></p><p class="browse-label">Case types</p><ul class="browse-cases"><li><a href="/family-lawyers">Family Law & Divorce</a></li><li><a href="/criminal-defense-lawyers">Criminal Defense</a></li><li><a href="/personal-injury-lawyers">Personal Injury</a></li><li><a href="/traffic-ticket-lawyers">Traffic Tickets</a></li><li><a href="/real-estate-lawyers">Real Estate</a></li><li><a href="/wills-estate-lawyers">Wills, Trusts & Probate</a></li><li><a href="/business-lawyers">Business & Corporate</a></li><li><a href="/employment-lawyers">Employment</a></li><li><a href="/immigration-lawyers">Immigration</a></li><li><a href="/litigation-lawyers">Civil Litigation</a></li></ul></div></section><!--/browse-links-->
 
@@ -1576,5 +1585,6 @@ async function renderMap(list){
 <!-- LAWDB-MAP-END -->
 <script src="site.js" defer></script>
 <script src="/follow.js" defer></script>
+<script src="/home-map.js?v=2" defer></script>
 </body>
 </html>
