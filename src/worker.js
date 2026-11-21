@@ -11,6 +11,7 @@ import * as pub from './routes/public.js';
 import { mapPoints } from './routes/map.js';
 import * as auth from './routes/auth.js';
 import * as admin from './routes/admin.js';
+import { whereAmI } from './routes/whereami.js';
 import * as account from './routes/account.js';
 import * as stripe from './routes/stripe.js';
 import * as dyn from './routes/dynamic.js';
@@ -60,6 +61,7 @@ const ROUTES = [
 
   route('GET', '/api/firms', pub.listFirms),
   route('GET', '/api/map', mapPoints),
+  route('GET', '/api/whereami', whereAmI),
   route('GET', '/api/totals', pub.totals),
   route('GET', '/api/firms/:slug', pub.getFirm),
   route('GET', '/api/blog', pub.listBlog),
