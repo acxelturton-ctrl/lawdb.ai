@@ -77,9 +77,10 @@ def main():
             sdir = os.path.join(ROOT, 'data', 'states', st)
             with open(os.path.join(sdir, 'selected.csv'), 'w', newline='') as f:
                 w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(batch)
-            for fn in ('enriched.jsonl', 'outcome.json'):
+            for fn in ('enriched.jsonl', 'outcome.json', 'press.json'):
                 if os.path.exists(os.path.join(sdir, fn)) and rnd == 0: os.remove(os.path.join(sdir, fn))
             if run([sys.executable, 'tools/us-data/enrich.py', st, '--workers', '6']).returncode != 0: print('crawl failed'); break
+            run([sys.executable, 'tools/us-data/press.py', st])   # press coverage from other sites (best effort)
             if run([sys.executable, 'tools/us-data/build_import_sql.py', st, '--keep', str(quota)]).returncode != 0: print('build failed'); break
             outcome = json.load(open(os.path.join(sdir, 'outcome.json')))
             kept = [r for r in batch if outcome.get(r['overture_id']) == 'kept']

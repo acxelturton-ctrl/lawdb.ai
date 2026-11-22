@@ -9,7 +9,8 @@ Descriptions ('about') are left empty on purpose: a page without a real, origina
 """
 import csv, json, os, re, sys, unicodedata, datetime, email.utils
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from bios import make_bio, MIN_WORDS
+from bios import make_biography, MIN_WORDS, MIN_FACTS
+from profile_facts import extract as extract_facts, count_facts
 
 ST = (sys.argv[1] if len(sys.argv) > 1 else 'FL').upper()
 KEEP = int(sys.argv[sys.argv.index('--keep') + 1]) if '--keep' in sys.argv else 0   # 0 = keep every picked firm; N = only the first N that can go live (the rest are dropped)
@@ -73,6 +74,7 @@ rows = list(csv.DictReader(open(os.path.join(D, 'selected.csv'))))
 from pull_overture import NOT_A_FIRM, NAMELESS, MANUAL_NOT_FIRMS
 rows = [r for r in rows if not (NOT_A_FIRM.search(r['name']) or NAMELESS.match(r['name'].strip()) or r['name'].strip().lower() in MANUAL_NOT_FIRMS)]
 enr = {}
+press = json.load(open(os.path.join(D, 'press.json'))) if os.path.exists(os.path.join(D, 'press.json')) else {}   # coverage found on other sites (press.py)
 p = os.path.join(D, 'enriched.jsonl')
 if os.path.exists(p):
     for l in open(p):
@@ -120,8 +122,12 @@ for r in rows:
     if perks: rec['perks'] = perks
     if areas: stats['with_areas'] += 1
     has_pics = bool(rec.get('src') and rec.get('heroImage'))
-    about = make_bio(slug, r['name'], r['city'], ST, region_if_near(ST, rec['region'], lat, lng), areas, e.get('facts') or {}, [l for l in (e.get('languages') or []) if l in LANGS], e.get('posts') or [], addr, rec['phone']) if has_pics else None
-    is_live = bool(about and len(about.split()) >= MIN_WORDS)
+    facts = extract_facts(e, r['name']) if e else {}
+    pr = press.get(r['overture_id']) or []
+    about = make_biography(slug, r['name'], r['city'], ST, region_if_near(ST, rec['region'], lat, lng), areas, facts, pr) if (has_pics and areas) else None
+    is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS)
+    if pr: rec['press'] = pr
+    if facts.get('awards'): rec['awards'] = facts['awards']
     if not is_live: about = None
     if KEEP and not is_live: outcome[r['overture_id']] = 'skip'; continue
     if KEEP and len(live_rows) >= KEEP: outcome[r['overture_id']] = 'extra'; continue

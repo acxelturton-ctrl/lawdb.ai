@@ -193,11 +193,11 @@ def enrich(row):
     final_url, data = first; res['final_url'] = final_url
     soups = {}; queue = [final_url]; seen = set()
     emails, socials, logos, feeds = {}, {}, [], []
-    texts, nav_text = [], []; ld_objs = []; imgs = []
+    texts, nav_text = [], []; ld_objs = []; imgs = []; pages_text = []
     host = urllib.parse.urlparse(final_url).hostname or ''
     pages = 0
     cache = {final_url: data}
-    while queue and pages < 6:
+    while queue and pages < 8:
         url = queue.pop(0)
         if url in seen: continue
         seen.add(url)
@@ -222,7 +222,8 @@ def enrich(row):
             p = urllib.parse.urlparse(full)
             if (p.hostname or '').replace('www.', '') == host.replace('www.', '') and PATH_HINTS.search(p.path + ' ' + a.get_text(' ')) and not re.search(r'\.(pdf|jpg|png|zip)$', p.path, re.I):
                 nav_text.append(a.get_text(' ').strip()[:80])
-                if full.split('#')[0] not in seen and len(queue) < 12: queue.append(full.split('#')[0])
+                if full.split('#')[0] not in seen and len(queue) < 16:
+                    (queue.insert(0, full.split('#')[0]) if re.search(r'about|attorney|lawyer|team|people|award|recogni|why|bio|firm|profile', p.path, re.I) else queue.append(full.split('#')[0]))
         # feeds
         for l in soup.find_all('link', rel=True, href=True):
             if 'alternate' in [x.lower() for x in l.get('rel', [])] and re.search(r'rss|atom', l.get('type', ''), re.I):
@@ -243,6 +244,7 @@ def enrich(row):
         # text (visible) and emails in text
         meta = soup.find('meta', attrs={'name': 'description'})
         t = text_of(soup)
+        pages_text.append({'url': u2, 'title': ((soup.title.string or '') if soup.title else '').strip()[:160], 'text': t[:7000]})
         texts.append(((soup.title.string or '') if soup.title else '') + ' | ' + ((meta.get('content') if meta else '') or '') + ' | ' + t[:6000])
         for m in re.findall(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}', t):
             e = m.lower()
@@ -251,6 +253,15 @@ def enrich(row):
             res['home_title'] = (soup.title.string or '').strip()[:160] if soup.title else ''
             res['home_meta'] = ((meta.get('content') if meta else '') or '').strip()[:300]
             h1 = soup.find('h1'); res['home_h1'] = h1.get_text(' ').strip()[:160] if h1 else ''
+    # people named in structured data (name, job title)
+    people_ld = []
+    for o in ld_objs:
+        ty = o.get('@type'); ty = ' '.join(ty) if isinstance(ty, list) else str(ty or '')
+        if 'Person' in ty and o.get('name') and isinstance(o.get('name'), str):
+            people_ld.append({'name': o['name'].strip()[:80], 'title': str(o.get('jobTitle') or '')[:60]})
+    res['people_ld'] = people_ld[:20]
+    res['pages_text'] = pages_text
+    res['nav_labels'] = [x[:80] for x in nav_text][:80]
     # schema.org
     for o in ld_objs:
         ty = o.get('@type'); ty = ' '.join(ty) if isinstance(ty, list) else str(ty or '')
