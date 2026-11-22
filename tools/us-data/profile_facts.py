@@ -19,8 +19,16 @@ evaluation top best rated award awards winning experienced aggressive dedicated 
 court courts supreme district federal university school college juris doctor bachelor arts science texas california florida illinois georgia ohio pennsylvania north
 carolina jersey michigan washington boston chicago houston dallas phone email address hours monday friday saturday sunday welcome why choose results testimonials
 reviews faq resources articles videos disclaimer privacy policy terms site map menu search skip main content with from by as is was are has have who what when where
-professional corporation llp pllc llc inc pc apc pa p.c. p.a. founder owner principal shareholder member members staff paralegal paralegals assistant assistants administrator
+serving located locations offices operating agreements eviction process let professional corporation llp pllc llc inc pc apc pa p.c. p.a. founder owner principal shareholder member members staff paralegal paralegals assistant assistants administrator
 manager director chief officer president vice general solutions co company inc'''.split())
+
+FIRST_NAMES = set('''james john robert michael william david richard joseph thomas charles christopher daniel matthew anthony mark donald steven paul andrew joshua kenneth kevin brian george timothy ronald edward jason jeffrey ryan jacob gary nicholas eric jonathan stephen larry justin scott brandon benjamin samuel gregory alexander frank patrick raymond jack dennis jerry tyler aaron jose adam nathan henry douglas zachary peter kyle ethan walter noah jeremy christian keith roger terry gerald harold sean austin carl arthur lawrence dylan jesse jordan bryan billy joe bruce gabriel logan albert willie alan juan wayne elijah randy roy vincent ralph eugene russell bobby mason philip louis howard fred todd shawn craig barry curtis glenn marc neil brent brad clay cody dean dale darren derek drew earl evan felix floyd grant hugh ian ivan jay jim jon karl lance lee leo leon lewis lloyd mario martin max melvin mitchell neal norman oliver omar oscar owen perry preston ray reed rex rick rodney ross rudy sam sidney stanley stuart ted theodore tim tom tony trevor troy vernon victor warren wesley wyatt
+mary patricia jennifer linda elizabeth barbara susan jessica sarah karen lisa nancy betty sandra margaret ashley kimberly emily donna michelle carol amanda melissa deborah stephanie dorothy rebecca sharon laura cynthia amy kathleen angela shirley brenda emma anna pamela nicole samantha katherine christine helen debra rachel carolyn janet maria catherine heather diane olivia julie joyce victoria ruth virginia lauren kelly christina joan evelyn judith andrea hannah megan cheryl jacqueline martha madison teresa gloria sara janice ann kathryn abigail sophia frances jean alice judy isabella julia grace amber denise marilyn beverly charlotte natalie theresa diana brittany doris kayla alexis lori marie tiffany monica tina tammy tracy wendy valerie stacy renee robin paula pauline phyllis peggy norma melanie leslie leah laurie kristin kristen krista jill joanne joanna jane jamie holly gail erin erica eileen dawn crystal colleen claire christy carla carmen caroline bonnie beth bernadette ashlee april allison alicia alexandra yvonne yolanda vanessa tara sylvia suzanne stella shelly sheila shannon sherry rosa rhonda regina rita priscilla nora nina naomi miriam mindy mildred melinda meghan marsha marjorie marcia lucy lorraine lillian lindsay lindsey leticia katie kate kara karla julianne josephine joy jodi jenny jenna janelle jan irene ingrid iris hilary heidi harriet gina geraldine gabriela fiona felicia faith ellen elaine edith eleanor dina diane dana daniela courtney constance connie colleen clara cindy cecilia cassandra carrie candace brooke bridget bethany belinda barbara audrey ariel anita angie alma alisha adrienne mandy
+carlos luis miguel jorge fernando ricardo roberto alejandro javier manuel eduardo pedro rafael sergio raul hector jesus ramon enrique armando arturo alberto andres angel antonio diego emilio ernesto felipe francisco guillermo gustavo ignacio julio marco marcos mauricio nelson orlando rodolfo salvador santiago ana sofia isabel rosario lourdes marisol esperanza guadalupe yesenia xochitl veronica adriana alma
+chris mike jim bob bill dave steve rick rob ben matt nick dan greg jeff ken andy alex josh zach phil pete jen liz kim jess steph sandy abby pat cathy deb debbie becky meg sue kerry terri terry laurel lynn lynne marissa melody shaun sherri stacey tanya tonya sunny
+arvind rajesh sanjay vikram anil sunil ravi amit rahul priya neha anjali deepak sandeep pooja kavita ali ahmed mohammed muhammad omar hassan hussein yusuf ibrahim fatima aisha sana wei li jian ming yan hui jun lei xin yu hao kevin david john
+mohamad samir tariq nabil karim jamal rashid tyrone darnell marcus malik andre dwayne cedric terrance latoya tamika keisha ebony shanice aaliyah imani
+yossi moshe david avi eli yitzchak yaakov shlomo chaim menachem dov shmuel yehuda aryeh sholom miriam rivka sara rachel leah esther chana'''.split())
 
 _N = r"[A-Z][a-z]+(?:[-'’][A-Z][a-z]+)?|Mc[A-Z][a-z]+|Mac[A-Z][a-z]+|O’[A-Z][a-z]+|O'[A-Z][a-z]+|De[A-Z][a-z]+|[A-Z]{2,3}(?=\s)"
 NAME = rf"(?:(?:{_N})(?:\s+(?:[A-Z]\.|(?:{_N}))){{1,3}})"
@@ -33,6 +41,8 @@ def _name_ok(n):
     if len(toks) < 2 or len(toks) > 4: return False
     for t in toks:
         if t.lower() in NOT_NAME: return False
+    first = re.split(r"[-'’]", toks[0])[0].lower()      # "Mary-Anne" -> mary
+    if first not in FIRST_NAMES: return False              # a heading such as "Eviction Process" is not a person
     return sum(1 for t in toks if len(t.strip('.')) > 1) >= 2
 
 
@@ -123,12 +133,13 @@ def extract(rec, firm_name=''):
     if not since and rec.get('founded'):
         m = re.match(r'(\d{4})', str(rec['founded']))
         if m: since = int(m.group(1))
-    if since and 1900 <= since <= 2026: out['since'] = since
+    if since and 1900 <= since <= 2018: out['since'] = since          # a recent "since" is usually a copyright line, not a founding year
+    elif since and 2019 <= since <= 2025 and re.search(r'(?:established|founded|opened|formed) in ' + str(since), blob, re.I): out['since'] = since
     if f.get('years_experience'): out['years'] = f['years_experience']
 
     # founder or lead attorney: "founded by NAME", "NAME, founder", "founder NAME"
     founder = None
-    for rx in (re.compile(rf"(?:founded|established|started|opened|formed)(?: the (?:firm|practice|law firm))?(?: in (?:19|20)\d\d)? by ({NAME})"),
+    for rx in (re.compile(rf"(?i:founded|established|started|opened|formed)(?: the (?:firm|practice|law firm))?(?: in (?:19|20)\d\d)? by ({NAME})"),
                re.compile(rf"({NAME}),? (?:is |was )?(?:the |our )?(?:founder|founding (?:partner|attorney|member)|owner|principal|managing (?:partner|attorney)|senior partner)"),
                re.compile(rf"(?:founder|founding (?:partner|attorney)|principal attorney|managing partner|owner)(?:,| is|:|\s[-–—])\s+({NAME})")):
         for m in rx.finditer(blob):
@@ -190,10 +201,10 @@ def extract(rec, firm_name=''):
         if len(served) >= 3: break
     if len(served) >= 2: out['serves'] = served[:6]
     offices = []
-    for m in re.finditer(r"offices? (?:in|located in|at locations in)\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?(?:,\s*|,?\s+and\s+|\s+&\s+)){1,4}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?)", blob):
+    for m in re.finditer(r"(?i:offices?) (?:(?i:in)|(?i:located in)|(?i:at locations in))\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?(?:,\s*|,?\s+and\s+|\s+&\s+)){1,4}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?)", blob):
         for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
             part = part.strip(' .')
-            if 3 <= len(part) <= 24 and part not in offices: offices.append(part)
+            if 3 <= len(part) <= 24 and part not in offices and part not in STATE_NAMES and not any(w.lower() in NOT_NAME for w in part.split()): offices.append(part)
         if offices: break
     if len(offices) >= 2: out['offices'] = offices[:5]
 

@@ -344,9 +344,9 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     names = [AREA.get(a, a.lower()) for a in areas][:3]
     if not names: return ''
     since, founder = p.get('since'), p.get('founder')
-    if since and founder: est = f' established in {since} by {founder}'
-    elif since: est = pick(slug, 'est', [f' that has been in practice since {since}', f' established in {since}', f' in practice since {since}'])
-    elif founder: est = f' founded by {founder}'
+    if since and founder: est = f', established in {since} by {founder}'
+    elif since: est = pick(slug, 'est', [f', in practice since {since}', f', established in {since}'])
+    elif founder: est = f', founded by {founder}'
     else: est = ''
     ap = _area_phrase(names)
     s1 = pick(slug, 's1', [f'{name} is a {city}, {stn} {ap}{est}.', f'{name} is a {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is a {ap}{est}.'])
