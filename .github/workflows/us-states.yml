@@ -2,7 +2,7 @@ name: Collect US firms
 run-name: Collect US firms (${{ inputs.states }}, ${{ inputs.target }} each)
 # Run by hand (Actions tab -> Collect US firms -> Run workflow). For each state it pulls law firms from Overture Maps (open data), visits each
 # firm's own website politely (robots.txt, one request a second per site), and builds the SQL that loads them into the firms table.
-# Nothing is written to the live database by this workflow: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review.
+# By default nothing is written to the live database: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review. Set load to yes (with the CLOUDFLARE_API_TOKEN secret) to also load the kept firms into the live database.
 on:
   workflow_dispatch:
     inputs:
@@ -21,6 +21,9 @@ on:
       reuse_run_id:
         description: 'Optional: id of an earlier run whose crawl to reuse (skips pulling and crawling; only rebuilds the SQL and descriptions)'
         default: ''
+      load:
+        description: 'Type yes to load the kept firms into the LIVE database (lawdb-ai). Needs the CLOUDFLARE_API_TOKEN repository secret. Safe to run twice (INSERT OR IGNORE).'
+        default: 'no'
       limit:
         description: 'Visit only N firms per state (0 = all picked), for a quick test'
         default: '0'
@@ -61,6 +64,21 @@ jobs:
             python3 tools/us-data/check_bios.py "$st"
             echo "::endgroup::"
           done
+      - name: Load into the live database
+        if: ${{ inputs.load == 'yes' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+        run: |
+          set -e
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::Add a CLOUDFLARE_API_TOKEN repository secret (Cloudflare API token with D1 Edit) first."; exit 1; fi
+          npm install --no-save wrangler@4
+          echo "Before:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
+          for st in ${{ inputs.states }}; do
+            echo "Loading $st"
+            npx wrangler d1 execute DB --remote --yes --file="data/states/$st/import.sql"
+          done
+          echo "After:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
       - uses: actions/upload-artifact@v4
         with:
           name: us-states
