@@ -69,6 +69,10 @@ def when(s):
     return t
 
 rows = list(csv.DictReader(open(os.path.join(D, 'selected.csv'))))
+# a second look at names, for crawls made before the pull learned a rule, and for listings a person judged not to be a law firm
+from pull_overture import NOT_A_FIRM, NAMELESS
+MANUAL_NOT_FIRMS = {'salvadorean legal services', 'veaco group'}   # reviewed by hand: a document service and an unclear listing
+rows = [r for r in rows if not (NOT_A_FIRM.search(r['name']) or NAMELESS.match(r['name'].strip()) or r['name'].strip().lower() in MANUAL_NOT_FIRMS)]
 enr = {}
 p = os.path.join(D, 'enriched.jsonl')
 if os.path.exists(p):
