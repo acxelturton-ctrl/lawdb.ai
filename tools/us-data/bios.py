@@ -233,6 +233,12 @@ def join_list(items):
     if len(items) <= 1: return ''.join(items)
     return ', '.join(items[:-1]) + ' and ' + items[-1]
 
+def join_items(items):
+    items = [i for i in items if i]
+    if len(items) <= 1: return ''.join(items)
+    if any(' and ' in i for i in items): return '; '.join(items[:-1]) + '; and ' + items[-1]
+    return ', '.join(items[:-1]) + ' and ' + items[-1]
+
 def clean_title(t):
     t = re.sub(r'\s+', ' ', (t or '')).strip(' "“”')
     if not t or len(t) > 110 or len(t.split()) < 4: return ''
@@ -330,7 +336,7 @@ def _area_phrase(names):
     if len(names) == 1:
         n = names[0]
         return n + ' firm' if n.endswith('law') else n + ' law firm'
-    return 'law firm handling ' + join_list(names[:3])
+    return 'law firm handling ' + join_items(names[:3])
 
 def _titles(items, skip=None):
     out = []

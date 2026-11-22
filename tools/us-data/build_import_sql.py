@@ -122,7 +122,7 @@ for r in rows:
     if perks: rec['perks'] = perks
     if areas: stats['with_areas'] += 1
     has_pics = bool(rec.get('src') and rec.get('heroImage'))
-    facts = extract_facts(e, r['name']) if e else {}
+    facts = extract_facts(e, r['name'], r['city']) if e else {}
     pr = press.get(r['overture_id']) or []
     about = make_biography(slug, r['name'], r['city'], ST, region_if_near(ST, rec['region'], lat, lng), areas, facts, pr) if (has_pics and areas) else None
     is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS)

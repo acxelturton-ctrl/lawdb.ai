@@ -123,7 +123,7 @@ def _pages(rec):
     return pages
 
 
-def extract(rec, firm_name=''):
+def extract(rec, firm_name='', city=''):
     """rec: one crawled firm (a line of enriched.jsonl). Returns a dict of the facts found; every key is optional."""
     pages = _pages(rec)
     blob = ' '.join((p.get('title', '') + '. ' + p.get('text', '')) for p in pages)
@@ -206,7 +206,10 @@ def extract(rec, firm_name=''):
             part = part.strip(' .')
             if 3 <= len(part) <= 24 and part not in offices and part not in STATE_NAMES and not any(w.lower() in NOT_NAME for w in part.split()): offices.append(part)
         if offices: break
-    if len(offices) >= 2: out['offices'] = offices[:5]
+    # an office list is believable only if it includes the firm's own city and none of the firm's own name
+    name_tokens = {t.lower().strip('.,&') for t in re.split(r'\W+', firm_name or '') if len(t) > 2}
+    offices = [o for o in offices if not (set(w.lower() for w in re.split(r'\W+', o) if w) & name_tokens)]
+    if len(offices) >= 2 and (not city or any(city.lower() == o.lower() for o in offices) or len(offices) >= 3 and False): out['offices'] = offices[:5]
 
     aw = [n for n, rx in AWARD_RX if rx.search(blob)]
     if aw: out['awards'] = aw[:5]
