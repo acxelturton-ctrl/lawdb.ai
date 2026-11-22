@@ -1,0 +1,52 @@
+name: Refresh US firm descriptions
+run-name: Refresh descriptions (${{ inputs.states }}, limit ${{ inputs.limit }}, load ${{ inputs.load }})
+# Re-reads the websites of the firms ALREADY in the live database, writes each a new biography (facts from its own site + press on other sites),
+# and with load = yes saves the old text (table about_backup) and replaces it. See tools/us-data/refresh.py. Run with load = no and a small limit first.
+on:
+  workflow_dispatch:
+    inputs:
+      states:
+        description: 'State codes, space separated'
+        default: 'FL TX CA NY'
+      limit:
+        description: 'Only N firms (0 = every firm), for a sample'
+        default: '40'
+      load:
+        description: 'Type yes to write the new descriptions into the LIVE database'
+        default: 'no'
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install duckdb requests beautifulsoup4 lxml Pillow
+      - run: npm install --no-save wrangler@4
+      - name: Read, write and (optionally) load
+        run: |
+          set -e
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
+          python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}"
+          python3 tools/us-data/enrich.py REF --workers 6
+          python3 tools/us-data/press.py REF || true
+          python3 tools/us-data/refresh.py build
+          python3 tools/us-data/check_bios.py REF
+          if [ "${{ inputs.load }}" = "yes" ]; then python3 tools/us-data/refresh.py load; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refresh
+          path: |
+            data/states/REF/refresh.sql
+            data/states/REF/report.txt
+            data/states/REF/bios.json

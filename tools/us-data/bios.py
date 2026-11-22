@@ -19,8 +19,12 @@ REGION = {'fl-south': 'South Florida', 'fl-treasure': 'the Treasure Coast', 'fl-
           'ny-nyc': 'New York City', 'ny-long-island': 'Long Island', 'ny-hudson': 'the Hudson Valley', 'ny-capital': 'the Capital Region',
           'ny-central': 'Central New York', 'ny-western': 'Western New York',
           'ga-atlanta': 'the Atlanta area', 'ga-north': 'North Georgia', 'ga-central': 'Central Georgia', 'ga-coast': 'the Georgia coast', 'ga-south': 'South Georgia',
+          'pa-philly': 'the Philadelphia area', 'pa-lehigh': 'the Lehigh Valley and Poconos', 'pa-harrisburg': 'Central Pennsylvania', 'pa-pittsburgh': 'the Pittsburgh area', 'pa-west': 'Western Pennsylvania',
+          'oh-cleveland': 'the Cleveland and Akron area', 'oh-columbus': 'Central Ohio', 'oh-cincinnati': 'the Cincinnati and Dayton area', 'oh-toledo': 'Northwest Ohio', 'oh-southeast': 'Eastern and Southeast Ohio',
+          'nc-charlotte': 'the Charlotte area', 'nc-triangle': 'the Raleigh–Durham Triangle', 'nc-triad': 'the Piedmont Triad', 'nc-east': 'Eastern North Carolina', 'nc-west': 'Western North Carolina',
           'il-chicago': 'Chicago', 'il-suburbs': 'the Chicago suburbs', 'il-north': 'Northern Illinois', 'il-central': 'Central Illinois', 'il-south': 'Southern Illinois'}
-STATE = {'FL': 'Florida', 'TX': 'Texas', 'CA': 'California', 'NY': 'New York', 'GA': 'Georgia', 'IL': 'Illinois'}
+import json, os
+STATE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'state_names.json')))   # every state's full name
 # One plain, useful sentence per practice area (a few wordings each). These describe the area; they are not legal advice.
 KNOW = {
  'Personal injury': ['People hurt in an accident usually arrive with medical records, photos and insurance paperwork, and having them together makes a first conversation more useful.',
@@ -206,7 +210,8 @@ EXTRA_MORE2 = {
 for _a, _l in EXTRA_KNOW2.items(): KNOW.setdefault(_a, []).extend(_l)
 for _a, _l in EXTRA_MORE2.items(): MORE.setdefault(_a, []).extend(_l)
 
-MIN_WORDS = 90   # a firm needs at least this many words of biography to be listed; thinner ones stay hidden until we know more
+MIN_WORDS = 55   # words; with at least MIN_FACTS firm-specific facts. The homepage showcase has its own, higher bar (src/routes/home-showcase.js).
+MIN_FACTS = 3   # a firm needs at least this many words of biography to be listed; thinner ones stay hidden until we know more
 GENERIC_KNOW = 'A first consultation is usually the quickest way to learn whether the firm handles a particular kind of matter.'
 
 BAD = re.compile(r'\b(best|top|leading|premier|expert|experts|guarantee[sd]?|finest|win|wins|winning|aggressive|proven|#1)\b', re.I)
@@ -311,3 +316,76 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
             'Keeping a simple timeline of what happened, in plain language, is one of the most useful things to bring to a first consultation.',
             'Asking what will be needed from you, and by when, makes the early weeks of any matter easier to manage.']) + ' ' + p3).strip()
     return '\n\n'.join(p for p in (p1, p2, p3) if p)
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+# The biography: facts the firm's own site states (profile_facts.py) and press found elsewhere (press.py), written as a short profile like
+# lawdb.ca's: who the firm is, who founded and leads it, who its attorneys are, what it handles, what it is recognised for.
+# No filler: every sentence rests on a fact. A firm without enough facts gets no biography and stays a plain listing.
+# ---------------------------------------------------------------------------------------------------------------------------------
+from profile_facts import count_facts
+
+def _area_phrase(names):
+    names = [re.sub(r' claims$', '', n) for n in names]
+    if len(names) == 1:
+        n = names[0]
+        return n + ' firm' if n.endswith('law') else n + ' law firm'
+    return 'law firm handling ' + join_list(names[:3])
+
+def _titles(items, skip=None):
+    out = []
+    for n, t in items:
+        if n == skip: continue
+        out.append(f'{n} ({t})' if t and t not in ('attorney',) else n)
+    return out
+
+def make_biography(slug, name, city, st, region_id, areas, p, press=None):
+    stn = STATE.get(st, st); reg = REGION.get(region_id, '')
+    names = [AREA.get(a, a.lower()) for a in areas][:3]
+    if not names: return ''
+    since, founder = p.get('since'), p.get('founder')
+    if since and founder: est = f' established in {since} by {founder}'
+    elif since: est = pick(slug, 'est', [f' that has been in practice since {since}', f' established in {since}', f' in practice since {since}'])
+    elif founder: est = f' founded by {founder}'
+    else: est = ''
+    ap = _area_phrase(names)
+    s1 = pick(slug, 's1', [f'{name} is a {city}, {stn} {ap}{est}.', f'{name} is a {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is a {ap}{est}.'])
+    if reg and city.lower() not in reg.lower():
+        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider {reg.replace("the ", "")} area.'])
+    if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
+    paras = [s1]
+    # the people
+    ppl = []
+    adm = p.get('admitted'); sch = p.get('school')
+    if adm:
+        bar = f'the {adm["state"]} bar' if adm.get('state') else 'the bar'
+        ppl.append(f'{adm["name"]} was admitted to {bar} in {adm["year"]}' + (f' and earned a law degree from {sch["school"]}' if sch and sch['name'] == adm['name'] else '') + '.')
+    elif sch:
+        ppl.append(f'{sch["name"]} earned a law degree from {sch["school"]}.')
+    team = _titles(p.get('team') or [], skip=(adm or {}).get('name') or founder)
+    if team:
+        lead = pick(slug, 'team', ['The firm’s attorneys include', 'Its attorneys include', 'The practice also includes'])
+        ppl.append(f'{lead} {join_list(team[:5])}.')
+    if p.get('size') and not team: ppl.append(f'It has a team of {p["size"]} attorneys.')
+    elif p.get('size'): ppl[-1] = ppl[-1][:-1] + f', on a team of {p["size"]} attorneys.'
+    if ppl: paras.append(' '.join(ppl))
+    # where it works
+    where = []
+    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + '.')
+    if p.get('offices'): where.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
+    # the work
+    if where: paras.append(' '.join(where))
+    if p.get('topics'):
+        paras.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
+    # recognition, memberships, press
+    rec = []
+    if p.get('awards'): rec.append(pick(slug, 'awards', ['The firm’s website lists recognition from ', 'It lists recognition from ', 'Recognition listed on the firm’s website includes ']) + join_list(p['awards'][:4]) + '.')
+    if p.get('memberships'): rec.append('Its attorneys are listed as members of ' + join_list(p['memberships'][:3]) + '.')
+    if p.get('board_certified') and not p.get('awards'): rec.append('The site mentions board-certified attorneys.')
+    if press:
+        if len(press) == 1:
+            x = press[0]; rec.append(f'It was covered by {x["source"]} in {x["year"]}: “{x["title"]}”.')
+        else:
+            rec.append('Press coverage includes ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
+    if rec: paras.append(' '.join(rec))
+    return '\n\n'.join(paras)

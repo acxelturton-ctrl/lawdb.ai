@@ -59,6 +59,7 @@ jobs:
               python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.pool }}" --min-conf "${{ inputs.min_conf }}"
               python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
             fi
+            python3 tools/us-data/press.py "$st" || true
             python3 tools/us-data/build_import_sql.py "$st" --keep "${{ inputs.target }}"
             python3 tools/us-data/preview.py "$st"
             python3 tools/us-data/check_bios.py "$st"
@@ -77,6 +78,8 @@ jobs:
           for st in ${{ inputs.states }}; do
             echo "Loading $st"
             npx wrangler d1 execute DB --remote --yes --file="data/states/$st/import.sql"
+            python3 tools/us-data/seen.py "$st"
+            npx wrangler d1 execute DB --remote --yes --file="data/states/$st/seen.sql"
           done
           echo "After:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
       - uses: actions/upload-artifact@v4

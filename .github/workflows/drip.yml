@@ -1,0 +1,66 @@
+name: Drip US firms
+run-name: "Drip US firms (${{ github.event_name == 'schedule' && 'hourly' || format('manual, dry run {0}', inputs.dry_run) }})"
+# Every hour: find, read and load about 50 good law firms into the live database (see tools/us-data/drip.py).
+# Each firm's own site is read politely (robots.txt, one request a second per site); only firms that pass every check are loaded.
+# SCHEDULED RUNS ARE PAUSED (they stop at once) until tools/us-data/drip_live.txt says yes. Flip it only after a manual dry run looks right.
+# STOP IT: set the repository variable DRIP_ENABLED to false (Settings -> Secrets and variables -> Actions -> Variables),
+# or disable this workflow in the Actions tab. A manual run with dry_run = yes reads and builds everything but loads nothing.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      per_hour:
+        description: 'Firms to load this run'
+        default: '50'
+      dry_run:
+        description: 'yes = read and build everything but load nothing'
+        default: 'yes'
+      states:
+        description: 'Optional: only these state codes, space separated (default: the rotating list)'
+        default: ''
+
+concurrency:
+  group: drip
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  drip:
+    if: ${{ vars.DRIP_ENABLED != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+    steps:
+      - uses: actions/checkout@v4
+      - name: Paused until drip_live.txt says yes (scheduled runs only)
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && ! grep -qx 'yes' tools/us-data/drip_live.txt; then echo "Scheduled drip is paused (tools/us-data/drip_live.txt is not yes)."; echo "go=no" >> "$GITHUB_OUTPUT"; else echo "go=yes" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.go == 'yes'
+        with:
+          python-version: '3.12'
+      - if: steps.gate.outputs.go == 'yes'
+        run: pip install duckdb requests beautifulsoup4 lxml Pillow
+      - if: steps.gate.outputs.go == 'yes'
+        run: npm install --no-save wrangler@4
+      - name: Drip
+        if: steps.gate.outputs.go == 'yes'
+        run: |
+          set -e
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if grep -qx 'yes' tools/us-data/drip_live.txt; then DRY=no; else DRY=yes; fi
+            PER=50
+          else
+            DRY="${{ inputs.dry_run }}"; PER="${{ inputs.per_hour }}"
+          fi
+          echo "dry run: $DRY | firms this run: $PER"
+          FLAGS="--per-hour $PER"
+          if [ "$DRY" != "no" ]; then FLAGS="$FLAGS --dry-run"; fi
+          python3 tools/us-data/drip.py $FLAGS --states "${{ inputs.states }}"
