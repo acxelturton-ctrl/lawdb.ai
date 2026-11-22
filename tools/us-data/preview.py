@@ -11,3 +11,11 @@ for st in (a.upper() for a in sys.argv[1:]):
     if bios:
         slug = sorted(bios)[len(bios) // 2]
         print(f'--- EXAMPLE {slug} ({len(bios[slug].split())} words) ---\n{bios[slug]}\n')
+
+# the firms that were kept, one per line, so a person can scan for anything that is not a law firm
+import re as _re
+for st in (a.upper() for a in sys.argv[1:]):
+    sql = open(os.path.join('data', 'states', st, 'import.sql')).read()
+    rows = _re.findall(r"INSERT OR IGNORE INTO firms \(.*?\) VALUES \('((?:[^']|'')*)','((?:[^']|'')*)','((?:[^']|'')*)'", sql)
+    print(f'--- {st}: kept firms ({len(rows)}) ---')
+    for slug, name, city in rows: print(f'KEPT {st} | {name.replace(chr(39) * 2, chr(39))} | {city.replace(chr(39) * 2, chr(39))}')
