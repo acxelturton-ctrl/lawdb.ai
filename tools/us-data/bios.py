@@ -19,8 +19,12 @@ REGION = {'fl-south': 'South Florida', 'fl-treasure': 'the Treasure Coast', 'fl-
           'ny-nyc': 'New York City', 'ny-long-island': 'Long Island', 'ny-hudson': 'the Hudson Valley', 'ny-capital': 'the Capital Region',
           'ny-central': 'Central New York', 'ny-western': 'Western New York',
           'ga-atlanta': 'the Atlanta area', 'ga-north': 'North Georgia', 'ga-central': 'Central Georgia', 'ga-coast': 'the Georgia coast', 'ga-south': 'South Georgia',
+          'pa-philly': 'the Philadelphia area', 'pa-lehigh': 'the Lehigh Valley and Poconos', 'pa-harrisburg': 'Central Pennsylvania', 'pa-pittsburgh': 'the Pittsburgh area', 'pa-west': 'Western Pennsylvania',
+          'oh-cleveland': 'the Cleveland and Akron area', 'oh-columbus': 'Central Ohio', 'oh-cincinnati': 'the Cincinnati and Dayton area', 'oh-toledo': 'Northwest Ohio', 'oh-southeast': 'Eastern and Southeast Ohio',
+          'nc-charlotte': 'the Charlotte area', 'nc-triangle': 'the Raleigh–Durham Triangle', 'nc-triad': 'the Piedmont Triad', 'nc-east': 'Eastern North Carolina', 'nc-west': 'Western North Carolina',
           'il-chicago': 'Chicago', 'il-suburbs': 'the Chicago suburbs', 'il-north': 'Northern Illinois', 'il-central': 'Central Illinois', 'il-south': 'Southern Illinois'}
-STATE = {'FL': 'Florida', 'TX': 'Texas', 'CA': 'California', 'NY': 'New York', 'GA': 'Georgia', 'IL': 'Illinois'}
+import json, os
+STATE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'state_names.json')))   # every state's full name
 # One plain, useful sentence per practice area (a few wordings each). These describe the area; they are not legal advice.
 KNOW = {
  'Personal injury': ['People hurt in an accident usually arrive with medical records, photos and insurance paperwork, and having them together makes a first conversation more useful.',
