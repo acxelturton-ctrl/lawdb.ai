@@ -88,8 +88,8 @@ MEMBERSHIPS = [
     ('the American Immigration Lawyers Association', r'american immigration lawyers association|\bAILA\b'),
     ('the American Academy of Matrimonial Lawyers', r'american academy of matrimonial lawyers'),
     ('the National Academy of Elder Law Attorneys', r'national academy of elder law attorneys'),
-    ('the Million Dollar Advocates Forum', r'million dollar advocates'), ('the American Board of Trial Advocates', r'american board of trial advocates'),
-    ('the Inns of Court', r'inns? of court'), ('a county bar association', r'[A-Z][a-z]+ [Cc]ounty [Bb]ar [Aa]ssociation'),
+    ('the American Board of Trial Advocates', r'american board of trial advocates'),
+    ('the Inns of Court', r'inns? of court'), ('a county bar association', r'(?:[A-Z][a-z]+ ){1,3}[Cc]ounty [Bb]ar [Aa]ssociation'),
 ]
 MEMBERSHIP_RX = [(n, re.compile(p, re.I if n != 'a county bar association' else 0)) for n, p in MEMBERSHIPS]
 
@@ -129,11 +129,15 @@ def extract(rec, firm_name='', city=''):
     blob = ' '.join((p.get('title', '') + '. ' + p.get('text', '')) for p in pages)
     out = {}
     f = rec.get('facts') or {}
-    since = f.get('since')
+    since = None
+    for rx in (r'(?:in practice|practicing|practising|practiced|serving [A-Za-z ]{3,30}|serving clients|at your service|helping [A-Za-z ]{3,30}|firm|law office|office|business)\s+since\s+((?:19|20)\d\d)',
+               r'(?:established|founded|opened|formed|started|incorporated)\s+(?:in|back in|on)\s+(?:[A-Z][a-z]+ (?:\d{1,2}, )?)?((?:19|20)\d\d)', r'since our founding in\s+((?:19|20)\d\d)', r'est\.?\s+((?:19|20)\d\d)'):
+        m = re.search(rx, blob, re.I)
+        if m: since = int(m.group(1)); break
     if not since and rec.get('founded'):
         m = re.match(r'(\d{4})', str(rec['founded']))
         if m: since = int(m.group(1))
-    if since and 1900 <= since <= 2018: out['since'] = since          # a recent "since" is usually a copyright line, not a founding year
+    if since and 1900 <= since <= 2018: out['since'] = since          # a recent year is usually a copyright line, not a founding year
     elif since and 2019 <= since <= 2025 and re.search(r'(?:established|founded|opened|formed) in ' + str(since), blob, re.I): out['since'] = since
     if f.get('years_experience'): out['years'] = f['years_experience']
 
@@ -165,6 +169,14 @@ def extract(rec, firm_name='', city=''):
             nm = _first_name(s)
             if not nm and founder and re.search(r'\b' + re.escape(founder.split()[0]) + r'\b', s): nm = founder   # "Chris earned his J.D. from ...", after the full name was given
             if m and nm: schools.append((nm, m.group(1).strip()))
+    name_tokens = {t.lower() for t in re.split(r"[^A-Za-z']+", firm_name or '') if len(t) > 2}
+    def belongs(nm):
+        sur = nm.split()[-1].lower().strip('.,')
+        return sur in name_tokens or nm == founder or nm in team_names
+    team_names = set()
+    for m in re.finditer(rf"({NAME})\s*(?:,|–|—|-|\||:)\s*({TITLES})\b", blob):
+        if _name_ok(_clean_name(m.group(1))): team_names.add(_clean_name(m.group(1)))
+    admits = [a for a in admits if belongs(a[0])]; schools = [a for a in schools if belongs(a[0])]
     if admits:
         pick = next((a for a in admits if founder and a[0] == founder), admits[0]); out['admitted'] = {'name': pick[0], 'year': pick[1], 'state': pick[2]}
     if schools:
@@ -174,10 +186,10 @@ def extract(rec, firm_name='', city=''):
     team = {}
     for m in re.finditer(rf"({NAME})\s*(?:,|–|—|-|\||:)\s*({TITLES})\b", blob):
         n = _clean_name(m.group(1))
-        if _name_ok(n) and n not in team: team[n] = m.group(2).lower()
+        if _name_ok(n) and n not in team: team[n] = re.split(r'[|/;,]', m.group(2).lower())[0].strip()
     for o in rec.get('people_ld') or []:
         n = _clean_name(o.get('name', ''))
-        if _name_ok(n) and n not in team and re.search(r'attorney|lawyer|partner|counsel|associate|founder|principal', o.get('title', ''), re.I): team[n] = (o.get('title') or 'attorney').lower()[:30]
+        if _name_ok(n) and n not in team and re.search(r'attorney|lawyer|partner|counsel|associate|founder|principal', o.get('title', ''), re.I): team[n] = re.split(r'[|/;,]', (o.get('title') or 'attorney').lower())[0].strip()[:30]
     if founder and founder in team and not re.search('partner|founder|principal|owner', team[founder]): team[founder] = 'founder'
     if len(team) >= 2 or (len(team) == 1 and not founder): out['team'] = list(team.items())[:8]
     m = re.search(r'(?:team|staff|group) of (\d{1,2}|' + '|'.join(NUMS) + r')\s+(?:experienced |dedicated |skilled |full-time |seasoned )?(?:attorneys|lawyers)', blob, re.I)
@@ -193,13 +205,20 @@ def extract(rec, firm_name='', city=''):
     if len(subs) >= 2: out['topics'] = subs[:7]
 
     # places the firm says it serves, and where it has offices (a list of counties or cities named after "serving" / "offices in")
-    served = []
-    for m in re.finditer(r"(?:serving|serves|represents clients in|clients (?:throughout|across|in))\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2}(?:,\s*|,?\s+and\s+|\s+&\s+)){1,6}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2})", blob):
+    served = []; plural = False
+    for m in re.finditer(r"(?i:serving|serves|represents clients in|clients throughout|clients across|clients in)\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2}(?:,\s*|,?\s+and\s+|\s+&\s+)){1,6}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2})", blob):
+        if re.search(r'Counties', m.group(1)): plural = True
         for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
-            part = part.strip(' .')
-            if 3 <= len(part) <= 28 and part.split()[0].lower() not in NOT_NAME and part not in served: served.append(part)
+            part = re.sub(r'\s+Counties$', '', part.strip(' .'))
+            base = re.sub(r'\s+County$', '', part)
+            if 3 <= len(part) <= 28 and part.split()[0].lower() not in NOT_NAME and base.lower() not in {re.sub(r'\s+County$', '', x).lower() for x in served}: served.append(part)
         if len(served) >= 3: break
-    if len(served) >= 2: out['serves'] = served[:6]
+    place_ok = len(served) >= 3 or any((city or '~').lower() in x.lower() for x in served)
+    if len(served) >= 2 and place_ok:
+        def named(x):
+            base = re.sub(r'\s+County$', '', x)
+            return base + ' County' if re.search(re.escape(base) + r'\s+Count(?:y|ies)\b', blob) else x
+        out['serves'] = [named(x) for x in served[:6]]
     offices = []
     for m in re.finditer(r"(?i:offices?) (?:(?i:in)|(?i:located in)|(?i:at locations in))\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?(?:,\s*|,?\s+and\s+|\s+&\s+)){1,4}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?)", blob):
         for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
@@ -217,7 +236,8 @@ def extract(rec, firm_name='', city=''):
     for n, rx in MEMBERSHIP_RX:
         if rx.search(blob):
             if n == 'a county bar association':
-                m = rx.search(blob); n = 'the ' + m.group(0)
+                m = rx.search(blob); words = [w for w in m.group(0).split() if w not in ('Member', 'Members', 'The', 'Our', 'Of', 'And', 'State', 'Florida', 'Texas', 'California', 'York', 'New') or w == m.group(0).split()[-3]]
+                n = 'the ' + ' '.join(m.group(0).split()[-(len(words)):]) if len(words) >= 3 else 'the ' + m.group(0)
             mem.append(n)
     if mem: out['memberships'] = mem[:4]
     if f.get('board_certified'): out['board_certified'] = True

@@ -236,6 +236,7 @@ def join_list(items):
 def join_items(items):
     items = [i for i in items if i]
     if len(items) <= 1: return ''.join(items)
+    if len(items) == 2 and any(' and ' in i for i in items): return items[0] + ', as well as ' + items[1]
     if any(' and ' in i for i in items): return '; '.join(items[:-1]) + '; and ' + items[-1]
     return ', '.join(items[:-1]) + ' and ' + items[-1]
 
@@ -331,6 +332,9 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
 # ---------------------------------------------------------------------------------------------------------------------------------
 from profile_facts import count_facts
 
+def a_an(word):
+    return 'an' if word[:1].lower() in 'aeiou' else 'a'
+
 def _area_phrase(names):
     names = [re.sub(r' claims$', '', n) for n in names]
     if len(names) == 1:
@@ -355,9 +359,9 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     elif founder: est = f', founded by {founder}'
     else: est = ''
     ap = _area_phrase(names)
-    s1 = pick(slug, 's1', [f'{name} is a {city}, {stn} {ap}{est}.', f'{name} is a {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is a {ap}{est}.'])
+    s1 = pick(slug, 's1', [f'{name} is {a_an(city)} {city}, {stn} {ap}{est}.', f'{name} is {a_an(ap)} {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is {a_an(ap)} {ap}{est}.'])
     if reg and city.lower() not in reg.lower():
-        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider {reg.replace("the ", "")} area.'])
+        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider ' + (re.sub(r'\s+area$', '', reg.replace("the ", "")) + ' area') + '.'])
     if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
     paras = [s1]
     # the people
