@@ -10,9 +10,12 @@ import duckdb
 
 # Rough bounding boxes make the read fast (parquet row groups are skipped). A state missing here still works, just slower.
 BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1), 'CA': (-124.5, -114.1, 32.5, 42.1), 'NY': (-79.8, -71.8, 40.4, 45.1), 'GA': (-85.7, -80.7, 30.3, 35.1), 'PA': (-80.6, -74.6, 39.7, 42.3), 'OH': (-84.9, -80.5, 38.4, 42.0), 'NC': (-84.4, -75.3, 33.8, 36.7), 'IL': (-91.6, -87.0, 36.9, 42.6)}
+# Generous boxes for the other states, so the read can skip most of the world's files. The exact state still comes from each place's own address.
+BBOX.update({'TX': (-106.7, -93.5, 25.8, 36.6), 'AL': (-88.5, -84.9, 30.2, 35.0), 'AK': (-180, -129.9, 51.0, 71.5), 'AZ': (-114.9, -109.0, 31.3, 37.0), 'AR': (-94.7, -89.6, 33.0, 36.5), 'CO': (-109.1, -102.0, 36.9, 41.0), 'CT': (-73.8, -71.7, 40.9, 42.1), 'DE': (-75.8, -75.0, 38.4, 39.9), 'DC': (-77.2, -76.9, 38.8, 39.0), 'HI': (-160.3, -154.8, 18.9, 22.3), 'ID': (-117.3, -111.0, 42.0, 49.0), 'IN': (-88.2, -84.7, 37.7, 41.8), 'IA': (-96.7, -90.1, 40.3, 43.6), 'KS': (-102.1, -94.5, 36.9, 40.1), 'KY': (-89.6, -81.9, 36.4, 39.2), 'LA': (-94.1, -88.8, 28.9, 33.1), 'ME': (-71.1, -66.9, 43.0, 47.5), 'MD': (-79.5, -75.0, 37.9, 39.8), 'MA': (-73.6, -69.9, 41.2, 42.9), 'MI': (-90.5, -82.1, 41.6, 48.3), 'MN': (-97.3, -89.4, 43.4, 49.4), 'MS': (-91.7, -88.0, 30.1, 35.1), 'MO': (-95.8, -89.1, 35.9, 40.7), 'MT': (-116.1, -104.0, 44.3, 49.1), 'NE': (-104.1, -95.3, 39.9, 43.1), 'NV': (-120.1, -114.0, 35.0, 42.1), 'NH': (-72.6, -70.6, 42.6, 45.4), 'NJ': (-75.6, -73.8, 38.9, 41.4), 'NM': (-109.1, -103.0, 31.3, 37.1), 'ND': (-104.1, -96.5, 45.9, 49.1), 'OK': (-103.1, -94.4, 33.6, 37.1), 'OR': (-124.7, -116.4, 41.9, 46.3), 'RI': (-71.9, -71.1, 41.1, 42.1), 'SC': (-83.4, -78.5, 32.0, 35.3), 'SD': (-104.1, -96.4, 42.4, 46.0), 'TN': (-90.4, -81.6, 34.9, 36.7), 'UT': (-114.1, -109.0, 36.9, 42.1), 'VT': (-73.5, -71.4, 42.7, 45.1), 'VA': (-83.7, -75.2, 36.5, 39.5), 'WA': (-124.9, -116.9, 45.5, 49.1), 'WV': (-82.7, -77.7, 37.1, 40.7), 'WI': (-92.9, -86.7, 42.4, 47.1), 'WY': (-111.1, -104.0, 40.9, 45.1)})
 BASE = 'https://overturemaps-us-west-2.s3.amazonaws.com/'
 
 FIRM_WORDS = re.compile(r"\b(law|laws|lawyer|lawyers|attorney|attorneys|legal|firm|offices?|counsel|associates|group|p\.?\s?a\.?|pllc|p\.?l\.?l\.?c\.?|llp|l\.?l\.?p\.?|llc|p\.?c\.?|chartered|esq\.?)\b", re.I)
+MANUAL_NOT_FIRMS = {'salvadorean legal services', 'veaco group'}   # reviewed by hand: a document service and an unclear listing
 NAMELESS = re.compile(r"^(the )?(law|legal) (offices?|firm|group|center)$", re.I)   # a listing with no name of its own
 NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|district attorney|attorney general|prosecutor|law school|school of law|universit(y|ies)|college|law librar(y|ies)|legal runner|referral|docs?|legal assistance|tramitador\w*|who is your lawyer|runners?|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
 AGGREGATORS = {'avvo.com','lawyers.com','justia.com','findlaw.com','martindale.com','yelp.com','facebook.com','instagram.com','linkedin.com','yellowpages.com','superpages.com','mapquest.com','bbb.org','google.com','nolo.com','lawinfo.com','linktr.ee','wixsite.com','business.site','godaddysites.com','sites.google.com','weebly.com','squarespace.com','wordpress.com'}
@@ -82,7 +85,7 @@ def clean_and_pick(st, raw, target, min_conf):
     for r in raw:
         name = tidy_name(r['name']); d = domain_of(r['website']); ph = phone10(r['phone'])
         if not name: stats['no name'] += 1; continue
-        if NOT_A_FIRM.search(name) or NAMELESS.match(name.strip()): stats['not a law firm (name)'] += 1; continue
+        if NOT_A_FIRM.search(name) or NAMELESS.match(name.strip()) or name.strip().lower() in MANUAL_NOT_FIRMS: stats['not a law firm (name)'] += 1; continue
         if not FIRM_WORDS.search(name): stats['looks like a person, not a firm'] += 1; continue
         if not r['street'] or not r['city']: stats['no address'] += 1; continue
         if not ph: stats['no valid phone'] += 1; continue

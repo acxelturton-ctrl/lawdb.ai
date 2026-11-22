@@ -77,6 +77,8 @@ jobs:
           for st in ${{ inputs.states }}; do
             echo "Loading $st"
             npx wrangler d1 execute DB --remote --yes --file="data/states/$st/import.sql"
+            python3 tools/us-data/seen.py "$st"
+            npx wrangler d1 execute DB --remote --yes --file="data/states/$st/seen.sql"
           done
           echo "After:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
       - uses: actions/upload-artifact@v4
