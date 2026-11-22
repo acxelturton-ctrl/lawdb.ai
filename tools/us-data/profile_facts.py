@@ -20,12 +20,12 @@ court courts supreme district federal university school college juris doctor bac
 carolina jersey michigan washington boston chicago houston dallas phone email address hours monday friday saturday sunday welcome why choose results testimonials
 reviews faq resources articles videos disclaimer privacy policy terms site map menu search skip main content with from by as is was are has have who what when where
 professional corporation llp pllc llc inc pc apc pa p.c. p.a. founder owner principal shareholder member members staff paralegal paralegals assistant assistants administrator
-manager director chief officer president vice general solutions'''.split())
+manager director chief officer president vice general solutions co company inc'''.split())
 
 _N = r"[A-Z][a-z]+(?:[-'’][A-Z][a-z]+)?|Mc[A-Z][a-z]+|Mac[A-Z][a-z]+|O’[A-Z][a-z]+|O'[A-Z][a-z]+|De[A-Z][a-z]+|[A-Z]{2,3}(?=\s)"
 NAME = rf"(?:(?:{_N})(?:\s+(?:[A-Z]\.|(?:{_N}))){{1,3}})"
 NAME_RX = re.compile(NAME)
-TITLES = r"(?:Founding Partner|Managing Partner|Senior Partner|Name Partner|Partner|Senior Associate Attorney|Senior Associate|Associate Attorney|Associate|Of Counsel|Senior Counsel|Counsel|Principal Attorney|Principal|Shareholder|Founder|Owner|Attorney)"
+TITLES = r"(?:Co-Managing Partner|Co-Founder|Co-Owner|Founding Partner|Managing Partner|Senior Partner|Name Partner|Partner|Senior Associate Attorney|Senior Associate|Associate Attorney|Associate|Of Counsel|Senior Counsel|Counsel|Principal Attorney|Principal|Shareholder|Founder|Owner|Attorney)"
 
 
 def _name_ok(n):
@@ -39,6 +39,7 @@ def _name_ok(n):
 def _clean_name(n):
     n = re.sub(r'\s+', ' ', n).strip(' ,.;:')
     n = re.sub(r',?\s+(Esq\.?|Esquire)$', '', n)
+    n = re.sub(r'\s+Co$', '', n)          # "Lisa Nicolls Co-Managing Partner": the Co belongs to the title
     return n
 
 
@@ -180,6 +181,22 @@ def extract(rec, firm_name=''):
         if rx.search(labels) or len(rx.findall(blob)) >= 3: subs.append(name)
     if len(subs) >= 2: out['topics'] = subs[:7]
 
+    # places the firm says it serves, and where it has offices (a list of counties or cities named after "serving" / "offices in")
+    served = []
+    for m in re.finditer(r"(?:serving|serves|represents clients in|clients (?:throughout|across|in))\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2}(?:,\s*|,?\s+and\s+|\s+&\s+)){1,6}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2})", blob):
+        for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
+            part = part.strip(' .')
+            if 3 <= len(part) <= 28 and part.split()[0].lower() not in NOT_NAME and part not in served: served.append(part)
+        if len(served) >= 3: break
+    if len(served) >= 2: out['serves'] = served[:6]
+    offices = []
+    for m in re.finditer(r"offices? (?:in|located in|at locations in)\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?(?:,\s*|,?\s+and\s+|\s+&\s+)){1,4}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?)", blob):
+        for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
+            part = part.strip(' .')
+            if 3 <= len(part) <= 24 and part not in offices: offices.append(part)
+        if offices: break
+    if len(offices) >= 2: out['offices'] = offices[:5]
+
     aw = [n for n, rx in AWARD_RX if rx.search(blob)]
     if aw: out['awards'] = aw[:5]
     mem = []
@@ -196,7 +213,7 @@ def extract(rec, firm_name=''):
 def count_facts(p, press=None):
     """How many separate, firm-specific facts a biography can rest on."""
     n = 0
-    for k in ('since', 'founder', 'admitted', 'school', 'size', 'awards', 'memberships', 'years'):
+    for k in ('since', 'founder', 'admitted', 'school', 'size', 'awards', 'memberships', 'years', 'serves', 'offices'):
         if p.get(k): n += 1
     if len(p.get('team') or []) >= 2: n += 1
     if len(p.get('topics') or []) >= 2: n += 1

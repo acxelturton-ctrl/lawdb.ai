@@ -347,12 +347,12 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     if since and founder: est = f' established in {since} by {founder}'
     elif since: est = pick(slug, 'est', [f' that has been in practice since {since}', f' established in {since}', f' in practice since {since}'])
     elif founder: est = f' founded by {founder}'
-    elif p.get('years'): est = f' with about {p["years"]} years in practice, by its own account'
     else: est = ''
     ap = _area_phrase(names)
     s1 = pick(slug, 's1', [f'{name} is a {city}, {stn} {ap}{est}.', f'{name} is a {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is a {ap}{est}.'])
     if reg and city.lower() not in reg.lower():
         s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider {reg.replace("the ", "")} area.'])
+    if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
     paras = [s1]
     # the people
     ppl = []
@@ -369,7 +369,12 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     if p.get('size') and not team: ppl.append(f'It has a team of {p["size"]} attorneys.')
     elif p.get('size'): ppl[-1] = ppl[-1][:-1] + f', on a team of {p["size"]} attorneys.'
     if ppl: paras.append(' '.join(ppl))
+    # where it works
+    where = []
+    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + '.')
+    if p.get('offices'): where.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
     # the work
+    if where: paras.append(' '.join(where))
     if p.get('topics'):
         paras.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
     # recognition, memberships, press
