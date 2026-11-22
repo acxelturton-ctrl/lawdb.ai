@@ -13,7 +13,7 @@ BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1), 'CA': (-124.5, -114.1, 32.5, 42.1), 'N
 BASE = 'https://overturemaps-us-west-2.s3.amazonaws.com/'
 
 FIRM_WORDS = re.compile(r"\b(law|laws|lawyer|lawyers|attorney|attorneys|legal|firm|offices?|counsel|associates|group|p\.?\s?a\.?|pllc|p\.?l\.?l\.?c\.?|llp|l\.?l\.?p\.?|llc|p\.?c\.?|chartered|esq\.?)\b", re.I)
-NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
+NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|district attorney|attorney general|prosecutor|law school|school of law|universit(y|ies)|college|law librar(y|ies)|legal runner|referral|runners?|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
 AGGREGATORS = {'avvo.com','lawyers.com','justia.com','findlaw.com','martindale.com','yelp.com','facebook.com','instagram.com','linkedin.com','yellowpages.com','superpages.com','mapquest.com','bbb.org','google.com','nolo.com','lawinfo.com','linktr.ee','wixsite.com','business.site','godaddysites.com','sites.google.com','weebly.com','squarespace.com','wordpress.com'}
 
 def latest_release():
@@ -123,8 +123,8 @@ def fetch(con, lst, where_geo, spool=None):
     q = f"""SELECT id, names.primary AS name, taxonomy.primary AS cat, addresses[1].freeform AS street, addresses[1].locality AS city, addresses[1].postcode AS zip, addresses[1].region AS region,
         phones[1] AS phone, websites[1] AS website, emails[1] AS email, socials AS socials, confidence, ST_Y(geometry) AS lat, ST_X(geometry) AS lng
       FROM read_parquet({lst})
-      WHERE {where_geo} AND operating_status = 'open'
-        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
+      WHERE {where_geo} AND (operating_status IS NULL OR operating_status = 'open')
+        AND (taxonomy.primary IN ('attorney_or_law_firm','legal_service') OR taxonomy.primary LIKE '%\\_law' ESCAPE '\\' OR list_contains(taxonomy.hierarchy, 'lawyer'))"""
     if spool:
         os.makedirs(os.path.dirname(spool), exist_ok=True)
         con.execute("SET memory_limit='2GB'; SET threads=2;")

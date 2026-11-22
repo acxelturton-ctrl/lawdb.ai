@@ -10,8 +10,14 @@ on:
         description: 'State codes, space separated'
         default: 'CA NY'
       target:
-        description: 'Firms to pick per state'
+        description: 'Good firms to keep per state (a firm is good when its site was read and it has a logo, a cover photo and a 90+ word description)'
         default: '100'
+      pool:
+        description: 'Candidate firms to look at per state to find the good ones (about 3x target)'
+        default: '300'
+      min_conf:
+        description: 'Lowest Overture confidence to consider (0.65 is strict; every site is still read and checked, so 0.5 widens the pool safely)'
+        default: '0.5'
       limit:
         description: 'Visit only N firms per state (0 = all picked), for a quick test'
         default: '0'
@@ -25,15 +31,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install duckdb requests beautifulsoup4 Pillow
+      - run: pip install duckdb requests beautifulsoup4 lxml Pillow
       - name: Pull, crawl and build SQL
         run: |
           set -e
           for st in ${{ inputs.states }}; do
             echo "::group::$st"
-            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.target }}"
+            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.pool }}" --min-conf "${{ inputs.min_conf }}"
             python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
-            python3 tools/us-data/build_import_sql.py "$st"
+            python3 tools/us-data/build_import_sql.py "$st" --keep "${{ inputs.target }}"
+            python3 tools/us-data/preview.py "$st"
+            python3 tools/us-data/check_bios.py "$st"
             echo "::endgroup::"
           done
       - uses: actions/upload-artifact@v4
