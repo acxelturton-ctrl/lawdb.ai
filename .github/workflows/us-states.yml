@@ -2,7 +2,7 @@ name: Collect US firms
 run-name: Collect US firms (${{ inputs.states }}, ${{ inputs.target }} each)
 # Run by hand (Actions tab -> Collect US firms -> Run workflow). For each state it pulls law firms from Overture Maps (open data), visits each
 # firm's own website politely (robots.txt, one request a second per site), and builds the SQL that loads them into the firms table.
-# Nothing is written to the live database by this workflow: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review.
+# By default nothing is written to the live database: it attaches import.sql, bios.sql, perks.sql and live.csv as a download for review. Set load to yes (with the CLOUDFLARE_API_TOKEN secret) to also load the kept firms into the live database.
 on:
   workflow_dispatch:
     inputs:
@@ -18,9 +18,19 @@ on:
       min_conf:
         description: 'Lowest Overture confidence to consider (0.65 is strict; every site is still read and checked, so 0.5 widens the pool safely)'
         default: '0.5'
+      reuse_run_id:
+        description: 'Optional: id of an earlier run whose crawl to reuse (skips pulling and crawling; only rebuilds the SQL and descriptions)'
+        default: ''
+      load:
+        description: 'Type yes to load the kept firms into the LIVE database (lawdb-ai). Needs the CLOUDFLARE_API_TOKEN repository secret. Safe to run twice (INSERT OR IGNORE).'
+        default: 'no'
       limit:
         description: 'Visit only N firms per state (0 = all picked), for a quick test'
         default: '0'
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   collect:
@@ -32,18 +42,43 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install duckdb requests beautifulsoup4 lxml Pillow
+      - name: Reuse an earlier crawl
+        if: ${{ inputs.reuse_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: us-states
+          path: data/states
+          run-id: ${{ inputs.reuse_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull, crawl and build SQL
         run: |
           set -e
           for st in ${{ inputs.states }}; do
             echo "::group::$st"
-            python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.pool }}" --min-conf "${{ inputs.min_conf }}"
-            python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
+            if [ -z "${{ inputs.reuse_run_id }}" ]; then
+              python3 tools/us-data/pull_overture.py "$st" --target "${{ inputs.pool }}" --min-conf "${{ inputs.min_conf }}"
+              python3 tools/us-data/enrich.py "$st" --limit "${{ inputs.limit }}" --workers 6
+            fi
             python3 tools/us-data/build_import_sql.py "$st" --keep "${{ inputs.target }}"
             python3 tools/us-data/preview.py "$st"
             python3 tools/us-data/check_bios.py "$st"
             echo "::endgroup::"
           done
+      - name: Load into the live database
+        if: ${{ inputs.load == 'yes' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+        run: |
+          set -e
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::Add a CLOUDFLARE_API_TOKEN repository secret (Cloudflare API token with D1 Edit) first."; exit 1; fi
+          npm install --no-save wrangler@4
+          echo "Before:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
+          for st in ${{ inputs.states }}; do
+            echo "Loading $st"
+            npx wrangler d1 execute DB --remote --yes --file="data/states/$st/import.sql"
+          done
+          echo "After:"; npx wrangler d1 execute DB --remote --command "SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status"
       - uses: actions/upload-artifact@v4
         with:
           name: us-states

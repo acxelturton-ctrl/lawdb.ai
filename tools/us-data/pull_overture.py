@@ -13,7 +13,8 @@ BBOX = {'FL': (-87.7, -79.9, 24.3, 31.1), 'CA': (-124.5, -114.1, 32.5, 42.1), 'N
 BASE = 'https://overturemaps-us-west-2.s3.amazonaws.com/'
 
 FIRM_WORDS = re.compile(r"\b(law|laws|lawyer|lawyers|attorney|attorneys|legal|firm|offices?|counsel|associates|group|p\.?\s?a\.?|pllc|p\.?l\.?l\.?c\.?|llp|l\.?l\.?p\.?|llc|p\.?c\.?|chartered|esq\.?)\b", re.I)
-NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|district attorney|attorney general|prosecutor|law school|school of law|universit(y|ies)|college|law librar(y|ies)|legal runner|referral|runners?|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
+NAMELESS = re.compile(r"^(the )?(law|legal) (offices?|firm|group|center)$", re.I)   # a listing with no name of its own
+NOT_A_FIRM = re.compile(r"\b(bail|bonds?|notary|notaries|paralegal|document|process serv|title (co|company|insurance)|court reporting|legal aid|legal services of|clinic|courthouse|clerk|county|department|state attorney|district attorney|attorney general|prosecutor|law school|school of law|universit(y|ies)|college|law librar(y|ies)|legal runner|referral|docs?|legal assistance|tramitador\w*|who is your lawyer|runners?|public defender|sheriff|police|mediation|collection agenc|translation|apostille|immigration (services|consult)|tax (prep|services)|bankruptcy (petition|prep)|lawn|lawnmower|pawn)\b", re.I)
 AGGREGATORS = {'avvo.com','lawyers.com','justia.com','findlaw.com','martindale.com','yelp.com','facebook.com','instagram.com','linkedin.com','yellowpages.com','superpages.com','mapquest.com','bbb.org','google.com','nolo.com','lawinfo.com','linktr.ee','wixsite.com','business.site','godaddysites.com','sites.google.com','weebly.com','squarespace.com','wordpress.com'}
 
 def latest_release():
@@ -81,7 +82,7 @@ def clean_and_pick(st, raw, target, min_conf):
     for r in raw:
         name = tidy_name(r['name']); d = domain_of(r['website']); ph = phone10(r['phone'])
         if not name: stats['no name'] += 1; continue
-        if NOT_A_FIRM.search(name): stats['not a law firm (name)'] += 1; continue
+        if NOT_A_FIRM.search(name) or NAMELESS.match(name.strip()): stats['not a law firm (name)'] += 1; continue
         if not FIRM_WORDS.search(name): stats['looks like a person, not a firm'] += 1; continue
         if not r['street'] or not r['city']: stats['no address'] += 1; continue
         if not ph: stats['no valid phone'] += 1; continue
