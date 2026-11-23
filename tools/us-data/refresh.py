@@ -97,27 +97,28 @@ def cmd_build(a):
     for r in rows:
         slug, st = r['slug'], r['state']; rec = json.loads(r['data']); e = enr.get(slug)
         old = r.get('about') or ''
-        if not e or not e.get('ok'):
-            tally['unreachable'] += 1; report.append(f"UNREACHABLE {slug}"); new, tier = '', '-'
-        else:
-            areas = e.get('practice_areas') or [by_lower[t.lower()] for t in (rec.get('tags') or []) if t.lower() in by_lower]
-            facts = extract(e, r['name'], r['city']); pr = press.get(slug) or []
-            rid = region_if_near(st, rec.get('region') or '', rec.get('lat'), rec.get('lng'))
-            new = make_biography(slug, r['name'], r['city'], st, rid, areas, facts, pr) if areas else ''
-            ok = bool(new) and len(new) >= MIN_CHARS and len(new.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS
-            tier = 'A' if ok else '-'
-            if ok:
-                bios[slug] = new; new_slugs.add(slug); tally['A'] += 1
-                sets = [f'about = {q(new)}']
-                path = []
-                if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
-                if facts.get('awards'): path += ["'$.awards'", f'json({q(json.dumps(facts["awards"], ensure_ascii=False))})']
-                if path: sets.append('data = json_set(data, ' + ', '.join(path) + ')')
-                if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage'): sets.append("status = 'live'"); tally['A_live'] += 1
-                sets.append("updated_at = datetime('now')")
-                sql.append(f"INSERT OR IGNORE INTO about_backup (slug, about) SELECT slug, about FROM firms WHERE slug = {q(slug)};")
-                sql.append(f"UPDATE firms SET {', '.join(sets)} WHERE slug = {q(slug)};")
-                report.append(f"A {slug} | {len(new)} chars, {len(new.split())} words, {count_facts(facts, pr)} facts" + (' | now live' if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') else ''))
+        reach = bool(e and e.get('ok'))
+        if not reach:
+            tally['unreachable'] += 1; report.append(f"UNREACHABLE {slug} (written from its practice areas alone)")
+        areas = (e.get('practice_areas') if reach else None) or [by_lower[t.lower()] for t in (rec.get('tags') or []) if t.lower() in by_lower]
+        facts = extract(e, r['name'], r['city']) if reach else {}
+        pr = press.get(slug) or []
+        rid = region_if_near(st, rec.get('region') or '', rec.get('lat'), rec.get('lng'))
+        new = make_biography(slug, r['name'], r['city'], st, rid, areas, facts, pr) if areas else ''
+        ok = bool(new) and len(new) >= MIN_CHARS and len(new.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS
+        tier = 'A' if ok else '-'
+        if ok:
+            bios[slug] = new; new_slugs.add(slug); tally['A'] += 1
+            sets = [f'about = {q(new)}']
+            path = []
+            if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
+            if facts.get('awards'): path += ["'$.awards'", f'json({q(json.dumps(facts["awards"], ensure_ascii=False))})']
+            if path: sets.append('data = json_set(data, ' + ', '.join(path) + ')')
+            if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage'): sets.append("status = 'live'"); tally['A_live'] += 1
+            sets.append("updated_at = datetime('now')")
+            sql.append(f"INSERT OR IGNORE INTO about_backup (slug, about) SELECT slug, about FROM firms WHERE slug = {q(slug)};")
+            sql.append(f"UPDATE firms SET {', '.join(sets)} WHERE slug = {q(slug)};")
+            report.append(f"A {slug} | {len(new)} chars, {len(new.split())} words, {count_facts(facts, pr)} facts" + (' | now live' if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') else ''))
         if tier != 'A':
             cleaned = clean_old(old)
             if old and cleaned != old and len(cleaned) >= MIN_CHARS:
@@ -125,7 +126,7 @@ def cmd_build(a):
                 sql.append(f"INSERT OR IGNORE INTO about_backup (slug, about) SELECT slug, about FROM firms WHERE slug = {q(slug)};")
                 sql.append(f"UPDATE firms SET about = {q(cleaned)}, updated_at = datetime('now') WHERE slug = {q(slug)};")
                 report.append(f"C {slug} | old text cleaned: {len(old)} -> {len(cleaned)} chars")
-            elif e and e.get('ok'): tally['untouched'] += 1; report.append(f"UNCHANGED {slug} | {len(old)} chars, facts too few for a new biography")
+            elif reach: tally['untouched'] += 1; report.append(f"UNCHANGED {slug} | {len(old)} chars, no practice areas known")
     open(os.path.join(D, 'refresh.sql'), 'w').write('\n'.join(sql) + '\n')
     json.dump(bios, open(os.path.join(D, 'bios.json'), 'w'), ensure_ascii=False, indent=1)
     open(os.path.join(D, 'report.txt'), 'w').write('\n'.join(report) + '\n')

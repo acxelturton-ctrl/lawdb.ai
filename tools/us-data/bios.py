@@ -1,6 +1,6 @@
 """Writes a firm's biography from FACTS the crawler found (practice areas, year founded, recent blog topics). It never repeats what the profile already shows: address, phone, languages, hours or consultation terms.
 Nothing is copied from a firm's own wording. Wording varies by firm (chosen from the slug), so two firms do not read alike.
-Claims the firm makes about itself are attributed ("according to its own website"); there are no rankings, no "best", no promises of results.
+Facts are stated plainly, as LawDB's own research (nothing says where a fact came from); there are no rankings, no "best" and no promises of results.
 """
 import hashlib, re, collections
 
@@ -211,7 +211,7 @@ for _a, _l in EXTRA_KNOW2.items(): KNOW.setdefault(_a, []).extend(_l)
 for _a, _l in EXTRA_MORE2.items(): MORE.setdefault(_a, []).extend(_l)
 
 MIN_WORDS = 55   # words; with at least MIN_FACTS firm-specific facts. The homepage showcase has its own, higher bar (src/routes/home-showcase.js).
-MIN_FACTS = 1   # a firm needs at least this many firm-specific facts (founder, year, team, places, awards, press ...) besides its practice areas; with none, it stays a plain listing
+MIN_FACTS = 0   # facts (founder, year, team, places, awards, press ...) add to a biography but are not required: the practice areas and city are enough for the opening and closing paragraphs
 GENERIC_KNOW = 'A first consultation is usually the quickest way to learn whether the firm handles a particular kind of matter.'
 
 BAD = re.compile(r'\b(best|top|leading|premier|expert|experts|guarantee[sd]?|finest|win|wins|winning|aggressive|proven|#1)\b', re.I)
@@ -364,78 +364,135 @@ LEAD = {
  'Insurance claims': 'If an insurance claim was denied or delayed',
 }
 CTA = [
- '{lead}, {name} offers legal guidance to help you understand your options and decide on your next steps.',
- '{lead}, {name} can talk through your situation with you and explain the options in front of you.',
- '{lead} in {city}, you can contact {name} to understand where you stand and what happens next.',
- '{lead}, a conversation with {name} in {city} is a way to learn your options before you decide what to do.',
+ '{lead}, {name} offers legal guidance to help you understand your options and determine the next steps.',
+ '{lead}, {name} can talk through your situation with you and explain the options in front of you. Contact the firm to get started.',
+ '{lead} in {city}, contact {name} to understand where you stand and what happens next.',
+ '{lead}, a conversation with {name} in {city} is the first step toward understanding your options and moving forward with confidence.',
+ '{lead}, reach out to {name} in {city} to learn what your options are.',
+ '{lead}, {name} is ready to listen, explain your options and help you take the next step.',
+]
+# What each kind of firm is there to do, the situations it handles and what clients are after. Written as plain fact about the firm.
+PURPOSE = {
+ 'Personal injury': 'individuals and families navigate the legal challenges that follow serious accidents and injuries',
+ 'Car accidents': 'drivers, passengers and families recover after car, truck and motorcycle crashes',
+ 'Criminal defense': 'people facing criminal charges protect their rights, their record and their future',
+ 'DUI': 'drivers facing DUI charges protect their license, their record and their future',
+ 'Family law': 'individuals and families work through divorce, custody, support and other personal family matters',
+ 'Immigration': 'individuals, families and employers navigate the immigration system with confidence',
+ 'Wills, trusts & probate': 'families plan their estates, protect their assets and settle their loved ones’ affairs',
+ 'Elder law': 'older adults and their families plan for long-term care, protect their assets and safeguard their independence',
+ 'Real estate': 'buyers, sellers, investors and owners complete transactions and resolve property disputes',
+ 'Employment': 'workers and employers handle workplace disputes, contracts and employment rights',
+ 'Workers’ compensation': 'injured workers secure the medical care and benefits they need after a workplace injury',
+ 'Bankruptcy': 'individuals and businesses find relief from overwhelming debt and rebuild their finances',
+ 'Business & corporate': 'business owners and entrepreneurs start, structure, protect and grow their companies',
+ 'Medical malpractice': 'patients and families seek answers and accountability after serious medical errors',
+ 'Wrongful death': 'families seek justice and financial stability after the loss of a loved one',
+ 'Social Security disability': 'people who cannot work secure the Social Security disability benefits they rely on',
+ 'Traffic tickets': 'drivers resolve traffic violations and protect their driving record and insurance rates',
+ 'Civil litigation': 'individuals and businesses resolve disputes in and out of court',
+ 'Intellectual property': 'creators, inventors and businesses protect their trademarks, copyrights and ideas',
+ 'Tax law': 'individuals and businesses resolve tax problems and plan with confidence',
+ 'Insurance claims': 'policyholders pursue claims that insurers have delayed, underpaid or denied',
+}
+WHETHER = {
+ 'Personal injury': ('dealing with insurance companies, pursuing compensation, or navigating complex legal proceedings', 'pursue the compensation they are owed'),
+ 'Car accidents': ('negotiating with insurers, documenting injuries, or taking a claim to court', 'recover what they are owed'),
+ 'Criminal defense': ('facing an investigation, an arrest or a trial', 'make confident decisions at every stage'),
+ 'DUI': ('facing a first offense or a license hearing', 'protect their driving privileges'),
+ 'Family law': ('negotiating a settlement, resolving custody, or appearing in court', 'reach outcomes that protect their families'),
+ 'Immigration': ('applying for a visa, a green card or citizenship, or responding to an enforcement action', 'move forward with confidence'),
+ 'Wills, trusts & probate': ('drafting a will, setting up a trust, or guiding an estate through probate', 'protect the people they love'),
+ 'Elder law': ('planning for care, protecting assets, or serving as a guardian', 'protect their independence and their legacy'),
+ 'Real estate': ('closing a purchase, reviewing a contract, or resolving a title or boundary dispute', 'protect their investment'),
+ 'Employment': ('negotiating a contract, responding to discrimination, or resolving a wage dispute', 'protect their rights at work'),
+ 'Workers’ compensation': ('filing a claim, appealing a denial, or returning to work', 'secure the benefits they are owed'),
+ 'Bankruptcy': ('filing for relief, stopping collections, or restructuring debt', 'get a fresh financial start'),
+ 'Business & corporate': ('forming a company, negotiating a deal, or resolving a dispute', 'protect and grow their businesses'),
+ 'Medical malpractice': ('investigating what went wrong, working with medical experts, or pursuing a claim', 'pursue fair compensation'),
+ 'Wrongful death': ('investigating a loss, dealing with insurers, or pursuing a claim', 'pursue fair compensation'),
+ 'Social Security disability': ('applying, appealing a denial, or preparing for a hearing', 'secure the benefits they rely on'),
+ 'Traffic tickets': ('contesting a citation, negotiating a reduced charge, or appearing in court', 'protect their record'),
+ 'Civil litigation': ('negotiating a settlement, preparing for trial, or responding to a lawsuit', 'resolve disputes on favorable terms'),
+ 'Intellectual property': ('registering a trademark, protecting a copyright, or enforcing their rights', 'protect what they create'),
+ 'Tax law': ('responding to an audit, resolving back taxes, or planning ahead', 'settle their obligations with confidence'),
+ 'Insurance claims': ('appealing a denial, documenting a loss, or pursuing a claim', 'recover what their policies promise'),
+}
+DEDICATED = ['dedicated to helping', 'committed to helping', 'focused on helping', 'devoted to helping']
+PURPOSE2 = {'Personal injury': 'clients rebuild their lives and finances after an accident or injury caused by someone else', 'Car accidents': 'accident victims secure medical care, repairs and fair compensation after a collision', 'Criminal defense': 'individuals charged with crimes understand their options and defend their freedom', 'DUI': 'people charged with driving under the influence defend their license and their future', 'Family law': 'families move through divorce, custody and support disputes with clarity and care', 'Immigration': 'people and businesses secure visas, residency and citizenship', 'Wills, trusts & probate': 'families put sound estate plans in place and settle estates smoothly', 'Elder law': 'seniors and their loved ones prepare for care costs, guardianship and the transfer of assets', 'Real estate': 'property owners, buyers and sellers close deals and settle disputes with confidence', 'Employment': 'employees and employers resolve wage, discrimination and contract issues', 'Workers’ compensation': 'workers recover medical care and lost wages after getting hurt on the job', 'Bankruptcy': 'people overwhelmed by debt stop collections and start over', 'Business & corporate': 'founders and companies form entities, draft contracts and settle disputes', 'Medical malpractice': 'patients and families hold providers accountable for preventable medical harm', 'Wrongful death': 'families pursue accountability and financial security after a preventable death', 'Social Security disability': 'disabled workers apply for and appeal Social Security benefits', 'Traffic tickets': 'drivers contest citations and keep violations off their record', 'Civil litigation': 'clients protect their interests in contract, property and business disputes', 'Intellectual property': 'creators and companies register, protect and enforce their intellectual property', 'Tax law': 'taxpayers answer IRS notices, settle back taxes and plan ahead', 'Insurance claims': 'insureds challenge denied, delayed and underpaid claims'}
+WHETHER2 = {'Personal injury': ('recovering from injuries, talking with adjusters, or preparing for trial', 'secure fair compensation'), 'Car accidents': ('facing medical bills, repair costs, or a disputed insurance claim', 'recover fully'), 'Criminal defense': ('responding to a charge, negotiating with prosecutors, or preparing a defense', 'protect their freedom'), 'DUI': ('contesting a charge, a breath test result, or a suspension', 'keep their license and record in good standing'), 'Family law': ('ending a marriage, setting a parenting plan, or changing a support order', 'protect their children and their finances'), 'Immigration': ('filing a petition, renewing status, or fighting a removal', 'stay on track toward their goals'), 'Wills, trusts & probate': ('naming guardians, avoiding probate, or settling a loved one’s estate', 'give their families security'), 'Elder law': ('planning for Medicaid, nursing care, or powers of attorney', 'protect their savings and independence'), 'Real estate': ('buying a home, leasing commercial space, or settling a boundary dispute', 'move ahead with confidence'), 'Employment': ('facing a layoff, harassment, or unpaid overtime', 'protect their careers and their income'), 'Workers’ compensation': ('reporting an injury, disputing a denial, or negotiating a settlement', 'receive the care and wages they need'), 'Bankruptcy': ('choosing between Chapter 7 and Chapter 13, facing foreclosure, or stopping garnishment', 'regain stability'), 'Business & corporate': ('choosing an entity, drafting agreements, or resolving partner disputes', 'build on a solid legal foundation'), 'Medical malpractice': ('reviewing medical records, consulting specialists, or filing suit', 'hold providers accountable'), 'Wrongful death': ('handling funeral costs, lost income, or a disputed claim', 'secure their family’s future'), 'Social Security disability': ('gathering medical evidence, filing an appeal, or testifying at a hearing', 'obtain the benefits they need'), 'Traffic tickets': ('facing points on a license, a speeding ticket, or a court date', 'keep their driving record clean'), 'Civil litigation': ('enforcing a contract, defending a claim, or negotiating a settlement', 'reach a resolution that works for them'), 'Intellectual property': ('filing a trademark, responding to infringement, or licensing a work', 'keep control of their ideas'), 'Tax law': ('facing penalties, an audit, or unfiled returns', 'get back in good standing'), 'Insurance claims': ('facing a denial, a low offer, or a delay', 'get the coverage they paid for')}
+APPROACH = [
+ 'With a client-focused approach, {name} provides personalized legal guidance, strong advocacy, and a commitment to protecting clients’ rights.',
+ '{name} puts clients first, combining personal attention, clear communication and determined advocacy at every stage of a case.',
+ 'At {name}, every client receives personal attention, straightforward answers and strong advocacy from the first call to the final resolution.',
+ '{name} takes a hands-on, client-focused approach built on clear communication, careful preparation and strong advocacy.',
+ 'Clients choose {name} for responsive communication, thorough preparation and dependable advocacy.',
+ '{name} builds every case around the client, with clear updates, practical advice and strong advocacy.',
+ 'Personal attention and persistent advocacy define the way {name} works with clients.',
+]
+SITUATIONS = [
+ 'Whether {sit}, {name} works to make the legal process easier to understand while helping clients {goal}.',
+ 'Whether {sit}, clients rely on {name} for clear explanations and steady guidance as they work to {goal}.',
+ 'Whether {sit}, {name} focuses on giving clients clear answers and helping them {goal}.',
+ 'Clients who are {sit} turn to {name} for straightforward advice and help to {goal}.',
 ]
 
 def make_biography(slug, name, city, st, region_id, areas, p, press=None):
-    """Four short paragraphs: who and where (with the practice areas as the first sentence's keywords), who is behind the firm, what the work involves, and where to go next."""
+    """A sales-ready biography stated as fact: who the firm is and where it works (practice areas as keywords), who is behind it, how it works with clients,
+    and where to go next. Nothing says where a fact came from; there are no rankings, no promises of results and no fee or consultation terms."""
     stn = STATE.get(st, st); reg = REGION.get(region_id, '')
     keys = [a for a in areas if a in AREA][:4]
     names = [AREA[a] for a in keys]
     if not names: return ''
     since, founder = p.get('since'), p.get('founder')
     if since and founder: est = f', established in {since} by {founder},'
-    elif since and p.get('since_firm_says'): est = f', in practice since {since} by its own account,'
     elif since: est = pick(slug, 'est', [f', in practice since {since},', f', established in {since},'])
     elif founder: est = f', founded by {founder},'
     else: est = ''
     prim = re.sub(r' claims$', '', names[0])
     prim_firm = prim + ' firm' if prim.endswith('law') else prim + ' law firm'
-    area_list = join_items([re.sub(r' claims$', ' claims', n) for n in names])
+    area_list = join_items(names)
     where = (f'{city} and {reg}' if reg and city.lower() not in reg.lower() else reg if reg else f'{city} and the surrounding area')
-    multi = len(names) > 1
-    tail = f'{area_list}, along with related legal matters' if multi else f'{area_list} and related legal matters'
-    if not multi:
-        s1 = pick(slug, 's1', [
-            f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} serving clients throughout {where}.',
-            f'{name} is {a_an(prim_firm)} {prim_firm} based in {city}, {stn}{est} serving clients throughout {where}.',
-            f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm}{est} serving clients throughout {where}.'])
-    elif est:
-        s1 = pick(slug, 's1', [
-            f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} that represents clients in {tail} throughout {where}.',
-            f'{name} is {a_an(prim_firm)} {prim_firm} in {city}, {stn}{est} representing clients in {tail} throughout {where}.'])
-    else:
-        s1 = pick(slug, 's1', [
-            f'{name} is {a_an(city)} {city}, {stn} {prim_firm} that represents clients in {tail} throughout {where}.',
-            f'{name} is {a_an(prim_firm)} {prim_firm} based in {city}, {stn}, representing clients in {tail} throughout {where}.',
-            f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm} that represents clients in {tail} throughout {where}.'])
-    if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
+    k0 = keys[0]
+    ded = pick(slug, 'ded', DEDICATED)
+    purpose = pick(slug, 'purp', [PURPOSE.get(k0), PURPOSE2.get(k0)] if PURPOSE.get(k0) else ['individuals and families get the legal help they need'])
+    tail = f'{area_list}, along with related legal matters' if len(names) > 1 else f'{area_list} and related legal matters'
+    s1 = pick(slug, 's1', [
+        f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} {ded} {purpose}. The firm represents clients in {tail} throughout {where}.',
+        f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm}{est} {ded} {purpose}. It represents clients in {tail} throughout {where}.',
+        f'{name} is {a_an(prim_firm)} {prim_firm} in {city}, {stn}{est} {ded} {purpose}. Its attorneys represent clients in {tail} throughout {where}.'])
+    s1 = s1.replace(',,', ',').replace(', ,', ',')
     paras = [s1]
-    # the people, the places and the recognition: only what the firm's own site and other sites show
-    ppl = []
+    # who is behind the firm, where it works, how it has been recognised: stated as fact
+    f = []
     adm = p.get('admitted'); sch = p.get('school')
+    if p.get('years') and not since and not founder: f.append(f'The firm has about {p["years"]} years in practice.')
     if adm:
         bar = f'the {adm["state"]} bar' if adm.get('state') else 'the bar'
-        ppl.append(f'{adm["name"]} was admitted to {bar} in {adm["year"]}' + (f' and earned a law degree from {sch["school"]}' if sch and sch['name'] == adm['name'] else '') + '.')
+        f.append(f'{adm["name"]} was admitted to {bar} in {adm["year"]}' + (f' and earned a law degree from {sch["school"]}' if sch and sch['name'] == adm['name'] else '') + '.')
     elif sch:
-        ppl.append(f'{sch["name"]} earned a law degree from {sch["school"]}.')
+        f.append(f'{sch["name"]} earned a law degree from {sch["school"]}.')
     team = _titles(p.get('team') or [], skip=(adm or {}).get('name') or founder)
     if team:
         lead = pick(slug, 'team', ['The firm’s attorneys include', 'Its attorneys include', 'The practice also includes'])
-        ppl.append(f'{lead} {join_list(team[:5])}.')
-    if p.get('size') and not team: ppl.append(f'It has a team of {p["size"]} attorneys.')
-    elif p.get('size'): ppl[-1] = ppl[-1][:-1] + f', on a team of {p["size"]} attorneys.'
-    if p.get('serves'): ppl.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') and not any(city.lower() in x.lower() for x in p['serves']) else '') + '.')  # a list that includes the firm's own city is places, not counties
-    if p.get('offices'): ppl.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
-    if p.get('topics'): ppl.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
-    if p.get('awards'): ppl.append(pick(slug, 'awards', ['The firm lists recognition from ', 'It lists recognition from ', 'Recognition listed by the firm includes ']) + join_list(p['awards'][:4]) + '.')
-    if p.get('memberships'): ppl.append('Its attorneys are listed as members of ' + join_list(p['memberships'][:3]) + '.')
-    if p.get('board_certified') and not p.get('awards'): ppl.append('The firm lists board-certified attorneys.')
+        f.append(f'{lead} {join_list(team[:5])}.')
+    if p.get('size') and not team: f.append(f'The firm has a team of {p["size"]} attorneys.')
+    elif p.get('size') and f: f[-1] = f[-1][:-1] + f', on a team of {p["size"]} attorneys.'
+    if p.get('serves'): f.append(pick(slug, 'serves', ['The firm serves clients across ', 'Its clients come from across ', 'The practice serves ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') and not any(city.lower() in x.lower() for x in p['serves']) else '') + '.')
+    if p.get('offices'): f.append(pick(slug, 'offices', ['The firm has offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
+    if p.get('topics'): f.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
+    if p.get('awards'): f.append(pick(slug, 'awards', ['The firm has been recognized by ', 'It has earned recognition from ', 'Its attorneys have been recognized by ']) + join_list(p['awards'][:4]) + '.')
+    if p.get('memberships'): f.append('Its attorneys are members of ' + join_list(p['memberships'][:3]) + '.')
+    if p.get('board_certified') and not p.get('awards'): f.append('The firm includes board-certified attorneys.')
     if press:
         if len(press) == 1:
-            x = press[0]; ppl.append(f'It was covered by {x["source"]} in {x["year"]}: “{x["title"]}”.')
+            x = press[0]; f.append(f'{x["source"]} covered the firm in {x["year"]}: “{x["title"]}”.')
         else:
-            ppl.append('Press coverage includes ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
-    if ppl: paras.append(' '.join(ppl))
-    # what the work involves (plain background for the main area, not a claim about this firm)
-    k0 = keys[0]
-    know = KNOW.get(k0) or [GENERIC_KNOW]; more = MORE.get(k0) or []
-    work = [pick_least(slug, 'know', know)]
-    if more: work.append(pick_least(slug, 'more', more))
-    paras.append(' '.join(work))
+            f.append('The firm has drawn press coverage from ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
+    if f: paras.append(' '.join(f))
+    # how the firm works with clients
+    sit, goal = pick(slug, 'wh', [WHETHER.get(k0), WHETHER2.get(k0)] if WHETHER.get(k0) else [('facing a legal problem', 'get the result they need')])
+    paras.append(pick_least(slug, 'approach', APPROACH, name=name) + ' ' + pick_least(slug, 'whether', SITUATIONS, name=name, sit=sit, goal=goal))
     # where to go next
     paras.append(pick_least(slug, 'cta', CTA, lead=LEAD.get(k0, 'If you need a lawyer'), name=name, city=city))
     return '\n\n'.join(paras)
