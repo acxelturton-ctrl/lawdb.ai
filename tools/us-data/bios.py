@@ -368,6 +368,8 @@ CTA = [
  '{lead}, {name} can talk through your situation with you and explain the options in front of you. Contact the firm to get started.',
  '{lead} in {city}, contact {name} to understand where you stand and what happens next.',
  '{lead}, a conversation with {name} in {city} is the first step toward understanding your options and moving forward with confidence.',
+ '{lead}, reach out to {name} in {city} to learn what your options are.',
+ '{lead}, {name} is ready to listen, explain your options and help you take the next step.',
 ]
 # What each kind of firm is there to do, the situations it handles and what clients are after. Written as plain fact about the firm.
 PURPOSE = {
@@ -416,17 +418,23 @@ WHETHER = {
  'Tax law': ('responding to an audit, resolving back taxes, or planning ahead', 'settle their obligations with confidence'),
  'Insurance claims': ('appealing a denial, documenting a loss, or pursuing a claim', 'recover what their policies promise'),
 }
-DEDICATED = ['dedicated to helping', 'committed to helping', 'focused on helping']
+DEDICATED = ['dedicated to helping', 'committed to helping', 'focused on helping', 'devoted to helping']
+PURPOSE2 = {'Personal injury': 'clients rebuild their lives and finances after an accident or injury caused by someone else', 'Car accidents': 'accident victims secure medical care, repairs and fair compensation after a collision', 'Criminal defense': 'individuals charged with crimes understand their options and defend their freedom', 'DUI': 'people charged with driving under the influence defend their license and their future', 'Family law': 'families move through divorce, custody and support disputes with clarity and care', 'Immigration': 'people and businesses secure visas, residency and citizenship', 'Wills, trusts & probate': 'families put sound estate plans in place and settle estates smoothly', 'Elder law': 'seniors and their loved ones prepare for care costs, guardianship and the transfer of assets', 'Real estate': 'property owners, buyers and sellers close deals and settle disputes with confidence', 'Employment': 'employees and employers resolve wage, discrimination and contract issues', 'Workers’ compensation': 'workers recover medical care and lost wages after getting hurt on the job', 'Bankruptcy': 'people overwhelmed by debt stop collections and start over', 'Business & corporate': 'founders and companies form entities, draft contracts and settle disputes', 'Medical malpractice': 'patients and families hold providers accountable for preventable medical harm', 'Wrongful death': 'families pursue accountability and financial security after a preventable death', 'Social Security disability': 'disabled workers apply for and appeal Social Security benefits', 'Traffic tickets': 'drivers contest citations and keep violations off their record', 'Civil litigation': 'clients protect their interests in contract, property and business disputes', 'Intellectual property': 'creators and companies register, protect and enforce their intellectual property', 'Tax law': 'taxpayers answer IRS notices, settle back taxes and plan ahead', 'Insurance claims': 'insureds challenge denied, delayed and underpaid claims'}
+WHETHER2 = {'Personal injury': ('recovering from injuries, talking with adjusters, or preparing for trial', 'secure fair compensation'), 'Car accidents': ('facing medical bills, repair costs, or a disputed insurance claim', 'recover fully'), 'Criminal defense': ('responding to a charge, negotiating with prosecutors, or preparing a defense', 'protect their freedom'), 'DUI': ('contesting a charge, a breath test result, or a suspension', 'keep their license and record in good standing'), 'Family law': ('ending a marriage, setting a parenting plan, or changing a support order', 'protect their children and their finances'), 'Immigration': ('filing a petition, renewing status, or fighting a removal', 'stay on track toward their goals'), 'Wills, trusts & probate': ('naming guardians, avoiding probate, or settling a loved one’s estate', 'give their families security'), 'Elder law': ('planning for Medicaid, nursing care, or powers of attorney', 'protect their savings and independence'), 'Real estate': ('buying a home, leasing commercial space, or settling a boundary dispute', 'move ahead with confidence'), 'Employment': ('facing a layoff, harassment, or unpaid overtime', 'protect their careers and their income'), 'Workers’ compensation': ('reporting an injury, disputing a denial, or negotiating a settlement', 'receive the care and wages they need'), 'Bankruptcy': ('choosing between Chapter 7 and Chapter 13, facing foreclosure, or stopping garnishment', 'regain stability'), 'Business & corporate': ('choosing an entity, drafting agreements, or resolving partner disputes', 'build on a solid legal foundation'), 'Medical malpractice': ('reviewing medical records, consulting specialists, or filing suit', 'hold providers accountable'), 'Wrongful death': ('handling funeral costs, lost income, or a disputed claim', 'secure their family’s future'), 'Social Security disability': ('gathering medical evidence, filing an appeal, or testifying at a hearing', 'obtain the benefits they need'), 'Traffic tickets': ('facing points on a license, a speeding ticket, or a court date', 'keep their driving record clean'), 'Civil litigation': ('enforcing a contract, defending a claim, or negotiating a settlement', 'reach a resolution that works for them'), 'Intellectual property': ('filing a trademark, responding to infringement, or licensing a work', 'keep control of their ideas'), 'Tax law': ('facing penalties, an audit, or unfiled returns', 'get back in good standing'), 'Insurance claims': ('facing a denial, a low offer, or a delay', 'get the coverage they paid for')}
 APPROACH = [
  'With a client-focused approach, {name} provides personalized legal guidance, strong advocacy, and a commitment to protecting clients’ rights.',
  '{name} puts clients first, combining personal attention, clear communication and determined advocacy at every stage of a case.',
  'At {name}, every client receives personal attention, straightforward answers and strong advocacy from the first call to the final resolution.',
  '{name} takes a hands-on, client-focused approach built on clear communication, careful preparation and strong advocacy.',
+ 'Clients choose {name} for responsive communication, thorough preparation and dependable advocacy.',
+ '{name} builds every case around the client, with clear updates, practical advice and strong advocacy.',
+ 'Personal attention and persistent advocacy define the way {name} works with clients.',
 ]
 SITUATIONS = [
  'Whether {sit}, {name} works to make the legal process easier to understand while helping clients {goal}.',
  'Whether {sit}, clients rely on {name} for clear explanations and steady guidance as they work to {goal}.',
  'Whether {sit}, {name} focuses on giving clients clear answers and helping them {goal}.',
+ 'Clients who are {sit} turn to {name} for straightforward advice and help to {goal}.',
 ]
 
 def make_biography(slug, name, city, st, region_id, areas, p, press=None):
@@ -447,7 +455,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     where = (f'{city} and {reg}' if reg and city.lower() not in reg.lower() else reg if reg else f'{city} and the surrounding area')
     k0 = keys[0]
     ded = pick(slug, 'ded', DEDICATED)
-    purpose = PURPOSE.get(k0, 'individuals and families get the legal help they need')
+    purpose = pick(slug, 'purp', [PURPOSE.get(k0), PURPOSE2.get(k0)] if PURPOSE.get(k0) else ['individuals and families get the legal help they need'])
     tail = f'{area_list}, along with related legal matters' if len(names) > 1 else f'{area_list} and related legal matters'
     s1 = pick(slug, 's1', [
         f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} {ded} {purpose}. The firm represents clients in {tail} throughout {where}.',
@@ -483,7 +491,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
             f.append('The firm has drawn press coverage from ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
     if f: paras.append(' '.join(f))
     # how the firm works with clients
-    sit, goal = WHETHER.get(k0, ('facing a legal problem', 'get the result they need'))
+    sit, goal = pick(slug, 'wh', [WHETHER.get(k0), WHETHER2.get(k0)] if WHETHER.get(k0) else [('facing a legal problem', 'get the result they need')])
     paras.append(pick_least(slug, 'approach', APPROACH, name=name) + ' ' + pick_least(slug, 'whether', SITUATIONS, name=name, sit=sit, goal=goal))
     # where to go next
     paras.append(pick_least(slug, 'cta', CTA, lead=LEAD.get(k0, 'If you need a lawyer'), name=name, city=city))
