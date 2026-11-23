@@ -40,8 +40,21 @@ def clean_name(raw):
     n = re.sub(r'\s+', ' ', (raw or '')).strip()
     n = re.split(r',|\||\s[-–—]\s|\(', n)[0].strip()                       # "Jane Roe, Esq." / "Jane Roe | Smith Law" -> "Jane Roe"
     n = re.sub(r'^(Attorney|Mr|Ms|Mrs|Dr|Hon)\.?\s+', '', n, flags=re.I)
-    if not re.fullmatch(r"[A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]+(?: [A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]*){1,3}", n) or NOT_A_NAME.search(n): return None
+    if not re.fullmatch(r"[A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]+(?: [A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]*){1,3}", n) or NOT_A_NAME.search(n) or NOT_PERSON.search(n): return None
     return n
+
+# words that make a "name" a heading, not a person ("Truck Accidents", "Speak to an Attorney Today")
+NOT_PERSON = re.compile(r'\b(accidents?|injur(?:y|ies)|malpractice|wrongful|compensation|consultation|testimonials?|careers?|resources?|speak|today|results?|claims?|cases?|collisions?|crash(?:es)?|truck|motorcycle|bicycle|pedestrian|insurance|defense|bankruptcy|immigration|litigation|divorce|custody|probate|areas?|call|free|learn|visit|click|menu|search|review|reviews|overview|welcome)\b', re.I)
+# a picture that is a stock photo, banner, logo or news graphic, not a headshot
+PHOTO_BAD = re.compile(r'istock|shutterstock|gettyimages|stock-?photo|(?<![a-z])(logo|icon|badge|seal|award|banner|hero|slider|background|header|footer|news|blog|map|team-photo|group)(?![a-z])', re.I)
+
+def clean_title(title, name):
+    """the job title without the lawyer's own name; '' when what is left is not a title"""
+    t = re.sub(r'\s+', ' ', title or '').strip()
+    for tok in sorted(re.findall(r"[A-Za-z]{3,}", name), key=len, reverse=True): t = re.sub(r'\b' + re.escape(tok) + r'\b', '', t, flags=re.I)
+    t = re.sub(r'\s+', ' ', t).strip(' ,;:|-–—')
+    if not t or re.search(r'\b(today|speak|call|contact|free|click|learn|visit)\b', t, re.I) or not LAWYER_TITLE.search(t): return ''
+    return t[:60]
 
 def digits10(s):
     d = re.sub(r'\D', '', s or '')
@@ -80,7 +93,7 @@ def photo_for(site, soup, base, name):
     if og and og.get('content'): cands.append((urllib.parse.urljoin(base, og['content']), 'og', 1))
     seen = set()
     for u, _, _ in sorted(cands, key=lambda c: -c[2]):
-        if u in seen: continue
+        if u in seen or PHOTO_BAD.search(urllib.parse.urlparse(u).path.rsplit('/', 1)[-1]): continue
         seen.add(u)
         if len(seen) > 6: break
         ok = check_image(site, u)
@@ -104,6 +117,7 @@ def parse_profile(site, url, soup, firm):
     page_text = E.text_of(BeautifulSoup(str(soup), 'html.parser'))
     if STAFF_TITLE.search(title) and not re.search(r'\battorney\b', title, re.I): return None
     if not (LAWYER_TITLE.search(title) or LAWYER_PROOF.search(page_text)): return None
+    title = clean_title(title, name)
     photo = photo_for(site, soup, url, name)
     if not photo: return None
     phone, email = '', ''
@@ -176,6 +190,10 @@ def crawl_firm(firm):
         s = base; n = 2
         while s in seen_slugs: s = f"{base}-{n}"; n += 1
         rec['slug'] = s; rec['city'] = firm.get('city') or ''; rec['state'] = firm.get('state') or ''; seen_slugs.add(s); out.append(rec)
+    # the same name on two or more pages of one firm is the firm's name or a site heading ("Adams Leclair" on every page), not a person: none of them is kept
+    names = {}
+    for r in out: names[r['name'].lower()] = names.get(r['name'].lower(), 0) + 1
+    out = [r for r in out if names[r['name'].lower()] == 1]
     # the same picture on two or more lawyers is a shared placeholder or a group photo: none of them keeps it
     count = {}
     for r in out: count[r['sha1']] = count.get(r['sha1'], 0) + 1
