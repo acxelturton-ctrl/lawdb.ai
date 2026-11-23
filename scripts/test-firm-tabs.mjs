@@ -128,6 +128,6 @@ const longSlug = 'a-very-long-name-that-goes-on-and-on-for-a-while-miami-fl-with
 assert.equal(cleanLawyer({ ...raw, slug: longSlug }).slug, longSlug);
 assert.match(renderLawyerPage({ ...linked, firmSlug: '', firmName: '', photo: 'https://example.com/m.jpg' }), /alt="Maria Lopez, Partner"/, 'no firm: the photo text does not name the city as a firm');
 for (const f of ['migrations/0003_lawyers.sql']) assert.doesNotMatch(readFileSync(new URL('../' + f, import.meta.url), 'utf8'), /firm_lawyers/);
-assert.match(solo, /<meta name="robots" content="noindex,follow">/, 'no biography and no practice areas: not indexed yet');
+assert.match(renderLawyerPage({ ...linked, areas: [], bio: [] }), /<meta name="robots" content="noindex,follow">/, 'no biography and no practice areas: not indexed yet');
 assert.doesNotMatch(lp, /noindex/, 'a page with practice areas is indexed');
 console.log('lawyers: ok');
