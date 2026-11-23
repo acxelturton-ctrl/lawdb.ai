@@ -10,7 +10,7 @@ on:
         description: 'Visit only the first N firms (0 = all)'
         default: '25'
       site:
-        description: 'Site to read the live firms from'
+        description: 'Only used if there is no CLOUDFLARE_API_TOKEN: a site to read the live firms from (the firm list is normally read from the database)'
         default: 'https://lawdb.ai'
       load:
         description: 'Type yes to load the lawyers into the LIVE database (lawdb-ai). Safe to run twice (INSERT OR IGNORE). The migration must have been applied first.'
@@ -26,8 +26,26 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install requests beautifulsoup4 Pillow
+      - name: Read the live firms from the database
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+        run: |
+          set -e
+          mkdir -p data/lawyers
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "No CLOUDFLARE_API_TOKEN: reading the firm list from ${{ inputs.site }} instead"; echo "${{ inputs.site }}" > data/lawyers/source.txt; exit 0; fi
+          npm install --no-save wrangler@4
+          npx wrangler d1 execute DB --remote --json --command "SELECT slug, name, json_extract(data, '\$.website') AS site, city, state FROM firms WHERE status = 'live' AND COALESCE(json_extract(data, '\$.website'), '') != '' ORDER BY slug" > data/lawyers/firms.raw.json
+          python3 - <<'PY'
+          import json
+          raw = open('data/lawyers/firms.raw.json').read()
+          rows = json.loads(raw[raw.index('['):])[0]['results']
+          json.dump(rows, open('data/lawyers/firms.json', 'w'))
+          open('data/lawyers/source.txt', 'w').write('data/lawyers/firms.json')
+          print(len(rows), 'live firms with a website')
+          PY
       - name: Crawl
-        run: python3 tools/us-data/lawyers.py "${{ inputs.site }}" --out data/lawyers/lawyers.jsonl --sql data/lawyers/lawyers.sql --limit "${{ inputs.limit }}" --workers 6
+        run: python3 tools/us-data/lawyers.py "$(cat data/lawyers/source.txt)" --out data/lawyers/lawyers.jsonl --sql data/lawyers/lawyers.sql --limit "${{ inputs.limit }}" --workers 6
       - name: Load into the live database
         if: ${{ inputs.load == 'yes' }}
         env:
