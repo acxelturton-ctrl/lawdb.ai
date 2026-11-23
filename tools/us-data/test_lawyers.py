@@ -52,4 +52,8 @@ john = by['John Doe']
 assert john['title'] == 'Associate Attorney' and john['email'] == '' and john['phone'] == '', john               # general office email is not a lawyer's
 assert jane['slug'] == 'jane-roe-miami-fl' and jane['city'] == 'Miami' and jane['state'] == 'FL', jane['slug']   # a lawyer's address is global, so it carries the place
 assert 'INSERT OR IGNORE INTO lawyers' in L.to_sql(jane) and "O''Brien" in L.to_sql({**jane, 'name': "O'Brien"})
+# headings, firm names repeated on every page, stock photos and titles that repeat the name are not lawyers
+assert L.clean_name('Truck Accidents') is None and L.clean_name('Speak To An Attorney') is None and L.clean_name('Katherine Allen') == 'Katherine Allen'
+assert L.clean_title('Divorce Lawyer Katherine Allen', 'Katherine Allen') == 'Divorce Lawyer' and L.clean_title('Speak to an Attorney Today', 'X Y') == '' and L.clean_title('Founding Partner', 'Hamilton Arendsen') == 'Founding Partner'
+assert L.PHOTO_BAD.search('iStock-1445641285-1024x683.jpg') and L.PHOTO_BAD.search('Amazon-Seller-News_-New-Custome.jpg') and not L.PHOTO_BAD.search('Frank-J.-Aloia-Jr.-1.webp')
 print('lawyers crawler: ok', len(rows), 'kept')
