@@ -134,7 +134,7 @@ def extract(rec, firm_name='', city=''):
                r'(?:firm|law office|our office|our practice|this firm)\s+since\s+((?:19|20)\d\d)',
                r'serving (?:the )?[A-Za-z ]{3,40}\s+since\s+((?:19|20)\d\d)', r'since our founding in\s+((?:19|20)\d\d)', r'\best\.\s*((?:19|20)\d\d)'):
         m = re.search(rx, blob, re.I)
-        if m: since = int(m.group(1)); break
+        if m: since = int(m.group(1)); out['since_firm_says'] = not rx.startswith('(?:established|founded'); break
     if not since and rec.get('founded'):
         m = re.match(r'(\d{4})', str(rec['founded']))
         if m: since = int(m.group(1))

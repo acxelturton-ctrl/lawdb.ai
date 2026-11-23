@@ -355,6 +355,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     if not names: return ''
     since, founder = p.get('since'), p.get('founder')
     if since and founder: est = f', established in {since} by {founder}'
+    elif since and p.get('since_firm_says'): est = f', in practice since {since} by its own account'
     elif since: est = pick(slug, 'est', [f', in practice since {since}', f', established in {since}'])
     elif founder: est = f', founded by {founder}'
     else: est = ''
