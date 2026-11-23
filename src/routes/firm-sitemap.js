@@ -3,6 +3,7 @@
 // Profiles without a real description yet (see src/lib/indexing.js) are left out and carry a noindex tag.
 import { isIndexable } from '../lib/indexing.js';
 import { tabsFor } from '../render/firm-tabs.js';
+import { profilesOn } from '../lib/lawyers.js';
 
 // One sitemap file may hold 50,000 addresses; we stop well short of that. If the table ever reaches the limit the file says so in a header and the log,
 // and the answer is a sitemap index (see docs/ARCHITECTURE.md, "Search engines").
@@ -36,7 +37,8 @@ export async function firmSitemap({ request, env }) {
         const base = `${origin}/firms/${encodeURIComponent(r.slug)}`;
         return [
           ...tabsFor({ details }, Math.min(Number(r.posts) || 0, 20), people.length).map((t) => `  <url><loc>${base}${t === 'overview' ? '' : '/' + t}</loc>${lm}</url>`),
-          ...people.map((p) => `  <url><loc>${base}/lawyers/${encodeURIComponent(p)}</loc>${lm}</url>`),
+          ...(profilesOn(env) ? people : []).map((p) => // no lawyer addresses in the sitemap while their pages answer 404
+           `  <url><loc>${base}/lawyers/${encodeURIComponent(p)}</loc>${lm}</url>`),
         ];
       }).slice(0, 49000).join('\n') + '\n</urlset>\n'; // one sitemap file holds at most 50,000 addresses
     return new Response(xml, { headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=600', ...(truncated ? { 'x-sitemap-truncated': '1' } : {}) } });

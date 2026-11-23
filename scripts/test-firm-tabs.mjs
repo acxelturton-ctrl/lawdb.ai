@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { renderFirmPage } from '../src/render/firm-page.js';
 import { tabsFor, tabPath, MIN_LAWYERS, MIN_ARTICLES } from '../src/render/firm-tabs.js';
 import { firmSitemap } from '../src/routes/firm-sitemap.js';
-import { cleanLawyer, lawyerSlug } from '../src/lib/lawyers.js';
+import { cleanLawyer, lawyerSlug, MAX_LAWYERS, profilesOn } from '../src/lib/lawyers.js';
 import { lawyerAbout } from '../src/lib/lawyer-bio.js';
 
 const lawyers = [{ name: 'Jane Roe', title: 'Partner' }, { name: 'John Doe', title: 'Associate' }];
@@ -55,7 +55,7 @@ const rows = [
   { slug: 'd-firm', updatedAt: null, about: '', details: JSON.stringify({ lawyers }), posts: 9 }, // no real description yet: stays out
 ];
 const people = [{ firm: 'c-firm', slug: 'maria-lopez' }, { firm: 'c-firm', slug: 'sam-lee' }];
-const env = { SITE_ORIGIN: 'https://lawdb.ai', DB: { prepare: (sql) => ({ all: async () => ({ results: /firm_lawyers/.test(sql) ? people : rows }) }) } };
+const env = { SITE_ORIGIN: 'https://lawdb.ai', LAWYER_PROFILES: 'on', DB: { prepare: (sql) => ({ all: async () => ({ results: /firm_lawyers/.test(sql) ? people : rows }) }) } };
 const xml = await (await firmSitemap({ request: new Request('https://lawdb.ai/sitemap-firms.xml'), env })).text();
 const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 assert.deepEqual(locs, ['https://lawdb.ai/firms/a-firm', 'https://lawdb.ai/firms/a-firm/lawyers', 'https://lawdb.ai/firms/b-firm', 'https://lawdb.ai/firms/b-firm/articles', 'https://lawdb.ai/firms/c-firm', 'https://lawdb.ai/firms/c-firm/lawyers', 'https://lawdb.ai/firms/c-firm/lawyers/maria-lopez', 'https://lawdb.ai/firms/c-firm/lawyers/sam-lee']);
@@ -86,8 +86,16 @@ assert.match(lp, /<img src="https:\/\/example\.com\/maria\.jpg" alt="Maria Lopez
 assert.match(lp, /"name": "Lawyers",\s+"item": "https:\/\/lawdb\.ai\/firms\/test-law\/lawyers"/);
 assert.match(lp, /Other lawyers at Test Law/); assert.match(lp, /Sam Lee/);
 assert.doesNotMatch(lp, /(?:href|src)="\.\.\//);
-const lst = renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: ls });
+const lst = renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: ls, profileLinks: true });
 assert.match(lst, /href="\/firms\/test-law\/lawyers\/maria-lopez"/);
+// profile pages are closed for now: cards are not links, at most MAX_LAWYERS are shown
+const closed = renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: ls });
+assert.doesNotMatch(closed, /href="\/firms\/test-law\/lawyers\/maria-lopez"/); assert.match(closed, /Maria Lopez/);
+const many = Array.from({ length: 14 }, (_, i) => ({ slug: 'l' + i, name: 'Lawyer Number' + String.fromCharCode(65 + i), title: 'Associate', photo: 'https://example.com/p.jpg' }));
+assert.equal((renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: many }).match(/class="tl-card/g) || []).length, MAX_LAWYERS);
+assert.equal(profilesOn({}), false); assert.equal(profilesOn({ LAWYER_PROFILES: 'on' }), true);
+const off = await firmSitemap({ request: new Request('https://lawdb.ai/sitemap-firms.xml'), env: { ...env, LAWYER_PROFILES: '' } });
+assert.doesNotMatch(await off.text(), /\/lawyers\/maria-lopez/, 'no lawyer pages in the sitemap while they are closed');
 
 // --- descriptions differ from lawyer to lawyer
 const names = ['Ana Ruiz', 'Ben Cole', 'Cara Diaz', 'Dan Eng', 'Eva Fox', 'Gus Hill', 'Hal Ito', 'Ivy Jay'];

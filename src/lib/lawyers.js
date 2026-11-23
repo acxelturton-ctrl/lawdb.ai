@@ -38,10 +38,17 @@ export function cleanLawyer(r) {
 
 export const showPhone = (d) => `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 
+// A firm lists at most this many lawyers on its profile (the Firm plan includes ten). Extra names are not shown.
+export const MAX_LAWYERS = 10;
+
+// Each lawyer's own page (/firms/<firm>/lawyers/<lawyer>) is the paid Lawyer plan and is not open yet: the cards on a firm's Lawyers tab are
+// not links and the pages answer 404 until LAWYER_PROFILES is set to "on" in the Worker's variables.
+export const profilesOn = (env) => String((env && env.LAWYER_PROFILES) || '').toLowerCase() === 'on';
+
 // A firm's live lawyers, oldest first (the order the firm lists them). The page works without them if the table is missing or the query fails.
 export async function listLawyers(env, firmSlug) {
   try {
-    const { results } = await env.DB.prepare("SELECT slug, name, title, photo_url, phone, email, socials, areas, source_url FROM firm_lawyers WHERE firm_slug = ? AND status = 'live' ORDER BY id LIMIT 60").bind(firmSlug).all();
+    const { results } = await env.DB.prepare("SELECT slug, name, title, photo_url, phone, email, socials, areas, source_url FROM firm_lawyers WHERE firm_slug = ? AND status = 'live' ORDER BY id LIMIT ?").bind(firmSlug, MAX_LAWYERS).all();
     return results.map(cleanLawyer).filter(Boolean);
   } catch (err) {
     console.error('lawyers lookup failed', firmSlug, err);

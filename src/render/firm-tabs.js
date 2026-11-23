@@ -2,7 +2,7 @@
 // Every tab is its own page with its own address, title, description, canonical and breadcrumb, so each can be found in search on its own.
 // A tab exists only when the firm has real content for it (tabsFor); a firm without it has no page at that address and no tab button, so nothing thin is published.
 import { cleanDetails } from '../lib/details.js';
-import { NET_LABEL, showPhone } from '../lib/lawyers.js';
+import { NET_LABEL, showPhone, MAX_LAWYERS } from '../lib/lawyers.js';
 import { lawyerAbout } from '../lib/lawyer-bio.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -98,12 +98,15 @@ export function tabMeta(f, tab, { lawyers = [], postCount = 0, lawyer = null, gl
 const PHOTO = (l, f, size) => `<img src="${esc(l.photo)}" alt="${esc(`${l.name}${l.title ? `, ${l.title}` : ''} at ${f.name}`)}" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
 
 // The Lawyers page: a card for each lawyer who has a profile (photo, name, title, a link), or, for a firm with only names, the plain list.
-export function lawyersBodyHtml(f, details, lawyers = []) {
+// `links` is true only while each lawyer's own page is open (see profilesOn in src/lib/lawyers.js); otherwise a card is a photo, a name and a title. At most MAX_LAWYERS are shown.
+export function lawyersBodyHtml(f, details, lawyers = [], links = false) {
   const areas = (details && details.areas) || [];
+  const card = (l) => links
+    ? `<li class="tl-card tl-pro"><a class="tl-ph" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}" tabindex="-1" aria-hidden="true">${PHOTO(l, f, 64)}</a><div><a class="tl-nm" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}"><b>${esc(l.name)}</b></a>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`
+    : `<li class="tl-card tl-pro"><span class="tl-ph">${PHOTO(l, f, 64)}</span><div><b>${esc(l.name)}</b>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`;
   const cards = lawyers.length
-    ? lawyers.map((l) =>
-      `<li class="tl-card tl-pro"><a class="tl-ph" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}" tabindex="-1" aria-hidden="true">${PHOTO(l, f, 64)}</a><div><a class="tl-nm" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}"><b>${esc(l.name)}</b></a>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`).join('')
-    : ((details && details.lawyers) || []).map((l) =>
+    ? lawyers.slice(0, MAX_LAWYERS).map(card).join('')
+    : ((details && details.lawyers) || []).slice(0, MAX_LAWYERS).map((l) =>
       `<li class="tl-card"><span class="tl-av" aria-hidden="true">${esc(initials(l.name))}</span><div><b>${esc(l.name)}</b>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`).join('');
   return `<section class="pf-tabpage" aria-label="Lawyers at ${esc(f.name)}"><h2>Lawyers at ${esc(f.name)}</h2>` +
     `<p class="pf-lead">${esc(f.name)} is a law firm in ${esc(f.city)}, ${esc(f.state)}. These are the lawyers it shows on its own website.</p>` +
