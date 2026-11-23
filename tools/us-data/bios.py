@@ -418,7 +418,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
         ppl.append(f'{lead} {join_list(team[:5])}.')
     if p.get('size') and not team: ppl.append(f'It has a team of {p["size"]} attorneys.')
     elif p.get('size'): ppl[-1] = ppl[-1][:-1] + f', on a team of {p["size"]} attorneys.'
-    if p.get('serves'): ppl.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') else '') + '.')
+    if p.get('serves'): ppl.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') and not any(city.lower() in x.lower() for x in p['serves']) else '') + '.')  # a list that includes the firm's own city is places, not counties
     if p.get('offices'): ppl.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
     if p.get('topics'): ppl.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
     if p.get('awards'): ppl.append(pick(slug, 'awards', ['The firm lists recognition from ', 'It lists recognition from ', 'Recognition listed by the firm includes ']) + join_list(p['awards'][:4]) + '.')
