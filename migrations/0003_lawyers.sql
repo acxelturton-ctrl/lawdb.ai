@@ -11,7 +11,11 @@ CREATE TABLE lawyers (
   city       TEXT NOT NULL,
   state      TEXT NOT NULL,
   firm_slug  TEXT REFERENCES firms (slug) ON DELETE SET NULL,   -- NULL: not linked to a listed firm
-  photo_url  TEXT,                                -- https address of a photo (the crawler keeps a lawyer only with one that passed the image checks); a paying lawyer may add theirs later
+  photo_url  TEXT,                                -- where the crawler found the photo (the firm's own site); never shown to the public, only to the admin who reviews it
+  photo_status TEXT NOT NULL DEFAULT 'pending' CHECK (photo_status IN ('pending', 'approved', 'rejected')),   -- an admin looks at every photo; only an approved one is copied to LawDB's own storage and shown
+  photo_id   TEXT,                                -- the approved photo's own copy: served at /img/<photo_id> (src/routes/images.js)
+  photo_type TEXT,                                -- its content type
+  photo_reviewed_at TEXT,
   phone      TEXT,                                -- a direct number only; never the firm's main line
   email      TEXT,                                -- never a general office address
   socials    TEXT,                                -- JSON {"linkedin": "...", "x": "..."} personal profiles only
@@ -26,4 +30,6 @@ CREATE TABLE lawyers (
 );
 CREATE INDEX idx_lawyers_firm ON lawyers (firm_slug, status);
 CREATE INDEX idx_lawyers_paid ON lawyers (paid_until);
+CREATE INDEX idx_lawyers_photo ON lawyers (photo_status, id);
+CREATE UNIQUE INDEX idx_lawyers_photo_id ON lawyers (photo_id) WHERE photo_id IS NOT NULL;
 CREATE INDEX idx_lawyers_place ON lawyers (state, city);

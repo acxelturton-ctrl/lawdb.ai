@@ -622,3 +622,70 @@ export async function collectRun({ request, env }) {
   await audit(env, admin, 'collect.start', 'site', 'us-states', input);
   return reply({ ok: true, ...input });
 }
+
+// ---------------------------------------------------------------- lawyer photos
+// The crawler (tools/us-data/lawyers.py) finds a profile photo for each lawyer a firm names on its own website. None of them is shown until it is approved here:
+// approving copies the picture to LawDB's own storage (shown at /img/<id>, never hotlinked from the firm's site); rejecting keeps the lawyer off the site.
+const PHOTO_STATUS = ['pending', 'approved', 'rejected'];
+const hex24 = () => [...crypto.getRandomValues(new Uint8Array(12))].map((x) => x.toString(16).padStart(2, '0')).join('');
+
+export async function lawyerPhotos({ request, env, url }) {
+  await requireAdmin(env, request);
+  const status = PHOTO_STATUS.includes(url.searchParams.get('status')) ? url.searchParams.get('status') : 'pending';
+  const after = clampInt(url.searchParams.get('after'), 0, 0, 1e9);
+  const limit = clampInt(url.searchParams.get('limit'), 24, 1, 48);
+  const [{ results }, counts] = await Promise.all([
+    env.DB.prepare(`SELECT l.id, l.slug, l.name, l.title, l.city, l.state, l.source_url AS sourceUrl, l.firm_slug AS firmSlug, f.name AS firmName
+      FROM lawyers l LEFT JOIN firms f ON f.slug = l.firm_slug
+      WHERE l.photo_status = ? AND l.photo_url IS NOT NULL AND l.status = 'live' AND l.id > ? ORDER BY l.id LIMIT ?`).bind(status, after, limit).all(),
+    env.DB.prepare("SELECT photo_status AS s, COUNT(*) AS n FROM lawyers WHERE photo_url IS NOT NULL AND status = 'live' GROUP BY photo_status").all(),
+  ]);
+  const c = { pending: 0, approved: 0, rejected: 0 };
+  for (const r of counts.results) c[r.s] = r.n;
+  return reply({ lawyers: results, counts: c, next: results.length === limit ? results[results.length - 1].id : null });
+}
+
+// Shows the photo the crawler found, inside the admin (the admin pages may not load pictures from other sites directly). The address comes from the database, never from the request.
+export async function lawyerPhotoPreview({ request, env, url }) {
+  await requireAdmin(env, request);
+  const row = await env.DB.prepare('SELECT photo_url FROM lawyers WHERE slug = ?').bind(url.searchParams.get('slug') || '').first();
+  if (!row || !row.photo_url) throw new HttpError(404, 'No photo');
+  const { bytes, info } = await fetchPicture(env, row.photo_url);
+  return new Response(bytes, { headers: { 'content-type': { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[info.format], 'cache-control': 'private, max-age=600', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'none'; sandbox" } });
+}
+
+export async function lawyerPhotosDecide({ request, env }) {
+  const admin = await requireAdmin(env, request);
+  if (!env.IMAGES) throw new HttpError(503, 'Picture storage is not available right now.');
+  const body = await readJson(request, 20000);
+  const list = Array.isArray(body.decisions) ? body.decisions.slice(0, 30) : [];
+  if (!list.length) throw new HttpError(422, 'Nothing to decide.');
+  const out = [];
+  for (const d of list) {
+    const slug = typeof d.slug === 'string' ? d.slug : '';
+    const action = d.action === 'approve' || d.action === 'reject' ? d.action : '';
+    const row = slug && action ? await env.DB.prepare("SELECT slug, photo_url, photo_id FROM lawyers WHERE slug = ? AND photo_url IS NOT NULL").bind(slug).first() : null;
+    if (!row) { out.push({ slug, ok: false, error: 'Not found' }); continue; }
+    try {
+      if (action === 'approve') {
+        if (row.photo_id) { out.push({ slug, ok: true, status: 'approved' }); continue; } // already approved: nothing to copy twice
+        const { bytes, info } = await fetchPicture(env, row.photo_url);
+        const contentType = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[info.format];
+        const id = hex24();
+        await env.IMAGES.put(`img/${id}`, bytes, { httpMetadata: { contentType } });
+        try {
+          await env.DB.prepare("UPDATE lawyers SET photo_status = 'approved', photo_id = ?, photo_type = ?, photo_reviewed_at = datetime('now'), updated_at = datetime('now') WHERE slug = ?").bind(id, contentType, slug).run();
+        } catch (err) { await env.IMAGES.delete(`img/${id}`).catch(() => {}); throw err; }
+        out.push({ slug, ok: true, status: 'approved' });
+      } else {
+        await env.DB.prepare("UPDATE lawyers SET photo_status = 'rejected', photo_id = NULL, photo_type = NULL, photo_reviewed_at = datetime('now'), updated_at = datetime('now') WHERE slug = ?").bind(slug).run();
+        if (row.photo_id) await env.IMAGES.delete(`img/${row.photo_id}`).catch(() => {}); // the lawyer stops showing at once (the page also checks the row)
+        out.push({ slug, ok: true, status: 'rejected' });
+      }
+    } catch (err) {
+      out.push({ slug, ok: false, error: String((err && err.message) || err).slice(0, 160) });
+    }
+  }
+  await audit(env, admin, 'lawyer.photos', 'lawyer', String(out.length), { approved: out.filter((r) => r.ok && r.status === 'approved').length, rejected: out.filter((r) => r.ok && r.status === 'rejected').length });
+  return reply({ results: out });
+}

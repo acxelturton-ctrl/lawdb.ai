@@ -229,3 +229,5 @@ select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid
 .o-post { margin-top: 8px; }
 .o-post textarea { min-height: 120px; }
 .outreach .card input[type=text], .outreach .card textarea { margin-bottom: 8px; }
+
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin:12px 0}.ph-card{display:flex;flex-direction:column;gap:6px;align-items:flex-start;font-size:13.5px}.ph-card img{width:150px;height:150px;object-fit:cover;background:#f3ecd8;border-radius:10px;border:1px solid var(--line)}.ph-card .row{flex-wrap:wrap}.ph-err:empty{display:none}

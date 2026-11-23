@@ -19,7 +19,8 @@ export function cleanLawyer(r) {
   if (!r || typeof r !== 'object') return null;
   const slug = /^[a-z0-9][a-z0-9-]{1,100}$/.test(r.slug || '') ? r.slug : '';
   const name = text(r.name, 80);
-  const photo = httpsUrl(r.photo_url ?? r.photo); // may be empty: a lawyer without a photo shows only on their own page, once they are on the Lawyer plan
+  // Only a photo an admin approved is ever shown, and it is LawDB's own copy (/img/<id>), never the address on the firm's site. No photo: initials.
+  const photo = r.photo_status === 'approved' && /^[0-9a-f]{24}$/.test(r.photo_id || '') ? `/img/${r.photo_id}` : '';
   if (!slug || !name) return null;
   let socials = {}, areas = [];
   try { const s = typeof r.socials === 'string' ? JSON.parse(r.socials) : r.socials; if (s && typeof s === 'object') for (const k of Object.keys(NET)) if (typeof s[k] === 'string' && NET[k].test(s[k])) socials[k] = s[k]; } catch { /* no socials */ }
@@ -50,13 +51,13 @@ export const MAX_LAWYERS = 10;
 // firm being listed or on what plan the firm is on. A lawyer who has not paid is a plain card on their firm's Lawyers tab, with no link and no page (404).
 export const PAID_SQL = "(paid_until IS NOT NULL AND paid_until > datetime('now'))";
 
-const COLS = 'slug, name, title, city, state, firm_slug, photo_url, phone, email, socials, areas, source_url';
+const COLS = 'slug, name, title, city, state, firm_slug, photo_status, photo_id, phone, email, socials, areas, source_url';
 
-// The lawyers a firm names, for its Lawyers tab: paying lawyers first (so the cap never pushes one off), then the rest, oldest first. Only lawyers with a photo,
-// or on the plan, are shown. The page works without them if the table is missing or the query fails.
+// The lawyers a firm names, for its Lawyers tab: paying lawyers first (so the cap never pushes one off), then the rest, oldest first. A lawyer is shown once an
+// admin has approved the photo (or once they are on the plan). The page works without them if the table is missing or the query fails.
 export async function listLawyers(env, firmSlug) {
   try {
-    const { results } = await env.DB.prepare(`SELECT ${COLS}, ${PAID_SQL} AS paid FROM lawyers WHERE firm_slug = ? AND status = 'live' AND (photo_url IS NOT NULL OR ${PAID_SQL}) ORDER BY paid DESC, id LIMIT ?`).bind(firmSlug, MAX_LAWYERS).all();
+    const { results } = await env.DB.prepare(`SELECT ${COLS}, ${PAID_SQL} AS paid FROM lawyers WHERE firm_slug = ? AND status = 'live' AND (photo_status = 'approved' OR ${PAID_SQL}) ORDER BY paid DESC, id LIMIT ?`).bind(firmSlug, MAX_LAWYERS).all();
     return results.map(cleanLawyer).filter(Boolean);
   } catch (err) {
     console.error('lawyers lookup failed', firmSlug, err);
@@ -66,7 +67,7 @@ export async function listLawyers(env, firmSlug) {
 
 // One lawyer's own page: only a live lawyer who is on the Lawyer plan. Their firm (if they are linked to a live one) comes with them.
 export async function getPaidLawyer(env, slug) {
-  const row = await env.DB.prepare(`SELECT l.slug, l.name, l.title, l.city, l.state, l.firm_slug, l.photo_url, l.phone, l.email, l.socials, l.areas, l.bio, l.source_url, 1 AS paid,
+  const row = await env.DB.prepare(`SELECT l.slug, l.name, l.title, l.city, l.state, l.firm_slug, l.photo_status, l.photo_id, l.phone, l.email, l.socials, l.areas, l.bio, l.source_url, 1 AS paid,
       f.name AS firm_name, f.city AS firm_city, f.state AS firm_state
     FROM lawyers l LEFT JOIN firms f ON f.slug = l.firm_slug AND f.status = 'live'
     WHERE l.slug = ? AND l.status = 'live' AND ${PAID_SQL.replace(/paid_until/g, 'l.paid_until')}`).bind(slug).first();

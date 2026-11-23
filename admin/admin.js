@@ -36,7 +36,7 @@ function renderLogin() {
 let pendingCount = 0;
 let paymentCount = 0;
 let commentCount = 0;
-const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['collect', 'Collect'], ['network', 'Connect'], ['logos', 'Logos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
+const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['collect', 'Collect'], ['network', 'Connect'], ['logos', 'Logos'], ['photos', 'Lawyer photos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
 
 // The bar at the top shows the live counts and the clock; the user menu is on its right. The menu bar under it is the list of sections.
 let appStats = null;
@@ -448,6 +448,80 @@ async function viewLogos() {
     h('div', { class: 'card' }, h('p', { class: 'muted' }, 'These firms show their initials because no logo has been added. For each one LawDB reads the firm\'s own website for its logo and shows what it finds. Press "Use this logo" on the right one, or Skip. Nothing is saved unless you choose it, and only real JPEG, PNG or WebP pictures are used (not SVG).'),
       h('div', { class: 'row' }, restart), status),
     bulk, list, more);
+}
+
+// ---------------------------------------------------------------- lawyer photos
+// The crawler finds a profile photo for each lawyer a firm names on its own website. Nothing is shown on LawDB until you approve it here: Approve copies the picture to
+// LawDB's own storage and puts the lawyer on the firm's Lawyers tab; Reject keeps that lawyer off the site.
+async function viewPhotos() {
+  let status = 'pending', next = null, busy = false;
+  const grid = h('div', { class: 'ph-grid' });
+  const head = h('p', { class: 'muted' });
+  const more = h('div', { class: 'row' });
+  const bar = h('div', { class: 'row' });
+  const shown = new Map(); // slug -> card element
+  const tabs = ['pending', 'approved', 'rejected'].map((s) => h('button', { type: 'button', onclick: () => { status = s; reset(); } }, s[0].toUpperCase() + s.slice(1)));
+
+  async function decide(items, action) {
+    if (busy || !items.length) return;
+    busy = true; bar.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    try {
+      const { results } = await api('POST', '/api/admin/lawyer-photos/decide', { decisions: items.map((slug) => ({ slug, action })) });
+      let failed = 0;
+      for (const r of results) {
+        const card = shown.get(r.slug);
+        if (!card) continue;
+        if (r.ok) { card.remove(); shown.delete(r.slug); } else { failed++; card.querySelector('.ph-err').textContent = r.error || 'Failed'; }
+      }
+      if (failed) head.append(` ${failed} could not be saved (see the red text on those cards).`);
+      await refreshCounts();
+    } catch (err) { head.replaceChildren(note('msg-err', err.message)); }
+    busy = false; bar.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+  }
+
+  function card(l) {
+    const c = h('div', { class: 'card ph-card' },
+      h('img', { src: '/api/admin/lawyer-photos/preview?slug=' + encodeURIComponent(l.slug), alt: `Photo found for ${l.name}`, width: 150, height: 150, loading: 'lazy' }),
+      h('b', null, l.name), h('span', { class: 'muted' }, l.title || 'No title'),
+      h('span', { class: 'muted' }, `${l.firmName || 'No firm'} \u00b7 ${l.city}, ${l.state}`),
+      l.sourceUrl ? h('a', { href: l.sourceUrl, target: '_blank', rel: 'noopener nofollow' }, 'Page on the firm\'s website') : '',
+      h('div', { class: 'row' },
+        status !== 'approved' ? h('button', { type: 'button', class: 'primary', onclick: () => decide([l.slug], 'approve') }, 'Approve') : '',
+        status !== 'rejected' ? h('button', { type: 'button', onclick: () => decide([l.slug], 'reject') }, 'Reject') : ''),
+      h('span', { class: 'msg-err ph-err' }));
+    shown.set(l.slug, c);
+    return c;
+  }
+
+  let counts = { pending: 0, approved: 0, rejected: 0 };
+  async function refreshCounts() {
+    const q = await api('GET', '/api/admin/lawyer-photos?limit=1&status=' + status);
+    counts = q.counts;
+    head.textContent = `${counts.pending} waiting for you, ${counts.approved} approved, ${counts.rejected} rejected. Showing: ${status}.`;
+    tabs.forEach((b, i) => { b.className = ['pending', 'approved', 'rejected'][i] === status ? 'primary' : ''; });
+  }
+  async function load() {
+    if (busy) return; busy = true; more.replaceChildren();
+    try {
+      const q = await api('GET', `/api/admin/lawyer-photos?status=${status}&limit=24&after=${next || 0}`);
+      counts = q.counts; next = q.next;
+      q.lawyers.forEach((l) => grid.append(card(l)));
+      head.textContent = `${counts.pending} waiting for you, ${counts.approved} approved, ${counts.rejected} rejected. Showing: ${status}.`;
+      tabs.forEach((b, i) => { b.className = ['pending', 'approved', 'rejected'][i] === status ? 'primary' : ''; });
+      if (!q.lawyers.length && !grid.children.length) grid.replaceChildren(h('p', { class: 'muted' }, status === 'pending' ? 'Nothing is waiting. Run "Collect lawyers" to find more.' : `No ${status} photos.`));
+      if (q.next) more.append(h('button', { type: 'button', onclick: load }, 'Show 24 more'));
+    } catch (err) { head.replaceChildren(note('msg-err', err.message)); }
+    busy = false;
+  }
+  function reset() { grid.replaceChildren(); shown.clear(); next = null; load(); }
+  bar.append(
+    ...tabs,
+    h('button', { type: 'button', class: 'primary', onclick: () => { const s = [...shown.keys()]; if (s.length && confirm(`Approve the ${s.length} photos shown on this page? Look through them first.`)) decide(s, 'approve'); } }, 'Approve all shown'),
+    h('button', { type: 'button', onclick: () => { const s = [...shown.keys()]; if (s.length && confirm(`Reject the ${s.length} photos shown on this page?`)) decide(s, 'reject'); } }, 'Reject all shown'));
+  await load();
+  return h('div', null, h('h1', null, 'Lawyer photos'),
+    h('div', { class: 'card' }, h('p', { class: 'muted' }, 'Photos of lawyers, found on each firm\'s own website. Nothing appears on LawDB until you approve it. Approve copies the picture to LawDB\'s own storage and lists the lawyer on the firm\'s Lawyers tab. Reject keeps the lawyer off the site. Check that the photo is a real head-and-shoulders picture of that person, not a logo or a group.'), bar, head),
+    grid, more);
 }
 
 // ---------------------------------------------------------------- approvals
@@ -1251,7 +1325,7 @@ async function viewNetwork() {
     h('div', { class: 'card' }, data.reports.length ? data.reports.map(row) : h('p', { class: 'muted' }, status === 'new' ? 'No new reports.' : 'Nothing here.')));
 }
 
-const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, collect: viewCollect, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
+const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, collect: viewCollect, photos: viewPhotos, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
 
 let me; // the signed-in admin, for re-rendering after an action
 // "#firms/edit/<username>", "#firms/new" and "#firms/import" are pages inside the Firms section; every other address is a section on its own.

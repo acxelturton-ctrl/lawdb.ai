@@ -29,6 +29,7 @@ GENERIC_MAIL = re.compile(r'^(info|contact|office|admin|hello|mail|help|support|
 PHOTO_HINT = re.compile(r'(headshot|portrait|attorney|lawyer|bio|profile|team|people|staff|photo)', re.I)
 MIN_SIDE, MAX_IMG_BYTES = 200, 3 * 1024 * 1024
 MAX_PROFILES_PER_FIRM, MAX_TEAM_PAGES = 30, 3
+MAX_LAWYERS_PER_FIRM = 10   # the Firm plan lists up to ten; the firm's own order on its team page decides which
 
 def slugify(name):
     import unicodedata
@@ -187,7 +188,7 @@ def crawl_firm(firm):
         for r in out:
             if r[k] and c[r[k]] > 1: r[k] = ''
     for r in out: r.pop('sha1', None)
-    return out
+    return out[:MAX_LAWYERS_PER_FIRM]
 
 def q(v):
     return 'NULL' if v in (None, '', [], {}) else "'" + str(v).replace("'", "''") + "'"
