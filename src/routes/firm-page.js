@@ -4,7 +4,7 @@
 import { storyPath } from '../lib/stories.js';
 import { renderFirmPage } from '../render/firm-page.js';
 import { tabsFor, TAB_SLUGS } from '../render/firm-tabs.js';
-import { listLawyers, profilesOn } from '../lib/lawyers.js';
+import { listLawyers } from '../lib/lawyers.js';
 import { isIndexable } from '../lib/indexing.js';
 import { getVerification, publicView } from '../lib/verification.js';
 import { redirectTarget } from '../lib/firm-slug.js';
@@ -80,7 +80,6 @@ export async function firmPage({ request, env, ctx }) {
   const tab = m[2] || 'overview';
   const sub = m[3] || ''; // /firms/<slug>/lawyers/<lawyer>: one lawyer's page
   if (sub && tab !== 'lawyers') return env.ASSETS.fetch(request);
-  if (sub && !profilesOn(env)) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-lawyer__')); // a lawyer's own page is not open yet: a plain 404
   if (tab !== 'overview' && !TAB_SLUGS.includes(tab)) return env.ASSETS.fetch(request);
 
   const ttl = ttlOf(env);
@@ -116,13 +115,13 @@ export async function firmPage({ request, env, ctx }) {
     const photos = (await env.DB.prepare("SELECT id, alt FROM firm_images WHERE firm_slug = ? AND kind = 'photo' ORDER BY created_at, id").bind(m[1]).all()).results;
     const verified = publicView(await getVerification(env, m[1])); // only a firm the admin has checked; never the name or number the firm gave us
     const allPosts = await feedPosts(env, m[1], 20);
-    const lawyers = await listLawyers(env, m[1]);
+    const lawyers = await listLawyers(env, m[1], sub ? 200 : undefined);
     const tabs = tabsFor(firm, allPosts.length, lawyers.length);
-    const lawyer = sub ? lawyers.find((x) => x.slug === sub) || null : null;
+    const lawyer = sub ? lawyers.find((x) => x.slug === sub && x.paid) || null : null; // a lawyer's own page exists only while they are on the Lawyer plan
     if (sub && !lawyer) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-lawyer__')); // no such lawyer at this firm: a plain 404
     // A tab the firm has no content for has no page (a plain 404, not a thin page).
     if (!tabs.includes(tab)) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-tab__'));
-    html = renderFirmPage({ firm, hours, images: photos, tab, tabs, allPosts, lawyers, lawyer, profileLinks: profilesOn(env), posts: allPosts.slice(0, 3), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
+    html = renderFirmPage({ firm, hours, images: photos, tab, tabs, allPosts, lawyers, lawyer, posts: allPosts.slice(0, 3), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
   } catch (err) {
     console.error('profile render failed, serving the saved copy', m[1], err);
     return env.ASSETS.fetch(request);

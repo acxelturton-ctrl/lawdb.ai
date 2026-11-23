@@ -55,7 +55,7 @@ export const TABNAV_CSS = `<style>
 .tl-areas li{padding:6px 12px;border:1px solid #e3dcc7;border-radius:999px;font-size:14px;background:#faf6ea}
 .tl-cta{margin:22px 0 0}
 .tl-pro{padding:12px}.tl-ph{flex:none;line-height:0}.tl-ph img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#f3ecd8}
-.tl-nm{color:#1a1a1a;text-decoration:none}.tl-nm:hover b{text-decoration:underline}
+.tl-more{display:inline-block;margin-top:4px;font-size:13px;font-weight:600;color:#7a5a14}.tl-nm{color:#1a1a1a;text-decoration:none}.tl-nm:hover b{text-decoration:underline}
 .tl-head{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
 .tl-big img{width:140px;height:140px;border-radius:16px;object-fit:cover;background:#f3ecd8;display:block}
 .tl-role{margin:2px 0 12px;color:#5f5f5f}.tl-role a{color:inherit}
@@ -98,11 +98,11 @@ export function tabMeta(f, tab, { lawyers = [], postCount = 0, lawyer = null, gl
 const PHOTO = (l, f, size) => `<img src="${esc(l.photo)}" alt="${esc(`${l.name}${l.title ? `, ${l.title}` : ''} at ${f.name}`)}" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
 
 // The Lawyers page: a card for each lawyer who has a profile (photo, name, title, a link), or, for a firm with only names, the plain list.
-// `links` is true only while each lawyer's own page is open (see profilesOn in src/lib/lawyers.js); otherwise a card is a photo, a name and a title. At most MAX_LAWYERS are shown.
-export function lawyersBodyHtml(f, details, lawyers = [], links = false) {
+// A lawyer on the Lawyer plan (`paid`) has a card that links to their own page; any other lawyer is a photo, a name and a title. At most MAX_LAWYERS are shown.
+export function lawyersBodyHtml(f, details, lawyers = []) {
   const areas = (details && details.areas) || [];
-  const card = (l) => links
-    ? `<li class="tl-card tl-pro"><a class="tl-ph" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}" tabindex="-1" aria-hidden="true">${PHOTO(l, f, 64)}</a><div><a class="tl-nm" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}"><b>${esc(l.name)}</b></a>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`
+  const card = (l) => l.paid
+    ? `<li class="tl-card tl-pro"><a class="tl-ph" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}" tabindex="-1" aria-hidden="true">${PHOTO(l, f, 64)}</a><div><a class="tl-nm" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}"><b>${esc(l.name)}</b></a>${l.title ? `<span>${esc(l.title)}</span>` : ''}<a class="tl-more" href="${esc(tabPath(f.slug, 'lawyers', l.slug))}">View profile</a></div></li>`
     : `<li class="tl-card tl-pro"><span class="tl-ph">${PHOTO(l, f, 64)}</span><div><b>${esc(l.name)}</b>${l.title ? `<span>${esc(l.title)}</span>` : ''}</div></li>`;
   const cards = lawyers.length
     ? lawyers.slice(0, MAX_LAWYERS).map(card).join('')
@@ -124,7 +124,7 @@ export function lawyerProfileHtml(f, l, about, others = []) {
   if (l.sourceUrl) links.push(`<a class="pf-btn" href="${esc(l.sourceUrl)}" target="_blank" rel="noopener nofollow"><span>Profile on the firm's website</span></a>`);
   const socials = Object.keys(l.socials || {}).map((k) => `<li><a href="${esc(l.socials[k])}" target="_blank" rel="noopener nofollow me">${esc(NET_LABEL[k])}</a></li>`).join('');
   const areas = (l.areas || []).length ? `<div class="tl-areas"><h3>Practice areas on ${esc(l.name.split(' ')[0])}'s page</h3><ul>${l.areas.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></div>` : '';
-  const more = others.length ? `<div class="tl-areas"><h3>Other lawyers at ${esc(f.name)}</h3><ul>${others.slice(0, 8).map((o) => `<li><a href="${esc(tabPath(f.slug, 'lawyers', o.slug))}">${esc(o.name)}</a></li>`).join('')}</ul></div>` : '';
+  const more = others.filter((o) => o.paid).length ? `<div class="tl-areas"><h3>Other lawyers at ${esc(f.name)}</h3><ul>${others.filter((o) => o.paid).slice(0, 8).map((o) => `<li><a href="${esc(tabPath(f.slug, 'lawyers', o.slug))}">${esc(o.name)}</a></li>`).join('')}</ul></div>` : '';
   return `<article class="pf-tabpage tl-profile" aria-label="${esc(l.name)}">` +
     `<div class="tl-head"><div class="tl-big">${PHOTO(l, f, 140)}</div><div><h2>${esc(l.name)}</h2>` +
     `<p class="tl-role">${l.title ? `${esc(l.title)} at ` : ''}<a href="${esc(tabPath(f.slug))}">${esc(f.name)}</a>, ${esc(f.city)}, ${esc(f.state)}</p>` +

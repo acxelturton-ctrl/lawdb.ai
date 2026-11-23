@@ -33,6 +33,7 @@ export function cleanLawyer(r) {
     email: /^[a-z0-9._%+-]{2,60}@[a-z0-9.-]{3,80}\.[a-z]{2,10}$/.test(mail) && !GENERIC_MAIL.test(mail.split('@')[0]) ? mail : '',
     socials, areas,
     sourceUrl: httpsUrl(r.source_url ?? r.sourceUrl),
+    paid: Number(r.paid) === 1 || r.paid === true, // on the Lawyer plan: has a page of their own
   };
 }
 
@@ -41,14 +42,15 @@ export const showPhone = (d) => `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6
 // A firm lists at most this many lawyers on its profile (the Firm plan includes ten). Extra names are not shown.
 export const MAX_LAWYERS = 10;
 
-// Each lawyer's own page (/firms/<firm>/lawyers/<lawyer>) is the paid Lawyer plan and is not open yet: the cards on a firm's Lawyers tab are
-// not links and the pages answer 404 until LAWYER_PROFILES is set to "on" in the Worker's variables.
-export const profilesOn = (env) => String((env && env.LAWYER_PROFILES) || '').toLowerCase() === 'on';
+// A lawyer's own page (/firms/<firm>/lawyers/<lawyer>) belongs to the Lawyer plan and to nothing else: the lawyer pays for it themselves, and their firm
+// does not have to pay (or even be on a plan) for it to exist. A lawyer who has not paid is a plain card on the firm's Lawyers tab with no link and no page (404).
+export const PAID_SQL = "(paid_until IS NOT NULL AND paid_until > datetime('now'))";
 
-// A firm's live lawyers, oldest first (the order the firm lists them). The page works without them if the table is missing or the query fails.
-export async function listLawyers(env, firmSlug) {
+// A firm's live lawyers: paying lawyers first, then the rest oldest first (the order the firm lists them). The page works without them if the table is missing or the query fails.
+// Lawyers on the Lawyer plan come first, so the cap never pushes a paying lawyer off the card list; `limit` is raised only to look one up for their page.
+export async function listLawyers(env, firmSlug, limit = MAX_LAWYERS) {
   try {
-    const { results } = await env.DB.prepare("SELECT slug, name, title, photo_url, phone, email, socials, areas, source_url FROM firm_lawyers WHERE firm_slug = ? AND status = 'live' ORDER BY id LIMIT ?").bind(firmSlug, MAX_LAWYERS).all();
+    const { results } = await env.DB.prepare(`SELECT slug, name, title, photo_url, phone, email, socials, areas, source_url, ${PAID_SQL} AS paid FROM firm_lawyers WHERE firm_slug = ? AND status = 'live' ORDER BY paid DESC, id LIMIT ?`).bind(firmSlug, limit).all();
     return results.map(cleanLawyer).filter(Boolean);
   } catch (err) {
     console.error('lawyers lookup failed', firmSlug, err);

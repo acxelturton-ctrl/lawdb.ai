@@ -324,7 +324,7 @@ function stickyBar(f) {
 }
 
 // `tab` is 'overview' (the whole profile, at /firms/<slug>) or one of the sub-pages (see firm-tabs.js); `tabs` is the list this firm has; `allPosts` feeds the Articles tab.
-export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [], lawyer = null, profileLinks = false }) {
+export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [], lawyer = null }) {
   const prov = STATES[f.state] || f.state;
   const customCover = /^img\/[0-9a-f]{24}$/.test(f.heroImage || '');
   const ogImage = customCover ? `${origin}/${f.heroImage}` : `${origin}/images/og-default.jpg`;
@@ -416,7 +416,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
 
   // The Overview is the whole profile; a tab page is its own content, then the contact form.
   const overviewBody = aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
-  const tabBody = lawyer ? lawyerProfileHtml(f, lawyer, tm.about, lawyers.filter((o) => o.slug !== lawyer.slug)) : tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers, profileLinks) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
+  const tabBody = lawyer ? lawyerProfileHtml(f, lawyer, tm.about, lawyers.filter((o) => o.slug !== lawyer.slug)) : tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
 
   const page = [
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
