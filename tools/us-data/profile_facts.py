@@ -130,8 +130,9 @@ def extract(rec, firm_name='', city=''):
     out = {}
     f = rec.get('facts') or {}
     since = None
-    for rx in (r'(?:in practice|practicing|practising|practiced|serving [A-Za-z ]{3,30}|serving clients|at your service|helping [A-Za-z ]{3,30}|firm|law office|office|business)\s+since\s+((?:19|20)\d\d)',
-               r'(?:established|founded|opened|formed|started|incorporated)\s+(?:in|back in|on)\s+(?:[A-Z][a-z]+ (?:\d{1,2}, )?)?((?:19|20)\d\d)', r'since our founding in\s+((?:19|20)\d\d)', r'est\.?\s+((?:19|20)\d\d)'):
+    for rx in (r'(?:established|founded|opened|formed|started|incorporated)\s+(?:in|back in|on)\s+(?:[A-Z][a-z]+ (?:\d{1,2}, )?)?((?:19|20)\d\d)',
+               r'(?:firm|law office|our office|our practice|this firm)\s+since\s+((?:19|20)\d\d)',
+               r'serving (?:the )?[A-Za-z ]{3,40}\s+since\s+((?:19|20)\d\d)', r'since our founding in\s+((?:19|20)\d\d)', r'\best\.\s*((?:19|20)\d\d)'):
         m = re.search(rx, blob, re.I)
         if m: since = int(m.group(1)); break
     if not since and rec.get('founded'):
@@ -205,9 +206,11 @@ def extract(rec, firm_name='', city=''):
     if len(subs) >= 2: out['topics'] = subs[:7]
 
     # places the firm says it serves, and where it has offices (a list of counties or cities named after "serving" / "offices in")
-    served = []; plural = False
+    served = []; counties = False
     for m in re.finditer(r"(?i:serving|serves|represents clients in|clients throughout|clients across|clients in)\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2}(?:,\s*|,?\s+and\s+|\s+&\s+)){1,6}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2})", blob):
-        if re.search(r'Counties', m.group(1)): plural = True
+        tail = blob[m.end():m.end() + 12]
+        listed_as_counties = bool(re.match(r'\s+[Cc]ounties', tail)) or m.group(1).rstrip().endswith('Counties')
+        if listed_as_counties: counties = True
         for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
             part = re.sub(r'\s+Counties$', '', part.strip(' .'))
             base = re.sub(r'\s+County$', '', part)
@@ -215,10 +218,8 @@ def extract(rec, firm_name='', city=''):
         if len(served) >= 3: break
     place_ok = len(served) >= 3 or any((city or '~').lower() in x.lower() for x in served)
     if len(served) >= 2 and place_ok:
-        def named(x):
-            base = re.sub(r'\s+County$', '', x)
-            return base + ' County' if re.search(re.escape(base) + r'\s+Count(?:y|ies)\b', blob) else x
-        out['serves'] = [named(x) for x in served[:6]]
+        if counties: out['serves'] = [re.sub(r'\s+County$', '', x) for x in served[:6]]; out['serves_counties'] = True
+        else: out['serves'] = served[:6]
     offices = []
     for m in re.finditer(r"(?i:offices?) (?:(?i:in)|(?i:located in)|(?i:at locations in))\s+((?:[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?(?:,\s*|,?\s+and\s+|\s+&\s+)){1,4}[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)?)", blob):
         for part in re.split(r',\s*|\s+and\s+|\s+&\s+', m.group(1)):
@@ -236,8 +237,12 @@ def extract(rec, firm_name='', city=''):
     for n, rx in MEMBERSHIP_RX:
         if rx.search(blob):
             if n == 'a county bar association':
-                m = rx.search(blob); words = [w for w in m.group(0).split() if w not in ('Member', 'Members', 'The', 'Our', 'Of', 'And', 'State', 'Florida', 'Texas', 'California', 'York', 'New') or w == m.group(0).split()[-3]]
-                n = 'the ' + ' '.join(m.group(0).split()[-(len(words)):]) if len(words) >= 3 else 'the ' + m.group(0)
+                m = rx.search(blob); words = m.group(0).split()
+                JUNK = {'Association', 'Bar', 'Member', 'Members', 'The', 'Our', 'Of', 'And', 'In', 'State', 'Florida', 'Texas', 'California', 'New', 'York', 'American', 'National'}
+                head = words[:words.index('County')] if 'County' in words else words[:-3]
+                while head and head[0] in JUNK: head = head[1:]
+                if not head or len(head) > 3: continue
+                n = 'the ' + ' '.join(head) + ' County Bar Association'
             mem.append(n)
     if mem: out['memberships'] = mem[:4]
     if f.get('board_certified'): out['board_certified'] = True

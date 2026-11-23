@@ -381,7 +381,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     if ppl: paras.append(' '.join(ppl))
     # where it works
     where = []
-    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + '.')
+    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') else '') + '.')
     if p.get('offices'): where.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
     # the work
     if where: paras.append(' '.join(where))
