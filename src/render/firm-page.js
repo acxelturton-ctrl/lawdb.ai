@@ -4,7 +4,7 @@ import { cleanDetails } from '../lib/details.js';
 import { AVAILABILITY } from '../lib/profile-strength.js';
 import * as C from './firm-chunks.generated.js';
 import { renderFirmArticles, renderFirmArticlesPage } from './blog-cards.js';
-import { tabNavHtml, tabMeta, tabPath, lawyersBodyHtml, lawyerProfileHtml, lawyerLd, TABNAV_CSS } from './firm-tabs.js';
+import { tabNavHtml, tabMeta, tabPath, lawyersBodyHtml, TABNAV_CSS } from './firm-tabs.js';
 import { profilesBox, hasLinkedIn } from './profiles.js';
 import { CITY_HUBS } from './city-hubs.generated.js';
 import { PRACTICE } from '../lib/practice.js';
@@ -17,7 +17,7 @@ export const esc = (s) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 
 const fill = (tpl, map) => tpl.replace(/\{\{([A-Z]+)\}\}/g, (m, k) => (k in map ? map[k] : m));
-const jsonForHtml = (o) => JSON.stringify(o, null, 2).replace(/</g, '\\u003c');
+export const jsonForHtml = (o) => JSON.stringify(o, null, 2).replace(/</g, '\\u003c');
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 
 // Hours come in two shapes in the source data: "08:30" strings, or minutes after midnight (510 = 8:30).
@@ -324,18 +324,18 @@ function stickyBar(f) {
 }
 
 // `tab` is 'overview' (the whole profile, at /firms/<slug>) or one of the sub-pages (see firm-tabs.js); `tabs` is the list this firm has; `allPosts` feeds the Articles tab.
-export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [], lawyer = null }) {
+export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [] }) {
   const prov = STATES[f.state] || f.state;
   const customCover = /^img\/[0-9a-f]{24}$/.test(f.heroImage || '');
   const ogImage = customCover ? `${origin}/${f.heroImage}` : `${origin}/images/og-default.jpg`;
   const baseUrl = `${origin}/firms/${f.slug}`;
-  const url = `${origin}${tabPath(f.slug, tab, lawyer && lawyer.slug)}`; // this page's own address (the canonical); the Overview keeps the firm's address
+  const url = `${origin}${tabPath(f.slug, tab)}`; // this page's own address (the canonical); the Overview keeps the firm's address
   const isTab = tab !== 'overview';
   const about = typeof f.about === 'string' ? f.about.trim() : '';
   const desc0 = metaFromAbout(about) || description(f);
   const rated = num(f.rating) > 0 && num(f.count) > 0;
   const glance = cleanDetails(f.details);
-  const tm = isTab ? tabMeta(f, tab, { lawyers: lawyers.length ? lawyers : (glance && glance.lawyers) || [], postCount: allPosts.length, lawyer, glance }) : null;
+  const tm = isTab ? tabMeta(f, tab, { lawyers: lawyers.length ? lawyers : (glance && glance.lawyers) || [], postCount: allPosts.length }) : null;
   const desc = tm ? tm.description : desc0;
   const title = tm ? esc(tm.title) : `${esc(f.name)} | ${esc(f.city)}, ${esc(f.state)} Lawyers | LawDB`;
   const ogTitle = tm ? esc(tm.title.replace(/ \| LawDB$/, '')) : `${esc(f.name)}, ${esc(f.city)}, ${esc(f.state)}`;
@@ -346,7 +346,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
 
   // The same trail as the visible breadcrumb (United States, state, city when it has a page, the firm), so search engines can show it under the result.
   const ps = STATE_SLUG[f.state], cs = citySlug(f.city);
-  const trail = [['LawDB', `${origin}/`], ['United States', `${origin}/find-lawyers`], ...(ps ? [[prov, `${origin}/${ps}/`]] : []), ...(ps && CITY_HUBS.has(`${ps}/${cs}`) ? [[f.city, `${origin}/${ps}/${cs}/`]] : []), [f.name, baseUrl], ...(isTab && tm.parentCrumb ? [[tm.parentCrumb, `${origin}${tabPath(f.slug, tab)}`]] : []), ...(isTab ? [[tm.crumb, url]] : [])];
+  const trail = [['LawDB', `${origin}/`], ['United States', `${origin}/find-lawyers`], ...(ps ? [[prov, `${origin}/${ps}/`]] : []), ...(ps && CITY_HUBS.has(`${ps}/${cs}`) ? [[f.city, `${origin}/${ps}/${cs}/`]] : []), [f.name, baseUrl], ...(isTab ? [[tm.crumb, url]] : [])];
   const crumbLd = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: trail.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) };
   // No aggregateRating here on purpose: the rating on the page is Google's, collected on Google, and Google's structured data rules say ratings that are
   // marked up must come from the site itself (a business's own reviews of itself are not eligible either). The visible Google rating stays, named as Google's.
@@ -416,7 +416,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
 
   // The Overview is the whole profile; a tab page is its own content, then the contact form.
   const overviewBody = aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
-  const tabBody = lawyer ? lawyerProfileHtml(f, lawyer, tm.about, lawyers.filter((o) => o.slug !== lawyer.slug)) : tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
+  const tabBody = tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
 
   const page = [
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
@@ -433,7 +433,6 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<meta name="twitter:description" content="${esc(desc)}">\n<meta name="twitter:image" content="${ogImage}">`,
     `<script type="application/ld+json">\n${jsonForHtml(ld)}\n</script>`,
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,
-    ...(lawyer ? [`<script type="application/ld+json">\n${jsonForHtml(lawyerLd(f, lawyer, url, origin))}\n</script>`] : []),
     C.STYLE + (tabs.length > 1 ? TABNAV_CSS : '') + PHOTO_CSS + GLANCE_CSS + OFFICES_CSS + (chipsHtml(f, verified) ? CHIPS_CSS : '') + (verified ? VERIFIED_CSS : '') + (f.block && f.block.image ? BLOCK_CSS : '') + (practiceHtml(f, cards) ? PRACTICE_CSS : '') + '\n<link rel="stylesheet" href="../desktop.css">\n<link rel="stylesheet" href="../site.css">\n<link rel="stylesheet" href="/profile-v2.css?v=1">\n</head>',
     '<body class="pg-firm pg-msp">\n  ' + C.HEADER,
     '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + tabNavHtml(f, tabs, tab) + (isTab ? tabBody + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' : overviewBody),

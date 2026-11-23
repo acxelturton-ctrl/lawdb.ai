@@ -3,7 +3,7 @@
 
 Usage: python3 tools/us-data/lawyers.py https://lawdb.ai --out data/lawyers/FL.jsonl --sql data/lawyers/FL.sql [--limit 20] [--workers 6]
 In:    the live site's address (it reads the live firms from /api/firms) or a firms.json file: a list of {"slug", "name", "site", "city", "state"}
-Out:   <out>.jsonl one object per lawyer kept, and <sql> INSERT OR IGNORE statements for the `firm_lawyers` table (migrations/0003_lawyers.sql).
+Out:   <out>.jsonl one object per lawyer kept, and <sql> INSERT OR IGNORE statements for the `lawyers` table (migrations/0003_lawyers.sql); each lawyer keeps the firm that names them and gets the address /lawyers/<name>-<city>-<state>.
 
 What is collected is only what the firm publishes on that lawyer's own page: name, title, photo address, a direct phone or email if the page shows one,
 personal social profiles, and the practice areas the page mentions. No biography text is kept (the site writes its own, src/lib/lawyer-bio.js).
@@ -170,9 +170,11 @@ def crawl_firm(firm):
         try: rec = parse_profile(site, got[0], BeautifulSoup(got[1], 'html.parser'), firm)
         except Exception: rec = None
         if not rec: continue
-        s = rec['slug']; n = 2
-        while s in seen_slugs: s = f"{rec['slug']}-{n}"; n += 1
-        rec['slug'] = s; seen_slugs.add(s); out.append(rec)
+        # a lawyer's address is global (/lawyers/<slug>), so it carries the place: jane-roe-miami-fl
+        base = '-'.join(x for x in (rec['slug'], slugify(firm.get('city') or ''), (firm.get('state') or '').lower()) if x)[:80]
+        s = base; n = 2
+        while s in seen_slugs: s = f"{base}-{n}"; n += 1
+        rec['slug'] = s; rec['city'] = firm.get('city') or ''; rec['state'] = firm.get('state') or ''; seen_slugs.add(s); out.append(rec)
     # the same picture on two or more lawyers is a shared placeholder or a group photo: none of them keeps it
     count = {}
     for r in out: count[r['sha1']] = count.get(r['sha1'], 0) + 1
@@ -191,8 +193,8 @@ def q(v):
     return 'NULL' if v in (None, '', [], {}) else "'" + str(v).replace("'", "''") + "'"
 
 def to_sql(r):
-    return ("INSERT OR IGNORE INTO firm_lawyers (firm_slug, slug, name, title, photo_url, phone, email, socials, areas, source_url) VALUES ("
-            f"{q(r['firm_slug'])}, {q(r['slug'])}, {q(r['name'])}, {q(r['title'])}, {q(r['photo_url'])}, {q(r['phone'])}, {q(r['email'])}, "
+    return ("INSERT OR IGNORE INTO lawyers (firm_slug, slug, name, title, city, state, photo_url, phone, email, socials, areas, source_url) VALUES ("
+            f"{q(r['firm_slug'])}, {q(r['slug'])}, {q(r['name'])}, {q(r['title'])}, {q(r.get('city'))}, {q(r.get('state'))}, {q(r['photo_url'])}, {q(r['phone'])}, {q(r['email'])}, "
             f"{q(json.dumps(r['socials']) if r['socials'] else '')}, {q(json.dumps(r['areas']) if r['areas'] else '')}, {q(r['source_url'])});")
 
 def load_firms(src):
