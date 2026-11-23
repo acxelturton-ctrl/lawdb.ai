@@ -17,7 +17,7 @@ const httpsUrl = (u) => (typeof u === 'string' && /^https:\/\/[^\s"'<>]{4,500}$/
 
 export function cleanLawyer(r) {
   if (!r || typeof r !== 'object') return null;
-  const slug = /^[a-z0-9][a-z0-9-]{1,60}$/.test(r.slug || '') ? r.slug : '';
+  const slug = /^[a-z0-9][a-z0-9-]{1,100}$/.test(r.slug || '') ? r.slug : '';
   const name = text(r.name, 80);
   const photo = httpsUrl(r.photo_url ?? r.photo); // may be empty: a lawyer without a photo shows only on their own page, once they are on the Lawyer plan
   if (!slug || !name) return null;

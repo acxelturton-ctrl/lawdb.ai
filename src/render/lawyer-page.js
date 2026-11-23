@@ -54,6 +54,7 @@ export function renderLawyerPage(l, { origin = 'https://lawdb.ai' } = {}) {
   const prov = STATES[l.state] || l.state;
   const ps = STATE_SLUG[l.state];
   const first = l.name.split(' ')[0];
+  const thin = !((l.bio && l.bio.length) || (l.areas && l.areas.length));
   const trail = [['LawDB', `${origin}/`], ['United States', `${origin}/find-lawyers`], ...(ps ? [[prov, `${origin}/${ps}/`]] : []), [l.name, url]];
   const crumbLd = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: trail.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) };
   const links = [];
@@ -74,6 +75,7 @@ export function renderLawyerPage(l, { origin = 'https://lawdb.ai' } = {}) {
     '<meta property="og:type" content="profile">',
     `<link rel="canonical" href="${esc(url)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
+    ...(thin ? ['<meta name="robots" content="noindex,follow">'] : []), // a page with nothing but the generated text stays out of search until the lawyer adds a biography or practice areas
     '<meta property="og:site_name" content="LawDB.ai">',
     `<meta property="og:image" content="${l.photo ? esc(l.photo) : `${origin}/images/og-default.jpg`}">`,
     `<script type="application/ld+json">\n${jsonForHtml(lawyerLd(l, url, origin))}\n</script>`,

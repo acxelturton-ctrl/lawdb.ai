@@ -87,7 +87,7 @@ export function tabMeta(f, tab, { lawyers = [], postCount = 0 } = {}) {
   return null;
 }
 
-export const PHOTO = (l, f, size) => !l.photo ? `<span class="tl-av" style="width:${size}px;height:${size}px" aria-hidden="true">${esc(initials(l.name))}</span>` : `<img src="${esc(l.photo)}" alt="${esc(`${l.name}${l.title ? `, ${l.title}` : ''} at ${f ? f.name : l.city}`)}" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
+export const PHOTO = (l, f, size) => !l.photo ? `<span class="tl-av" style="width:${size}px;height:${size}px" aria-hidden="true">${esc(initials(l.name))}</span>` : `<img src="${esc(l.photo)}" alt="${esc(`${l.name}${l.title ? `, ${l.title}` : ''}${(f ? f.name : l.firmName) ? ` at ${f ? f.name : l.firmName}` : ''}`)}" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
 
 // The Lawyers page: a card for each lawyer who has a profile (photo, name, title, a link), or, for a firm with only names, the plain list.
 // A lawyer on the Lawyer plan (`paid`) has a card that links to their own page; any other lawyer is a photo, a name and a title. At most MAX_LAWYERS are shown.

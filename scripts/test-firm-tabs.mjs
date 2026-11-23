@@ -8,6 +8,8 @@ import { lawyerPage } from '../src/routes/lawyer-page.js';
 import { renderLawyerPage } from '../src/render/lawyer-page.js';
 import { cleanLawyer, lawyerSlug, getPaidLawyer, MAX_LAWYERS } from '../src/lib/lawyers.js';
 import { lawyerAbout } from '../src/lib/lawyer-bio.js';
+import { SLUG_TABLES } from '../src/lib/firm-slug.js';
+import { readFileSync } from 'node:fs';
 
 const lawyers = [{ name: 'Jane Roe', title: 'Partner' }, { name: 'John Doe', title: 'Associate' }];
 const firm = { slug: 'test-law', name: 'Test Law', city: 'Miami', state: 'FL', phone: '+13055550100', website: 'https://example.com', about: 'We help people with injuries. '.repeat(30), details: { lawyers, areas: ['Personal injury'] }, tags: ['Personal injury'] };
@@ -119,3 +121,13 @@ assert.ok(texts.size >= 4, 'wording varies across lawyers');
 assert.doesNotMatch([...texts].join(' '), /\b(best|top-rated|guarantee|leading)\b/i, 'no rankings or promises');
 
 console.log('firm tabs: ok');
+
+// --- renaming a firm moves its lawyers with it, and a long address is still a valid lawyer
+assert.ok(SLUG_TABLES.includes('lawyers'), 'a firm rename must update lawyers.firm_slug');
+const longSlug = 'a-very-long-name-that-goes-on-and-on-for-a-while-miami-fl-with-extra-words-here-2'; // 80 characters
+assert.equal(cleanLawyer({ ...raw, slug: longSlug }).slug, longSlug);
+assert.match(renderLawyerPage({ ...linked, firmSlug: '', firmName: '', photo: 'https://example.com/m.jpg' }), /alt="Maria Lopez, Partner"/, 'no firm: the photo text does not name the city as a firm');
+for (const f of ['migrations/0003_lawyers.sql']) assert.doesNotMatch(readFileSync(new URL('../' + f, import.meta.url), 'utf8'), /firm_lawyers/);
+assert.match(solo, /<meta name="robots" content="noindex,follow">/, 'no biography and no practice areas: not indexed yet');
+assert.doesNotMatch(lp, /noindex/, 'a page with practice areas is indexed');
+console.log('lawyers: ok');
