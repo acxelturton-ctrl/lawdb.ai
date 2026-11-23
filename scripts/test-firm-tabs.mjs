@@ -66,17 +66,21 @@ const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 assert.deepEqual(locs, ['https://lawdb.ai/firms/a-firm', 'https://lawdb.ai/firms/a-firm/lawyers', 'https://lawdb.ai/firms/b-firm', 'https://lawdb.ai/firms/b-firm/articles', 'https://lawdb.ai/firms/c-firm', 'https://lawdb.ai/firms/c-firm/lawyers']); // a lawyer's own page is never listed under a firm
 
 // --- lawyer rows: only what is safe and complete reaches a page
-const raw = { slug: 'maria-lopez', name: 'Maria Lopez', title: 'Partner', photo_url: 'https://example.com/maria.jpg', phone: '(305) 555-0199', email: 'maria@example.com', source_url: 'https://example.com/team/maria',
+const raw = { slug: 'maria-lopez', name: 'Maria Lopez', title: 'Partner', photo_status: 'approved', photo_id: 'a'.repeat(24), photo_url: 'https://example.com/maria.jpg', phone: '(305) 555-0199', email: 'maria@example.com', source_url: 'https://example.com/team/maria',
   socials: JSON.stringify({ linkedin: 'https://www.linkedin.com/in/maria-lopez', x: 'https://evil.example/x', facebook: 'javascript:alert(1)' }), areas: JSON.stringify(['Personal injury', '<b>x</b>']) };
 const maria = cleanLawyer(raw);
 assert.equal(maria.phone, '3055550199');
 assert.deepEqual(Object.keys(maria.socials), ['linkedin'], 'only recognised personal profiles are kept');
 assert.deepEqual(maria.areas, ['Personal injury']);
-assert.equal(cleanLawyer({ ...raw, photo_url: '' }).photo, '', 'a lawyer without a photo is kept (shown only on their own page, once on the plan)');
-assert.equal(cleanLawyer({ ...raw, photo_url: 'http://example.com/a.jpg' }).photo, '', 'a photo must be https, otherwise it is dropped');
+assert.equal(cleanLawyer({ ...raw, photo_id: null }).photo, '', 'a lawyer without an approved photo is kept, with no photo');
+assert.equal(cleanLawyer({ ...raw, photo_status: 'pending' }).photo, '', 'a photo nobody approved is never shown');
+assert.equal(cleanLawyer({ ...raw, photo_status: 'rejected' }).photo, '');
+assert.equal(cleanLawyer({ ...raw, photo_id: '../etc' }).photo, '', 'only our own 24-hex picture id is used');
+assert.equal(cleanLawyer(raw).photo, '/img/' + 'a'.repeat(24));
+assert.doesNotMatch(JSON.stringify(cleanLawyer(raw)), /example\.com\/maria\.jpg/, 'the address on the firm\'s site never reaches a page');
 assert.equal(cleanLawyer({ ...raw, email: 'info@example.com' }).email, '', 'a general office address is not a lawyer contact');
 assert.equal(lawyerSlug('José  Núñez-Smith, Esq.'), 'jose-nunez-smith-esq');
-const sam = cleanLawyer({ slug: 'sam-lee', name: 'Sam Lee', title: '', photo_url: 'https://example.com/sam.jpg', source_url: '' });
+const sam = cleanLawyer({ slug: 'sam-lee', name: 'Sam Lee', title: '', photo_status: 'approved', photo_id: 'b'.repeat(24), source_url: '' });
 assert.equal(tabsFor({ details: null }, 0, 1).includes('lawyers'), true, 'one full profile is enough for the tab');
 
 // --- a lawyer's own page: /lawyers/<slug>, separate from firms
@@ -86,7 +90,7 @@ assert.match(lp, /<title>Maria Lopez - Partner at Test Law \| Miami, FL \| LawDB
 assert.match(lp, /rel="canonical" href="https:\/\/lawdb\.ai\/lawyers\/maria-lopez-miami-fl"/);
 assert.match(lp, /"@type": "Person"/); assert.match(lp, /"jobTitle": "Partner"/); assert.match(lp, /"worksFor"/);
 assert.match(lp, /href="tel:\+13055550199"/); assert.match(lp, /href="mailto:maria@example\.com"/); assert.match(lp, /linkedin\.com\/in\/maria-lopez/);
-assert.match(lp, /<img src="https:\/\/example\.com\/maria\.jpg"/); assert.match(lp, /href="\/firms\/test-law"/);
+assert.match(lp, new RegExp('<img src="/img/' + 'a'.repeat(24) + '"')); assert.match(lp, /href="\/firms\/test-law"/);
 assert.doesNotMatch(lp, /(?:href|src)="\.\.\//);
 // a lawyer with no firm at all has the same page: no firm line, no worksFor, and no photo is fine
 const solo = renderLawyerPage({ ...linked, slug: 'sam-lee-austin-tx', name: 'Sam Lee', title: '', city: 'Austin', state: 'TX', firmSlug: '', firmName: '', photo: '', phone: '', email: '', socials: {}, sourceUrl: '' });
@@ -96,7 +100,7 @@ assert.match(renderLawyerPage({ ...linked, bio: ['I handle injury claims.', 'Sec
 assert.equal(cleanLawyer({ ...raw, bio: 'A\n\n<b>B</b>' }).bio.length, 2);
 
 // Who gets a page: only a live lawyer on the Lawyer plan, whatever their firm is
-const row = { slug: 'maria-lopez-miami-fl', name: 'Maria Lopez', title: 'Partner', city: 'Miami', state: 'FL', firm_slug: 'ghost-firm', firm_name: null, photo_url: 'https://example.com/maria.jpg', paid: 1 };
+const row = { slug: 'maria-lopez-miami-fl', name: 'Maria Lopez', title: 'Partner', city: 'Miami', state: 'FL', firm_slug: 'ghost-firm', firm_name: null, photo_status: 'approved', photo_id: 'a'.repeat(24), paid: 1 };
 const dbWith = (r) => ({ DB: { prepare: (sql) => ({ bind: (slug) => ({ first: async () => { assert.match(sql, /paid_until > datetime\('now'\)/); assert.match(sql, /status = 'live'/); return r && r.slug === slug ? r : null; } }) }) }, ASSETS: { fetch: async () => new Response('nope', { status: 404 }) } });
 const got = await getPaidLawyer(dbWith(row), 'maria-lopez-miami-fl');
 assert.equal(got.firmSlug, '', 'a link to a firm that is not listed is shown as an independent lawyer'); assert.equal(got.paid, true);
@@ -111,7 +115,7 @@ assert.match(lst, /href="\/lawyers\/maria-lopez-miami-fl"/); assert.match(lst, /
 assert.doesNotMatch(lst, /href="\/lawyers\/sam-lee"/); assert.match(lst, /Sam Lee/);
 assert.equal(cleanLawyer({ ...raw, paid: 1 }).paid, true); assert.equal(cleanLawyer(raw).paid, false);
 // at most MAX_LAWYERS cards
-const many = Array.from({ length: 14 }, (_, i) => ({ slug: 'l' + i, name: 'Lawyer Number' + String.fromCharCode(65 + i), title: 'Associate', photo: 'https://example.com/p.jpg' }));
+const many = Array.from({ length: 14 }, (_, i) => ({ slug: 'l' + i, name: 'Lawyer Number' + String.fromCharCode(65 + i), title: 'Associate', photo: '/img/' + 'c'.repeat(24) }));
 assert.equal((renderFirmPage({ firm, tab: 'lawyers', tabs: ['overview', 'lawyers'], lawyers: many }).match(/class="tl-card/g) || []).length, MAX_LAWYERS);
 
 // --- descriptions differ from lawyer to lawyer
@@ -126,7 +130,7 @@ console.log('firm tabs: ok');
 assert.ok(SLUG_TABLES.includes('lawyers'), 'a firm rename must update lawyers.firm_slug');
 const longSlug = 'a-very-long-name-that-goes-on-and-on-for-a-while-miami-fl-with-extra-words-here-2'; // 80 characters
 assert.equal(cleanLawyer({ ...raw, slug: longSlug }).slug, longSlug);
-assert.match(renderLawyerPage({ ...linked, firmSlug: '', firmName: '', photo: 'https://example.com/m.jpg' }), /alt="Maria Lopez, Partner"/, 'no firm: the photo text does not name the city as a firm');
+assert.match(renderLawyerPage({ ...linked, firmSlug: '', firmName: '', photo: '/img/' + 'd'.repeat(24) }), /alt="Maria Lopez, Partner"/, 'no firm: the photo text does not name the city as a firm');
 for (const f of ['migrations/0003_lawyers.sql']) assert.doesNotMatch(readFileSync(new URL('../' + f, import.meta.url), 'utf8'), /firm_lawyers/);
 assert.match(renderLawyerPage({ ...linked, areas: [], bio: [] }), /<meta name="robots" content="noindex,follow">/, 'no biography and no practice areas: not indexed yet');
 assert.doesNotMatch(lp, /noindex/, 'a page with practice areas is indexed');

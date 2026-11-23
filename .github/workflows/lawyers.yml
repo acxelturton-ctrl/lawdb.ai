@@ -1,6 +1,8 @@
 name: Collect lawyers
 # Run by hand (Actions tab -> Collect lawyers -> Run workflow). Visits each live firm's own website (politely: robots.txt, one request a second per site),
-# keeps lawyers with a checked photo, and attaches the result as a download: lawyers.jsonl (for review) and lawyers.sql (loads into the lawyers table).
+# keeps up to ten lawyers per firm that have a photo passing the image checks, and attaches the result as a download: lawyers.jsonl (for review) and lawyers.sql
+# (loads into the lawyers table). With load = yes (and the CLOUDFLARE_API_TOKEN secret) it also loads them into the LIVE database. Every photo then waits in the admin
+# (Lawyer photos tab) for approval; nothing shows on the site before that.
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +12,9 @@ on:
       site:
         description: 'Site to read the live firms from'
         default: 'https://lawdb.ai'
+      load:
+        description: 'Type yes to load the lawyers into the LIVE database (lawdb-ai). Safe to run twice (INSERT OR IGNORE). The migration must have been applied first.'
+        default: 'no'
 
 jobs:
   collect:
@@ -23,6 +28,17 @@ jobs:
       - run: pip install requests beautifulsoup4 Pillow
       - name: Crawl
         run: python3 tools/us-data/lawyers.py "${{ inputs.site }}" --out data/lawyers/lawyers.jsonl --sql data/lawyers/lawyers.sql --limit "${{ inputs.limit }}" --workers 6
+      - name: Load into the live database
+        if: ${{ inputs.load == 'yes' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+        run: |
+          set -e
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::Add a CLOUDFLARE_API_TOKEN repository secret first."; exit 1; fi
+          npm install --no-save wrangler@4
+          npx wrangler d1 execute DB --remote --yes --file=data/lawyers/lawyers.sql
+          npx wrangler d1 execute DB --remote --command "SELECT photo_status, COUNT(*) AS lawyers FROM lawyers GROUP BY photo_status"
       - uses: actions/upload-artifact@v4
         with:
           name: lawyers

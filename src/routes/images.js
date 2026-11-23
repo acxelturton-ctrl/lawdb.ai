@@ -1,5 +1,5 @@
 // Serves pictures to the public: GET /img/<id>. Only pictures that are still listed in the database,
-// for firms that are live, are served, so removing a picture takes effect even if the file lingers in storage.
+// for firms that are live (or approved photos of live lawyers), are served, so removing a picture takes effect even if the file lingers in storage.
 
 import { imageCacheKey } from '../lib/images.js';
 
@@ -18,13 +18,19 @@ export async function serveImage({ request, env, ctx }) {
   const row = await env.DB.prepare(
     "SELECT i.content_type FROM firm_images i JOIN firms f ON f.slug = i.firm_slug WHERE i.id = ? AND f.status = 'live'"
   ).bind(id).first();
-  if (!row) return text404();
+  let contentType = row && row.content_type;
+  if (!row) {
+    // A lawyer's photo an admin approved (src/routes/admin.js, lawyer photos): LawDB's own copy, shown only while the lawyer is live
+    const lw = await env.DB.prepare("SELECT photo_type FROM lawyers WHERE photo_id = ? AND photo_status = 'approved' AND status = 'live'").bind(id).first();
+    if (!lw || !lw.photo_type) return text404();
+    contentType = lw.photo_type;
+  }
   const obj = await env.IMAGES.get(`img/${id}`);
   if (!obj) return text404();
 
   const res = new Response(obj.body, {
     headers: {
-      'content-type': row.content_type,
+      'content-type': contentType,
       'cache-control': 'public, max-age=86400',
       'x-content-type-options': 'nosniff',
       // Even if a file were somehow not an image, a browser must not run it.

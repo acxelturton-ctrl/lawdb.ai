@@ -39,7 +39,7 @@ export function lawyerMeta(l) {
 
 export function lawyerLd(l, url, origin) {
   return {
-    '@context': 'https://schema.org', '@type': 'Person', name: l.name, ...(l.title ? { jobTitle: l.title } : {}), ...(l.photo ? { image: l.photo } : {}), url,
+    '@context': 'https://schema.org', '@type': 'Person', name: l.name, ...(l.title ? { jobTitle: l.title } : {}), ...(l.photo ? { image: l.photo.startsWith('/') ? origin + l.photo : l.photo } : {}), url,
     address: { '@type': 'PostalAddress', addressLocality: l.city, addressRegion: l.state, addressCountry: 'US' },
     ...(l.firmSlug ? { worksFor: { '@type': 'LegalService', name: l.firmName, url: `${origin}/firms/${l.firmSlug}` } } : {}),
     ...(l.phone ? { telephone: `+1${l.phone}` } : {}), ...(l.email ? { email: l.email } : {}),
@@ -77,7 +77,7 @@ export function renderLawyerPage(l, { origin = 'https://lawdb.ai' } = {}) {
     `<meta property="og:url" content="${esc(url)}">`,
     ...(thin ? ['<meta name="robots" content="noindex,follow">'] : []), // a page with nothing but the generated text stays out of search until the lawyer adds a biography or practice areas
     '<meta property="og:site_name" content="LawDB.ai">',
-    `<meta property="og:image" content="${l.photo ? esc(l.photo) : `${origin}/images/og-default.jpg`}">`,
+    `<meta property="og:image" content="${l.photo ? esc(l.photo.startsWith('/') ? origin + l.photo : l.photo) : `${origin}/images/og-default.jpg`}">`,
     `<script type="application/ld+json">\n${jsonForHtml(lawyerLd(l, url, origin))}\n</script>`,
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,
     C.STYLE + TABNAV_CSS + CSS + '\n</head>',
