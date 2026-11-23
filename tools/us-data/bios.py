@@ -211,7 +211,7 @@ for _a, _l in EXTRA_KNOW2.items(): KNOW.setdefault(_a, []).extend(_l)
 for _a, _l in EXTRA_MORE2.items(): MORE.setdefault(_a, []).extend(_l)
 
 MIN_WORDS = 55   # words; with at least MIN_FACTS firm-specific facts. The homepage showcase has its own, higher bar (src/routes/home-showcase.js).
-MIN_FACTS = 3   # a firm needs at least this many words of biography to be listed; thinner ones stay hidden until we know more
+MIN_FACTS = 1   # a firm needs at least this many firm-specific facts (founder, year, team, places, awards, press ...) besides its practice areas; with none, it stays a plain listing
 GENERIC_KNOW = 'A first consultation is usually the quickest way to learn whether the firm handles a particular kind of matter.'
 
 BAD = re.compile(r'\b(best|top|leading|premier|expert|experts|guarantee[sd]?|finest|win|wins|winning|aggressive|proven|#1)\b', re.I)
@@ -349,23 +349,62 @@ def _titles(items, skip=None):
         out.append(f'{n} ({t})' if t and t not in ('attorney',) else n)
     return out
 
+# The opening of a search for a lawyer, per area: the closing paragraph starts from what the reader is going through.
+LEAD = {
+ 'Personal injury': 'If you or a loved one has been injured', 'Car accidents': 'If you have been hurt in a car accident',
+ 'Criminal defense': 'If you are facing a criminal charge', 'DUI': 'If you have been arrested for DUI',
+ 'Family law': 'If you are dealing with a divorce, custody or another family matter', 'Immigration': 'If you have an immigration case or question',
+ 'Wills, trusts & probate': 'If you are planning an estate or settling one', 'Elder law': 'If you are planning care or finances for an older family member',
+ 'Real estate': 'If you are buying, selling or disputing property', 'Employment': 'If you have a problem at work',
+ 'Workers’ compensation': 'If you were hurt on the job', 'Bankruptcy': 'If debt has become unmanageable',
+ 'Business & corporate': 'If you are starting, running or disputing a business', 'Medical malpractice': 'If you believe medical care harmed you or a family member',
+ 'Wrongful death': 'If you have lost a loved one because of someone else’s actions', 'Social Security disability': 'If you have applied for Social Security disability or been denied',
+ 'Traffic tickets': 'If you have received a traffic ticket', 'Civil litigation': 'If you are involved in a civil dispute',
+ 'Intellectual property': 'If you need to protect a name, a creative work or an invention', 'Tax law': 'If you have a tax problem',
+ 'Insurance claims': 'If an insurance claim was denied or delayed',
+}
+CTA = [
+ '{lead}, {name} offers legal guidance to help you understand your options and decide on your next steps.',
+ '{lead}, {name} can talk through your situation with you and explain the options in front of you.',
+ '{lead} in {city}, you can contact {name} to understand where you stand and what happens next.',
+ '{lead}, a conversation with {name} in {city} is a way to learn your options before you decide what to do.',
+]
+
 def make_biography(slug, name, city, st, region_id, areas, p, press=None):
+    """Four short paragraphs: who and where (with the practice areas as the first sentence's keywords), who is behind the firm, what the work involves, and where to go next."""
     stn = STATE.get(st, st); reg = REGION.get(region_id, '')
-    names = [AREA.get(a, a.lower()) for a in areas][:3]
+    keys = [a for a in areas if a in AREA][:4]
+    names = [AREA[a] for a in keys]
     if not names: return ''
     since, founder = p.get('since'), p.get('founder')
-    if since and founder: est = f', established in {since} by {founder}'
-    elif since and p.get('since_firm_says'): est = f', in practice since {since} by its own account'
-    elif since: est = pick(slug, 'est', [f', in practice since {since}', f', established in {since}'])
-    elif founder: est = f', founded by {founder}'
+    if since and founder: est = f', established in {since} by {founder},'
+    elif since and p.get('since_firm_says'): est = f', in practice since {since} by its own account,'
+    elif since: est = pick(slug, 'est', [f', in practice since {since},', f', established in {since},'])
+    elif founder: est = f', founded by {founder},'
     else: est = ''
-    ap = _area_phrase(names)
-    s1 = pick(slug, 's1', [f'{name} is {a_an(city)} {city}, {stn} {ap}{est}.', f'{name} is {a_an(ap)} {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is {a_an(ap)} {ap}{est}.'])
-    if reg and city.lower() not in reg.lower():
-        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider ' + (re.sub(r'\s+area$', '', reg.replace("the ", "")) + ' area') + '.'])
+    prim = re.sub(r' claims$', '', names[0])
+    prim_firm = prim + ' firm' if prim.endswith('law') else prim + ' law firm'
+    area_list = join_items([re.sub(r' claims$', ' claims', n) for n in names])
+    where = (f'{city} and {reg}' if reg and city.lower() not in reg.lower() else reg if reg else f'{city} and the surrounding area')
+    multi = len(names) > 1
+    tail = f'{area_list}, along with related legal matters' if multi else f'{area_list} and related legal matters'
+    if not multi:
+        s1 = pick(slug, 's1', [
+            f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} serving clients throughout {where}.',
+            f'{name} is {a_an(prim_firm)} {prim_firm} based in {city}, {stn}{est} serving clients throughout {where}.',
+            f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm}{est} serving clients throughout {where}.'])
+    elif est:
+        s1 = pick(slug, 's1', [
+            f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} that represents clients in {tail} throughout {where}.',
+            f'{name} is {a_an(prim_firm)} {prim_firm} in {city}, {stn}{est} representing clients in {tail} throughout {where}.'])
+    else:
+        s1 = pick(slug, 's1', [
+            f'{name} is {a_an(city)} {city}, {stn} {prim_firm} that represents clients in {tail} throughout {where}.',
+            f'{name} is {a_an(prim_firm)} {prim_firm} based in {city}, {stn}, representing clients in {tail} throughout {where}.',
+            f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm} that represents clients in {tail} throughout {where}.'])
     if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
     paras = [s1]
-    # the people
+    # the people, the places and the recognition: only what the firm's own site and other sites show
     ppl = []
     adm = p.get('admitted'); sch = p.get('school')
     if adm:
@@ -379,24 +418,24 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
         ppl.append(f'{lead} {join_list(team[:5])}.')
     if p.get('size') and not team: ppl.append(f'It has a team of {p["size"]} attorneys.')
     elif p.get('size'): ppl[-1] = ppl[-1][:-1] + f', on a team of {p["size"]} attorneys.'
-    if ppl: paras.append(' '.join(ppl))
-    # where it works
-    where = []
-    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') else '') + '.')
-    if p.get('offices'): where.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
-    # the work
-    if where: paras.append(' '.join(where))
-    if p.get('topics'):
-        paras.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
-    # recognition, memberships, press
-    rec = []
-    if p.get('awards'): rec.append(pick(slug, 'awards', ['The firm’s website lists recognition from ', 'It lists recognition from ', 'Recognition listed on the firm’s website includes ']) + join_list(p['awards'][:4]) + '.')
-    if p.get('memberships'): rec.append('Its attorneys are listed as members of ' + join_list(p['memberships'][:3]) + '.')
-    if p.get('board_certified') and not p.get('awards'): rec.append('The site mentions board-certified attorneys.')
+    if p.get('serves'): ppl.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') else '') + '.')
+    if p.get('offices'): ppl.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
+    if p.get('topics'): ppl.append(pick(slug, 'work', ['Its work includes ', 'Matters it handles include ', 'The firm’s practice covers ']) + join_list(p['topics'][:6]) + '.')
+    if p.get('awards'): ppl.append(pick(slug, 'awards', ['The firm lists recognition from ', 'It lists recognition from ', 'Recognition listed by the firm includes ']) + join_list(p['awards'][:4]) + '.')
+    if p.get('memberships'): ppl.append('Its attorneys are listed as members of ' + join_list(p['memberships'][:3]) + '.')
+    if p.get('board_certified') and not p.get('awards'): ppl.append('The firm lists board-certified attorneys.')
     if press:
         if len(press) == 1:
-            x = press[0]; rec.append(f'It was covered by {x["source"]} in {x["year"]}: “{x["title"]}”.')
+            x = press[0]; ppl.append(f'It was covered by {x["source"]} in {x["year"]}: “{x["title"]}”.')
         else:
-            rec.append('Press coverage includes ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
-    if rec: paras.append(' '.join(rec))
+            ppl.append('Press coverage includes ' + join_list([f'{x["source"]} ({x["year"]})' for x in press[:3]]) + '.')
+    if ppl: paras.append(' '.join(ppl))
+    # what the work involves (plain background for the main area, not a claim about this firm)
+    k0 = keys[0]
+    know = KNOW.get(k0) or [GENERIC_KNOW]; more = MORE.get(k0) or []
+    work = [pick_least(slug, 'know', know)]
+    if more: work.append(pick_least(slug, 'more', more))
+    paras.append(' '.join(work))
+    # where to go next
+    paras.append(pick_least(slug, 'cta', CTA, lead=LEAD.get(k0, 'If you need a lawyer'), name=name, city=city))
     return '\n\n'.join(paras)
