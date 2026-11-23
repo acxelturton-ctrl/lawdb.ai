@@ -1,6 +1,6 @@
 name: Collect lawyers
 # Run by hand (Actions tab -> Collect lawyers -> Run workflow). Visits each live firm's own website (politely: robots.txt, one request a second per site),
-# keeps lawyers with a checked photo, and attaches the result as a download: lawyers.jsonl (for review) and lawyers.sql (loads into the firm_lawyers table).
+# keeps lawyers with a checked photo, and attaches the result as a download: lawyers.jsonl (for review) and lawyers.sql (loads into the lawyers table).
 on:
   workflow_dispatch:
     inputs:

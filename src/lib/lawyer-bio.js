@@ -8,6 +8,7 @@ const article = (t) => (/^[aeiou]/i.test(t) ? 'an' : 'a');
 const lower = (a) => a.map((x) => x.toLowerCase().replace(/\bdui\b/, 'DUI'));
 
 export function lawyerAbout({ lawyer: l, firmName, city, state, firmAreas = [] }) {
+  if (!firmName) return soloAbout({ lawyer: l, city, state });
   const first = l.name.split(/\s+/)[0];
   const areas = lower((l.areas && l.areas.length ? l.areas : firmAreas).slice(0, 4));
   const own = !!(l.areas && l.areas.length);
@@ -40,4 +41,23 @@ export function lawyerAbout({ lawyer: l, firmName, city, state, firmAreas = [] }
   const paragraphs = [[intro, focus].filter(Boolean).join(' '), more, care];
   const description = `${l.name}${t ? `, ${t}` : ''} at ${firmName} in ${where}.${areas.length ? ` ${areas.length ? `Practice: ${list(areas.slice(0, 3))}.` : ''}` : ''} Photo, contact details and a link to the firm's profile.`.slice(0, 300);
   return { paragraphs, description };
+}
+
+// A lawyer who is not linked to a listed firm: only what their own listing says. Same rules (no ranking, nothing the data does not say).
+function soloAbout({ lawyer: l, city, state }) {
+  const first = l.name.split(/\s+/)[0];
+  const areas = lower((l.areas || []).slice(0, 4));
+  const where = `${city}, ${state}`;
+  const t = l.title;
+  const intro = t
+    ? pick([`${l.name} is listed on LawDB as ${article(t)} ${t} in ${where}.`, `LawDB lists ${l.name}, ${t}, in ${where}.`], l.slug, 'i')
+    : pick([`${l.name} is a lawyer listed on LawDB in ${where}.`, `LawDB lists ${l.name} as a lawyer in ${where}.`], l.slug, 'i');
+  const focus = areas.length ? pick([`${first}'s listing mentions ${list(areas)}.`, `${first} lists ${list(areas)} as areas of work.`], l.slug, 'a') : '';
+  const more = `Use the contact details on this page to reach ${first} directly.`;
+  const care = pick([
+    `LawDB does not rank lawyers or recommend one over another, and a lawyer's license status can change, so check it with the state bar before you hire anyone.`,
+    `This page is a directory listing, not an endorsement. Before you hire a lawyer, confirm the license with the state bar.`,
+  ], l.slug, 'c');
+  const description = `${l.name}${t ? `, ${t}` : ''} in ${where}.${areas.length ? ` Practice: ${list(areas.slice(0, 3))}.` : ''} Photo and contact details on LawDB.`.slice(0, 300);
+  return { paragraphs: [[intro, focus].filter(Boolean).join(' '), more, care], description };
 }

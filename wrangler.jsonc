@@ -17,7 +17,7 @@
       "/", "/for-firms",
       "/firms/*",
       "/report-listing",
-      "/news", "/news/*", "/sitemap-news.xml", "/sitemap-firms.xml", "/*.html",
+      "/news", "/news/*", "/sitemap-news.xml", "/sitemap-firms.xml", "/sitemap-lawyers.xml", "/lawyers/*", "/*.html",
       "/img/*",
       "/*/", "/*/*/"
     ]

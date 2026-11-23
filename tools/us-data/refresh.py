@@ -93,7 +93,7 @@ def cmd_build(a):
         except Exception: pass
     press = json.load(open(os.path.join(D, 'press.json'))) if os.path.exists(os.path.join(D, 'press.json')) else {}
     by_lower = {k.lower(): k for k in AREA}
-    sql = [BACKUP_TABLE]; bios = {}; report = []; tally = {'A': 0, 'A_live': 0, 'C': 0, 'untouched': 0, 'unreachable': 0}
+    sql = [BACKUP_TABLE]; bios = {}; new_slugs = set(); report = []; tally = {'A': 0, 'A_live': 0, 'C': 0, 'untouched': 0, 'unreachable': 0}
     for r in rows:
         slug, st = r['slug'], r['state']; rec = json.loads(r['data']); e = enr.get(slug)
         old = r.get('about') or ''
@@ -101,13 +101,13 @@ def cmd_build(a):
             tally['unreachable'] += 1; report.append(f"UNREACHABLE {slug}"); new, tier = '', '-'
         else:
             areas = e.get('practice_areas') or [by_lower[t.lower()] for t in (rec.get('tags') or []) if t.lower() in by_lower]
-            facts = extract(e, r['name']); pr = press.get(slug) or []
+            facts = extract(e, r['name'], r['city']); pr = press.get(slug) or []
             rid = region_if_near(st, rec.get('region') or '', rec.get('lat'), rec.get('lng'))
             new = make_biography(slug, r['name'], r['city'], st, rid, areas, facts, pr) if areas else ''
             ok = bool(new) and len(new) >= MIN_CHARS and len(new.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS
             tier = 'A' if ok else '-'
             if ok:
-                bios[slug] = new; tally['A'] += 1
+                bios[slug] = new; new_slugs.add(slug); tally['A'] += 1
                 sets = [f'about = {q(new)}']
                 path = []
                 if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
@@ -130,7 +130,7 @@ def cmd_build(a):
     json.dump(bios, open(os.path.join(D, 'bios.json'), 'w'), ensure_ascii=False, indent=1)
     open(os.path.join(D, 'report.txt'), 'w').write('\n'.join(report) + '\n')
     print('REFRESH SUMMARY', json.dumps(tally), 'of', len(rows), 'firms')
-    for slug in [s for s in bios][:3]: print(f'--- EXAMPLE {slug} ---\n{bios[slug]}\n')
+    for slug in [s for s in bios if s in new_slugs][:25]: print(f'--- NEW {slug} ---\n{bios[slug]}\n')
     for line in report: print(line)
 
 

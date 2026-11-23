@@ -75,11 +75,9 @@ const nameOf = (row) => { try { return JSON.parse(row.data).name || 'This firm';
 export async function firmPage({ request, env, ctx }) {
   const url = new URL(request.url);
   // /firms/<slug> is the Overview; /firms/<slug>/lawyers and /articles are sub-pages that exist only for firms with that content (see src/render/firm-tabs.js).
-  const m = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles)(?:\/([a-z0-9][a-z0-9-]*))?)?\/?$/);
+  const m = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles))?\/?$/);
   if (!m) return env.ASSETS.fetch(request);
   const tab = m[2] || 'overview';
-  const sub = m[3] || ''; // /firms/<slug>/lawyers/<lawyer>: one lawyer's page
-  if (sub && tab !== 'lawyers') return env.ASSETS.fetch(request);
   if (tab !== 'overview' && !TAB_SLUGS.includes(tab)) return env.ASSETS.fetch(request);
 
   const ttl = ttlOf(env);
@@ -101,7 +99,7 @@ export async function firmPage({ request, env, ctx }) {
   if (!row) {
     let moved = null;
     try { moved = await redirectTarget(env, m[1]); } catch (err) { console.error('firm redirect lookup failed', m[1], err); }
-    if (moved) return new Response(null, { status: 301, headers: { location: `/firms/${moved}${tab === 'overview' ? '' : '/' + tab}${sub ? '/' + sub : ''}${url.search}`, 'cache-control': 'public, max-age=3600' } });
+    if (moved) return new Response(null, { status: 301, headers: { location: `/firms/${moved}${tab === 'overview' ? '' : '/' + tab}${url.search}`, 'cache-control': 'public, max-age=3600' } });
   }
 
   // A firm switched off in the admin is shown nowhere. A firm that is not live (waiting for approval) or not listed at all has no page.
@@ -117,11 +115,9 @@ export async function firmPage({ request, env, ctx }) {
     const allPosts = await feedPosts(env, m[1], 20);
     const lawyers = await listLawyers(env, m[1]);
     const tabs = tabsFor(firm, allPosts.length, lawyers.length);
-    const lawyer = sub ? lawyers.find((x) => x.slug === sub) || null : null;
-    if (sub && !lawyer) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-lawyer__')); // no such lawyer at this firm: a plain 404
     // A tab the firm has no content for has no page (a plain 404, not a thin page).
     if (!tabs.includes(tab)) return env.ASSETS.fetch(new Request(url.origin + '/__no-such-tab__'));
-    html = renderFirmPage({ firm, hours, images: photos, tab, tabs, allPosts, lawyers, lawyer, posts: allPosts.slice(0, 3), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
+    html = renderFirmPage({ firm, hours, images: photos, tab, tabs, allPosts, lawyers, posts: allPosts.slice(0, 3), nearby: await nearbyFirms(env, firm), locations: await siblingsOf(env, m[1]), stats: await firmStats(env, firm), verified, origin: env.SITE_ORIGIN || url.origin });
   } catch (err) {
     console.error('profile render failed, serving the saved copy', m[1], err);
     return env.ASSETS.fetch(request);

@@ -233,6 +233,13 @@ def join_list(items):
     if len(items) <= 1: return ''.join(items)
     return ', '.join(items[:-1]) + ' and ' + items[-1]
 
+def join_items(items):
+    items = [i for i in items if i]
+    if len(items) <= 1: return ''.join(items)
+    if len(items) == 2 and any(' and ' in i for i in items): return items[0] + ', as well as ' + items[1]
+    if any(' and ' in i for i in items): return '; '.join(items[:-1]) + '; and ' + items[-1]
+    return ', '.join(items[:-1]) + ' and ' + items[-1]
+
 def clean_title(t):
     t = re.sub(r'\s+', ' ', (t or '')).strip(' "“”')
     if not t or len(t) > 110 or len(t.split()) < 4: return ''
@@ -325,12 +332,15 @@ def make_bio(slug, name, city, st, region_id, areas, facts, langs, posts, addres
 # ---------------------------------------------------------------------------------------------------------------------------------
 from profile_facts import count_facts
 
+def a_an(word):
+    return 'an' if word[:1].lower() in 'aeiou' else 'a'
+
 def _area_phrase(names):
     names = [re.sub(r' claims$', '', n) for n in names]
     if len(names) == 1:
         n = names[0]
         return n + ' firm' if n.endswith('law') else n + ' law firm'
-    return 'law firm handling ' + join_list(names[:3])
+    return 'law firm handling ' + join_items(names[:3])
 
 def _titles(items, skip=None):
     out = []
@@ -344,14 +354,15 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     names = [AREA.get(a, a.lower()) for a in areas][:3]
     if not names: return ''
     since, founder = p.get('since'), p.get('founder')
-    if since and founder: est = f' established in {since} by {founder}'
-    elif since: est = pick(slug, 'est', [f' that has been in practice since {since}', f' established in {since}', f' in practice since {since}'])
-    elif founder: est = f' founded by {founder}'
+    if since and founder: est = f', established in {since} by {founder}'
+    elif since and p.get('since_firm_says'): est = f', in practice since {since} by its own account'
+    elif since: est = pick(slug, 'est', [f', in practice since {since}', f', established in {since}'])
+    elif founder: est = f', founded by {founder}'
     else: est = ''
     ap = _area_phrase(names)
-    s1 = pick(slug, 's1', [f'{name} is a {city}, {stn} {ap}{est}.', f'{name} is a {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is a {ap}{est}.'])
+    s1 = pick(slug, 's1', [f'{name} is {a_an(city)} {city}, {stn} {ap}{est}.', f'{name} is {a_an(ap)} {ap} based in {city}, {stn}{est}.', f'Based in {city}, {stn}, {name} is {a_an(ap)} {ap}{est}.'])
     if reg and city.lower() not in reg.lower():
-        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider {reg.replace("the ", "")} area.'])
+        s1 += pick(slug, 'reg', [f' It serves clients in {city} and across {reg}.', f' Its clients come from {city} and the wider ' + (re.sub(r'\s+area$', '', reg.replace("the ", "")) + ' area') + '.'])
     if not since and not founder and p.get('years'): s1 += f' By its own account, the firm has about {p["years"]} years in practice.'
     paras = [s1]
     # the people
@@ -371,7 +382,7 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     if ppl: paras.append(' '.join(ppl))
     # where it works
     where = []
-    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + '.')
+    if p.get('serves'): where.append(pick(slug, 'serves', ['It serves clients in ', 'The firm says it serves ', 'Its clients are served across ']) + join_list(p['serves'][:5]) + (' counties' if p.get('serves_counties') else '') + '.')
     if p.get('offices'): where.append(pick(slug, 'offices', ['It lists offices in ', 'Office locations include ']) + join_list(p['offices'][:4]) + '.')
     # the work
     if where: paras.append(' '.join(where))

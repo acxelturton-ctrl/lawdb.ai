@@ -50,5 +50,6 @@ assert jane['socials'] == {'linkedin': 'https://www.linkedin.com/in/jane-roe'}, 
 assert jane['areas'] == ['Personal injury', 'Car accidents'] or 'Personal injury' in jane['areas'], jane['areas']
 john = by['John Doe']
 assert john['title'] == 'Associate Attorney' and john['email'] == '' and john['phone'] == '', john               # general office email is not a lawyer's
-assert 'INSERT OR IGNORE INTO firm_lawyers' in L.to_sql(jane) and "O''Brien" in L.to_sql({**jane, 'name': "O'Brien"})
+assert jane['slug'] == 'jane-roe-miami-fl' and jane['city'] == 'Miami' and jane['state'] == 'FL', jane['slug']   # a lawyer's address is global, so it carries the place
+assert 'INSERT OR IGNORE INTO lawyers' in L.to_sql(jane) and "O''Brien" in L.to_sql({**jane, 'name': "O'Brien"})
 print('lawyers crawler: ok', len(rows), 'kept')

@@ -41,6 +41,7 @@ def parse(xml, name, city, today=None):
         t = (it.find('title').get_text() if it.find('title') else '').strip()
         src = (it.find('source').get_text() if it.find('source') else '').strip()
         if src and t.endswith(' - ' + src): t = t[:-len(' - ' + src)].strip()
+        t = re.sub(r'\s*[-–—|:]+\s*$', '', t).strip()   # a trailing dash left by the feed
         if not t or not src or NOT_PRESS.search(src): continue
         tn = re.sub(r'[^a-z0-9 ]', ' ', t.lower().replace('&', ' and '))
         if core not in ' '.join(tn.split()): continue
