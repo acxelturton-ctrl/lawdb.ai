@@ -50,9 +50,20 @@ def rotate(states, now):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--per-hour', type=int, default=50); ap.add_argument('--dry-run', action='store_true'); ap.add_argument('--states', default='')
+    ap.add_argument('--shard', default='', help='i/n: this job works only every n-th state of the list (several jobs run side by side on different states)')
+    ap.add_argument('--target-live', type=int, default=0, help='stop once this many firms are live in total (0 = no target)')
     a = ap.parse_args()
     states = a.states.split() or open(os.path.join(HERE, 'drip_states.txt')).read().split()
+    shards = 1
+    if a.shard and not a.states:
+        i, shards = (int(x) for x in a.shard.split('/')); states = states[i::shards]
     states = rotate(states, datetime.datetime.utcnow()) if not a.states else states
+    if a.target_live:
+        live = rows("SELECT COUNT(*) AS n FROM firms WHERE status = 'live'")
+        left = a.target_live - (live[0]['n'] if live else 0)
+        if left <= 0: print(f"Target reached: {live[0]['n']} live firms (target {a.target_live})."); return
+        a.per_hour = max(1, min(a.per_hour, -(-left // shards)))   # each shard fills its share of what is still missing
+        print(f"{live[0]['n']} live, target {a.target_live}: this job fills up to {a.per_hour}", flush=True)
     if not a.dry_run: d1(TABLE)
     done_today = rows("SELECT COUNT(*) AS n FROM collect_seen WHERE outcome = 'kept' AND seen_at > datetime('now', '-1 day')")
     if done_today and done_today[0]['n'] >= MAX_PER_DAY: print('Daily cap reached:', done_today[0]['n']); return
