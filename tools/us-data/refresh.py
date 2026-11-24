@@ -117,11 +117,15 @@ def cmd_build(a):
             if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
             if facts.get('awards'): path += ["'$.awards'", f'json({q(json.dumps(facts["awards"], ensure_ascii=False))})']
             if path: sets.append('data = json_set(data, ' + ', '.join(path) + ')')
-            if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage'): sets.append("status = 'live'"); tally['A_live'] += 1
+            has_lawyers = bool(facts.get('team') or facts.get('founder') or facts.get('admitted') or (e or {}).get('people_ld'))
+            if reach and e.get('hours'): sets.append(f"hours = COALESCE(hours, {q(json.dumps(e['hours'], separators=(',', ':')))})")
+            # a hidden firm goes live only when it meets the whole bar: logo and cover, a biography, opening hours and a named lawyer
+            promote = r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') and reach and e.get('hours') and has_lawyers
+            if promote: sets.append("status = 'live'"); tally['A_live'] += 1
             sets.append("updated_at = datetime('now')")
             sql.append(f"INSERT OR IGNORE INTO about_backup (slug, about) SELECT slug, about FROM firms WHERE slug = {q(slug)};")
             sql.append(f"UPDATE firms SET {', '.join(sets)} WHERE slug = {q(slug)};")
-            report.append(f"A {slug} | {len(new)} chars, {len(new.split())} words, {count_facts(facts, pr)} facts" + (' | now live' if r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') else ''))
+            report.append(f"A {slug} | {len(new)} chars, {len(new.split())} words, {count_facts(facts, pr)} facts" + (' | now live' if promote else ''))
         if tier != 'A':
             cleaned = clean_old(old)
             if old and cleaned != old and len(cleaned) >= MIN_CHARS:
