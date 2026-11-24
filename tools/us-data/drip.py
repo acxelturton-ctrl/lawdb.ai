@@ -61,7 +61,7 @@ def main():
     for st in states:
         if quota <= 0 or time.time() - t0 > TIME_BUDGET: break
         print(f'\n=== {st} (still to fill: {quota}) ===', flush=True)
-        if run([sys.executable, 'tools/us-data/pull_overture.py', st, '--target', '5000', '--min-conf', '0.5']).returncode != 0: print('pull failed for', st); continue
+        if run([sys.executable, 'tools/us-data/pull_overture.py', st, '--target', '5000', '--min-conf', '0.3']).returncode != 0: print('pull failed for', st); continue
         path = os.path.join(ROOT, 'data', 'states', st, 'candidates.csv')
         if not os.path.exists(path): continue
         seen = {r['overture_id'] for r in rows(f"SELECT overture_id FROM collect_seen WHERE state = '{st}'")}
