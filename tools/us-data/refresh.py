@@ -151,12 +151,17 @@ MEETS_BAR = ("json_extract(data, '$.src') IS NOT NULL AND json_extract(data, '$.
              "AND length(about) >= 600 AND about NOT LIKE '%consultation%' AND about NOT LIKE '%own website%' AND about NOT LIKE '%blog%' "
              "AND hours IS NOT NULL AND json_array_length(json_extract(data, '$.details.lawyers')) >= 1")
 
+def bar():
+    """the whole bar; once reviews_required.txt says yes it also needs three good Google reviews saved on the firm"""
+    import google_reviews
+    return MEETS_BAR + (" AND json_array_length(json_extract(data, '$.reviews.items')) >= 3" if google_reviews.required() else '')
+
 def cmd_audit(a):
     # A firm with no lawyers list gives NULL, not false: COALESCE so the count and the hide both treat it as failing.
-    rows = d1(f"SELECT COUNT(*) AS live, SUM(COALESCE(({MEETS_BAR}), 0)) AS meet_bar, SUM(hours IS NULL) AS no_hours, SUM(COALESCE(json_array_length(json_extract(data, '$.details.lawyers')), 0) = 0) AS no_lawyers, SUM(length(about) < 600) AS short_about FROM firms WHERE status = 'live'", json_out=True)[0]['results']
+    rows = d1(f"SELECT COUNT(*) AS live, SUM(COALESCE(({bar()}), 0)) AS meet_bar, SUM(hours IS NULL) AS no_hours, SUM(COALESCE(json_array_length(json_extract(data, '$.details.lawyers')), 0) = 0) AS no_lawyers, SUM(length(about) < 600) AS short_about FROM firms WHERE status = 'live'", json_out=True)[0]['results']
     print(json.dumps(rows, indent=1))
     if a.hide:
-        out = d1(f"UPDATE firms SET status = 'hidden', updated_at = datetime('now') WHERE status = 'live' AND NOT COALESCE(({MEETS_BAR}), 0)", json_out=True)
+        out = d1(f"UPDATE firms SET status = 'hidden', updated_at = datetime('now') WHERE status = 'live' AND NOT COALESCE(({bar()}), 0)", json_out=True)
         print('hidden:', json.dumps(out[0].get('meta', {}).get('changes')))
         print(json.dumps(d1("SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status", json_out=True)[0]['results']))
 

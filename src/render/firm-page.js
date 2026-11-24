@@ -56,6 +56,24 @@ function monogram(f) {
 
 // Image URLs we are willing to put in a page: our own paths, or https.
 export const safeUrl = (u) => (typeof u === 'string' && (/^https:\/\/[^\s"'<>]+$/.test(u) || /^\/?[A-Za-z0-9_\-./]+$/.test(u)) ? u : '');
+
+// Three of the best Google reviews, word for word, with Google named as the source, the reviewer's name and a link to the place (Google's display rules).
+// Google lets the content be kept for 30 days, so reviews older than 35 days are not shown; the monthly reviews run refreshes them.
+const REVIEWS_MAX_AGE_DAYS = 35;
+export function reviewsHtml(f, now = Date.now()) {
+  const r = f && f.reviews;
+  if (!r || !Array.isArray(r.items) || r.items.length < 3) return '';
+  const age = (now - Date.parse(r.fetchedAt || '')) / 86400000;
+  if (!(age >= 0) || age > REVIEWS_MAX_AGE_DAYS) return '';
+  const stars = (n) => '★'.repeat(Math.max(0, Math.min(5, n | 0)));
+  const maps = safeUrl(r.mapsUrl);
+  const cards = r.items.slice(0, 3).map((x) =>
+    `<figure class="pf-rv"><div class="pf-rv-stars" role="img" aria-label="${x.rating} out of 5 stars">${stars(x.rating)}</div><blockquote>${esc(x.text).replace(/\n/g, '<br>')}</blockquote>` +
+    `<figcaption>${safeUrl(x.authorUrl) ? `<a href="${esc(x.authorUrl)}" target="_blank" rel="noopener nofollow">${esc(x.author)}</a>` : esc(x.author)}${x.when ? ` · ${esc(x.when)}` : ''}</figcaption></figure>`).join('');
+  const head = r.rating > 0 && r.count > 0 ? `<span class="pf-rv-sum"><b>${Number(r.rating).toFixed(1)}</b> from ${Number(r.count)} Google reviews</span>` : '';
+  return `\n    <section class="pf-reviews" aria-label="Google reviews of ${esc(f.name)}"><p class="pf-eyebrow">What clients say</p><h2>Google reviews</h2>${head}<div class="pf-rv-list">${cards}</div>` +
+    `<p class="pf-rv-src">Reviews from Google${maps ? ` · <a href="${esc(maps)}" target="_blank" rel="noopener nofollow">See all on Google Maps</a>` : ''}</p></section>`;
+}
 const localImg = (u) => (/^https:/.test(u) || u.startsWith('/') ? u : `../${u}`);
 
 // A logo that is drawn on its own color (a white wordmark on black, say) says so with `logoBg` (#rrggbb): it then fills the whole badge, with no white padding around it.
@@ -415,7 +433,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
   const leadScript = fill(C.LEAD_SCRIPT, { SLUG: String(f.slug).replace(/[^a-z0-9-]/g, ''), NAME: jsName });
 
   // The Overview is the whole profile; a tab page is its own content, then the contact form.
-  const overviewBody = aboutHtml + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
+  const overviewBody = aboutHtml + reviewsHtml(f) + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
   const tabBody = tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
 
   const page = [

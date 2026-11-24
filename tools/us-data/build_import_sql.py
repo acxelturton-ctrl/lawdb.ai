@@ -75,6 +75,9 @@ from pull_overture import NOT_A_FIRM, NAMELESS, MANUAL_NOT_FIRMS
 rows = [r for r in rows if not (NOT_A_FIRM.search(r['name']) or NAMELESS.match(r['name'].strip()) or r['name'].strip().lower() in MANUAL_NOT_FIRMS)]
 enr = {}
 press = json.load(open(os.path.join(D, 'press.json'))) if os.path.exists(os.path.join(D, 'press.json')) else {}   # coverage found on other sites (press.py)
+gr = json.load(open(os.path.join(D, 'reviews.json'))) if os.path.exists(os.path.join(D, 'reviews.json')) else {}   # three good Google reviews per firm (google_reviews.py)
+import google_reviews
+REVIEWS_REQUIRED = google_reviews.required()
 p = os.path.join(D, 'enriched.jsonl')
 if os.path.exists(p):
     for l in open(p):
@@ -131,9 +134,13 @@ for r in rows:
     has_lawyers = bool(lawyers)
     if not hours: stats['no_hours'] += 1
     if not has_lawyers: stats['no_lawyers'] += 1
-    is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and hours and has_lawyers)
+    rv = gr.get(r['overture_id']) or {}
+    has_reviews = len(rv.get('items') or []) >= google_reviews.WANT
+    if not has_reviews: stats['no_reviews'] = stats.get('no_reviews', 0) + 1
+    is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and hours and has_lawyers and (has_reviews or not REVIEWS_REQUIRED))
     if lawyers: rec.setdefault('details', {})['lawyers'] = lawyers   # shown on the firm's Lawyers tab and in its structured data
     if pr: rec['press'] = pr
+    if has_reviews: rec['reviews'] = rv; rec['rating'] = rv.get('rating') or 0; rec['count'] = rv.get('count') or 0   # shown on the page with Google named as the source
     if facts.get('awards'): rec['awards'] = facts['awards']
     if not is_live: about = None
     if KEEP and not is_live: outcome[r['overture_id']] = 'skip'; continue
@@ -142,7 +149,7 @@ for r in rows:
     if about: bios[slug] = about
     if perks: perk_rows.append((slug, perks))
     out.append('INSERT OR IGNORE INTO firms (slug,name,city,state,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES ('
-               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', 'NULL', 'NULL', q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), (q(json.dumps(hours, separators=(',', ':'))) if hours else 'NULL'), q(about), "'dynamic'", "'live'" if is_live else "'hidden'", 'NULL']) + ');')
+               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', (q(rec['rating']) if has_reviews else 'NULL'), (q(rec['count']) if has_reviews else 'NULL'), q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), (q(json.dumps(hours, separators=(',', ':'))) if hours else 'NULL'), q(about), "'dynamic'", "'live'" if is_live else "'hidden'", 'NULL']) + ');')
     stats['firms'] += 1
     if is_live: live_rows.append((r['city'], lat, lng, rec['region']))
     feed = e.get('blog_feed')

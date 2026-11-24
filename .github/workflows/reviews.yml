@@ -1,0 +1,51 @@
+name: Google reviews
+run-name: "Google reviews (${{ github.event_name == 'schedule' && 'monthly refresh' || format('states {0}, limit {1}, load {2}', inputs.states || 'all', inputs.limit, inputs.load) }})"
+# Fetches the three best Google reviews for every live firm that has none yet, or whose copy is older than 25 days (Google lets the content be kept 30 days).
+# Needs the repository secret GOOGLE_PLACES_API_KEY (a Google Cloud key with Places API (New) switched on). Without it nothing happens.
+# Runs monthly by itself and on demand. Whether a firm NEEDS three reviews to be live is a separate switch: tools/us-data/reviews_required.txt (yes / no).
+on:
+  schedule:
+    - cron: '41 4 */20 * *'
+  workflow_dispatch:
+    inputs:
+      states:
+        description: 'Optional: only these state codes, space separated (default: all)'
+        default: ''
+      limit:
+        description: 'Max firms to fetch (0 = all)'
+        default: '0'
+      load:
+        description: 'yes = save the reviews in the live database'
+        default: 'yes'
+
+concurrency:
+  group: reviews
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reviews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install duckdb requests beautifulsoup4 lxml Pillow
+      - run: npm install --no-save wrangler@4
+      - name: Fetch and save
+        run: |
+          set -e
+          if [ -z "$GOOGLE_PLACES_API_KEY" ]; then echo "::error::The repository secret GOOGLE_PLACES_API_KEY is missing (Settings -> Secrets and variables -> Actions)."; exit 1; fi
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
+          FLAGS=""
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.load }}" = "yes" ]; then FLAGS="--load"; fi
+          LIMIT="${{ inputs.limit }}"; if [ -n "$LIMIT" ] && [ "$LIMIT" != "0" ]; then FLAGS="$FLAGS --limit $LIMIT"; fi
+          python3 tools/us-data/google_reviews.py backfill --states "${{ inputs.states }}" $FLAGS
