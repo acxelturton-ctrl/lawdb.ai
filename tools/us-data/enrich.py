@@ -12,6 +12,7 @@ Polite by design: obeys robots.txt, identifies itself, one request at a time per
 import argparse, csv, json, os, random, re, sys, time, urllib.parse, urllib.robotparser, concurrent.futures as cf
 import requests
 from bs4 import BeautifulSoup
+import opening_hours as OH
 
 UA = 'LawDBBot/1.0 (+https://lawdb.ai/bot; info@lawdb.ai)'
 MAX_BYTES = 1_500_000
@@ -193,7 +194,7 @@ def enrich(row):
     final_url, data = first; res['final_url'] = final_url
     soups = {}; queue = [final_url]; seen = set()
     emails, socials, logos, feeds = {}, {}, [], []
-    texts, nav_text = [], []; ld_objs = []; imgs = []; pages_text = []
+    texts, nav_text = [], []; ld_objs = []; imgs = []; pages_text = []; page_hours = None
     host = urllib.parse.urlparse(final_url).hostname or ''
     pages = 0
     cache = {final_url: data}
@@ -244,6 +245,7 @@ def enrich(row):
         # text (visible) and emails in text
         meta = soup.find('meta', attrs={'name': 'description'})
         t = text_of(soup)
+        if page_hours is None: page_hours = OH.from_text(t)   # the whole page text: hours are often in the footer
         pages_text.append({'url': u2, 'title': ((soup.title.string or '') if soup.title else '').strip()[:160], 'text': t[:7000]})
         texts.append(((soup.title.string or '') if soup.title else '') + ' | ' + ((meta.get('content') if meta else '') or '') + ' | ' + t[:6000])
         for m in re.findall(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}', t):
@@ -260,6 +262,7 @@ def enrich(row):
         if 'Person' in ty and o.get('name') and isinstance(o.get('name'), str):
             people_ld.append({'name': o['name'].strip()[:80], 'title': str(o.get('jobTitle') or '')[:60]})
     res['people_ld'] = people_ld[:20]
+    res['hours'] = OH.from_jsonld(ld_objs) or page_hours   # {"1": [["09:00","17:00"]], ...} or None
     res['pages_text'] = pages_text
     res['nav_labels'] = [x[:80] for x in nav_text][:80]
     # schema.org
