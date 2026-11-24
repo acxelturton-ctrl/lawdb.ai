@@ -14,6 +14,9 @@ on:
       load:
         description: 'Type yes to write the new descriptions into the LIVE database'
         default: 'no'
+      stale:
+        description: 'yes = only firms whose description still has the old wording (website, consultation, blog sentences)'
+        default: 'no'
 
 permissions:
   contents: read
@@ -36,7 +39,7 @@ jobs:
         run: |
           set -e
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
-          python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}"
+          python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}" $( [ "${{ inputs.stale }}" = "yes" ] && echo --stale )
           python3 tools/us-data/enrich.py REF --workers 6
           python3 tools/us-data/press.py REF || true
           python3 tools/us-data/refresh.py build

@@ -443,21 +443,25 @@ def make_biography(slug, name, city, st, region_id, areas, p, press=None):
     stn = STATE.get(st, st); reg = REGION.get(region_id, '')
     keys = [a for a in areas if a in AREA][:4]
     names = [AREA[a] for a in keys]
-    if not names: return ''
+    generic = not names   # no practice areas on file: a general opening instead of an area-specific one
     since, founder = p.get('since'), p.get('founder')
     if since and founder: est = f', established in {since} by {founder},'
     elif since: est = pick(slug, 'est', [f', in practice since {since},', f', established in {since},'])
     elif founder: est = f', founded by {founder},'
     else: est = ''
-    prim = re.sub(r' claims$', '', names[0])
-    prim_firm = prim + ' firm' if prim.endswith('law') else prim + ' law firm'
+    prim = re.sub(r' claims$', '', names[0]) if names else ''
+    prim_firm = (prim + ' firm' if prim.endswith('law') else prim + ' law firm') if names else 'law firm'
     area_list = join_items(names)
     where = (f'{city} and {reg}' if reg and city.lower() not in reg.lower() else reg if reg else f'{city} and the surrounding area')
-    k0 = keys[0]
+    k0 = keys[0] if keys else None
     ded = pick(slug, 'ded', DEDICATED)
     purpose = pick(slug, 'purp', [PURPOSE.get(k0), PURPOSE2.get(k0)] if PURPOSE.get(k0) else ['individuals and families get the legal help they need'])
     tail = f'{area_list}, along with related legal matters' if len(names) > 1 else f'{area_list} and related legal matters'
-    s1 = pick(slug, 's1', [
+    if generic:
+        s1 = pick(slug, 's1', [
+            f'{name} is {a_an(city)} {city}, {stn} law firm{est} {ded} individuals, families and businesses with a wide range of legal matters throughout {where}.',
+            f'Based in {city}, {stn}, {name} is a law firm{est} {ded} individuals, families and businesses with the legal issues that matter most to them throughout {where}.'])
+    else: s1 = pick(slug, 's1', [
         f'{name} is {a_an(city)} {city}, {stn} {prim_firm}{est} {ded} {purpose}. The firm represents clients in {tail} throughout {where}.',
         f'Based in {city}, {stn}, {name} is {a_an(prim_firm)} {prim_firm}{est} {ded} {purpose}. It represents clients in {tail} throughout {where}.',
         f'{name} is {a_an(prim_firm)} {prim_firm} in {city}, {stn}{est} {ded} {purpose}. Its attorneys represent clients in {tail} throughout {where}.'])
