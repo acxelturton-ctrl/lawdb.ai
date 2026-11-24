@@ -7,6 +7,7 @@ DAYS = {'mo': 1, 'tu': 2, 'we': 3, 'th': 4, 'fr': 5, 'sa': 6, 'su': 7}   # keyed
 _D = r'(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?'
 _T = r'(\d{1,2})(?::(\d\d))?\s*(a\.?m\.?|p\.?m\.?)?'
 TEXT_RX = re.compile(_D + r'(?:\s*(?:-|–|—|to|through|thru)\s*' + _D + r')?\s*[:,\-–—]?\s*' + _T + r'\s*(?:-|–|—|to|until)\s*' + _T, re.I)
+TEXT_RX_B = re.compile(_T + r'\s*(?:-|–|—|to|until)\s*' + _T + r'\s*[,:;]?\s*(?:open\s+)?' + _D + r'(?:\s*(?:-|–|—|to|through|thru)\s*' + _D + r')?(?!\s*[:,\-–—]?\s*(?:closed|\d))', re.I)
 MIN_DAYS = 3
 
 def _hm(h, m):
@@ -35,20 +36,33 @@ def _finish(sched):
     open_days = {d: v for d, v in sched.items() if v}
     return {str(d): v for d, v in sorted(open_days.items())} if len(open_days) >= MIN_DAYS else None
 
+def _interval(h1, m1, ap1, h2, m2, ap2):
+    """(start, end) in minutes from the two times as written, or None"""
+    h1i, h2i = int(h1), int(h2)
+    if h1i > 24 or h2i > 24: return None
+    if not ap2 and not ap1:
+        if h2i >= 13: pass                                    # 24-hour clock: 08:00-17:00
+        elif 6 <= h1i <= 11 and 1 <= h2i <= 7: ap1, ap2 = 'am', 'pm'   # 8:30-5:00 reads as 8:30 am to 5:00 pm
+        else: return None
+    if ap2 and not ap1:
+        if ap2.lower().startswith('p'): ap1 = 'pm' if ((h1i < h2i and h2i != 12) or h1i == 12) else 'am'
+        else: ap1 = 'am'
+    a = _to_minutes(h1, m1, ap1); b = _to_minutes(h2, m2, ap2)
+    return (a, b) if _plausible(a, b) else None
+
 def from_text(text):
     sched = {}
+    def add(d1, d2, iv):
+        v = [_hm(iv[0] // 60, iv[0] % 60), _hm(iv[1] // 60, iv[1] % 60)]
+        for d in _days(d1, d2): sched.setdefault(d, [v])
     for m in TEXT_RX.finditer(text or ''):
         d1, d2, h1, m1, ap1, h2, m2, ap2 = m.groups()
-        h1i, h2i = int(h1), int(h2)
-        if not ap2 and h2i < 13: continue                 # "9-5" with no am/pm at all is too vague (phone numbers, room numbers ...)
-        if h1i > 24 or h2i > 24: continue
-        if ap2 and not ap1:
-            if ap2.lower().startswith('p'): ap1 = 'pm' if ((h1i < h2i and h2i != 12) or h1i == 12) else 'am'
-            else: ap1 = 'am'
-        a = _to_minutes(h1, m1, ap1); b = _to_minutes(h2, m2, ap2)
-        if not _plausible(a, b): continue
-        iv = [_hm(a // 60, a % 60), _hm(b // 60, b % 60)]
-        for d in _days(d1, d2): sched.setdefault(d, [iv])
+        iv = _interval(h1, m1, ap1, h2, m2, ap2)
+        if iv: add(d1, d2, iv)
+    for m in TEXT_RX_B.finditer(text or ''):
+        h1, m1, ap1, h2, m2, ap2, d1, d2 = m.groups()
+        iv = _interval(h1, m1, ap1, h2, m2, ap2)
+        if iv: add(d1, d2, iv)
     return _finish(sched)
 
 def _day_name(x):
