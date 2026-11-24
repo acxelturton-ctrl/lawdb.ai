@@ -19,8 +19,8 @@ sys.path.insert(0, HERE)
 from pull_overture import NOT_A_FIRM, NAMELESS, MANUAL_NOT_FIRMS, domain_of
 from seen import TABLE, seen_sql
 
-BATCH = 60          # candidates read per round
-MAX_ROUNDS = 4      # per state per run
+BATCH = 100         # candidates read per round
+MAX_ROUNDS = 8      # per state per run (few firms pass the bar, so many more are read)
 MAX_PER_DAY = 1300  # a second safety stop
 TIME_BUDGET = 40 * 60   # seconds; no new round starts after this, so a run always ends inside the hour
 
@@ -79,7 +79,7 @@ def main():
                 w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(batch)
             for fn in ('enriched.jsonl', 'outcome.json', 'press.json'):
                 if os.path.exists(os.path.join(sdir, fn)) and rnd == 0: os.remove(os.path.join(sdir, fn))
-            if run([sys.executable, 'tools/us-data/enrich.py', st, '--workers', '6']).returncode != 0: print('crawl failed'); break
+            if run([sys.executable, 'tools/us-data/enrich.py', st, '--workers', '16']).returncode != 0: print('crawl failed'); break
             run([sys.executable, 'tools/us-data/press.py', st])   # press coverage from other sites (best effort)
             if run([sys.executable, 'tools/us-data/build_import_sql.py', st, '--keep', str(quota)]).returncode != 0: print('build failed'); break
             outcome = json.load(open(os.path.join(sdir, 'outcome.json')))
