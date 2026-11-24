@@ -86,7 +86,8 @@ def clean_and_pick(st, raw, target, min_conf):
         name = tidy_name(r['name']); d = domain_of(r['website']); ph = phone10(r['phone'])
         if not name: stats['no name'] += 1; continue
         if NOT_A_FIRM.search(name) or NAMELESS.match(name.strip()) or name.strip().lower() in MANUAL_NOT_FIRMS: stats['not a law firm (name)'] += 1; continue
-        if not FIRM_WORDS.search(name): stats['looks like a person, not a firm'] += 1; continue
+        # A name with no firm word is often a solo attorney ('Jane Roe'). It is kept: the site check (practice areas, opening hours, a named lawyer, a biography) decides.
+        if not FIRM_WORDS.search(name): stats['named after a person (kept; the site check decides)'] += 1
         if not r['street'] or not r['city']: stats['no address'] += 1; continue
         if not ph: stats['no valid phone'] += 1; continue
         if not d or d in AGGREGATORS or any(d.endswith('.' + g) for g in AGGREGATORS): stats['no own website'] += 1; continue
