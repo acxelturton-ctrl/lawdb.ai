@@ -1,8 +1,11 @@
 name: Drip US firms
-run-name: "Drip US firms (${{ github.event_name == 'schedule' && 'hourly' || format('manual, dry run {0}', inputs.dry_run) }})"
-# Every hour: find, read and load about 50 good law firms into the live database (see tools/us-data/drip.py).
+run-name: "Drip US firms (${{ github.event_name == 'schedule' && 'hourly' || format('manual, dry run {0}, target {1}', inputs.dry_run, inputs.target) }})"
+# Finds, reads and loads good law firms into the live database (see tools/us-data/drip.py), several states side by side.
+# Eight jobs (shards) run at once, each on its own eighth of the state list, so a run adds up to a few hundred firms instead of about thirty.
 # Each firm's own site is read politely (robots.txt, one request a second per site); only firms that pass every check are loaded.
-# SCHEDULED RUNS ARE PAUSED (they stop at once) until tools/us-data/drip_live.txt says yes. Flip it only after a manual dry run looks right.
+# The run stops filling once the live firms reach the target: tools/us-data/drip_target.txt, or the 'target' input of a manual run.
+# With chain = yes a manual run starts the next one when it ends, until the target is reached or a run adds nothing.
+# SCHEDULED RUNS ARE PAUSED (they stop at once) until tools/us-data/drip_live.txt says yes.
 # STOP IT: set the repository variable DRIP_ENABLED to false (Settings -> Secrets and variables -> Actions -> Variables),
 # or disable this workflow in the Actions tab. A manual run with dry_run = yes reads and builds everything but loads nothing.
 on:
@@ -11,18 +14,23 @@ on:
   workflow_dispatch:
     inputs:
       per_hour:
-        description: 'Firms to load this run'
-        default: '50'
+        description: 'Firms to load per job (8 jobs run side by side)'
+        default: '60'
       dry_run:
         description: 'yes = read and build everything but load nothing'
         default: 'yes'
       states:
-        description: 'Optional: only these state codes, space separated (default: the rotating list)'
+        description: 'Optional: only these state codes, space separated (then one job, no shards)'
         default: ''
-
-concurrency:
-  group: drip
-  cancel-in-progress: false
+      target:
+        description: 'Stop when this many firms are live in total (empty = the number in drip_target.txt)'
+        default: ''
+      chain:
+        description: 'yes = start the next run when this one ends, until the target is reached'
+        default: 'no'
+      prev:
+        description: 'Internal: live firms when the previous chained run ended'
+        default: '0'
 
 permissions:
   contents: read
@@ -32,6 +40,13 @@ jobs:
     if: ${{ vars.DRIP_ENABLED != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    concurrency:
+      group: drip-${{ matrix.shard }}
+      cancel-in-progress: false
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
@@ -56,11 +71,40 @@ jobs:
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
           if [ "${{ github.event_name }}" = "schedule" ]; then
             if grep -qx 'yes' tools/us-data/drip_live.txt; then DRY=no; else DRY=yes; fi
-            PER=50
+            PER=60; TARGET=""; STATES=""
           else
-            DRY="${{ inputs.dry_run }}"; PER="${{ inputs.per_hour }}"
+            DRY="${{ inputs.dry_run }}"; PER="${{ inputs.per_hour }}"; TARGET="${{ inputs.target }}"; STATES="${{ inputs.states }}"
           fi
-          echo "dry run: $DRY | firms this run: $PER"
-          FLAGS="--per-hour $PER"
+          if [ -z "$TARGET" ]; then TARGET=$(tr -dc '0-9' < tools/us-data/drip_target.txt); fi
+          # an explicit state list runs in shard 0 only (the other shards have nothing to do)
+          if [ -n "$STATES" ] && [ "${{ matrix.shard }}" != "0" ]; then echo "States given: shard ${{ matrix.shard }} idle."; exit 0; fi
+          echo "dry run: $DRY | firms this job: up to $PER | target live: $TARGET | shard ${{ matrix.shard }}/8"
+          FLAGS="--per-hour $PER --target-live $TARGET"
           if [ "$DRY" != "no" ]; then FLAGS="$FLAGS --dry-run"; fi
-          python3 tools/us-data/drip.py $FLAGS --states "${{ inputs.states }}"
+          if [ -z "$STATES" ]; then FLAGS="$FLAGS --shard ${{ matrix.shard }}/8"; fi
+          python3 tools/us-data/drip.py $FLAGS --states "$STATES"
+
+  chain:
+    needs: drip
+    if: ${{ always() && needs.drip.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.chain == 'yes' && inputs.dry_run == 'no' && vars.DRIP_ENABLED != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 9cfcdb7afabb6ee5cf8e3419178a4650
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --no-save wrangler@4
+      - name: Start the next run unless the target is reached or this run added nothing
+        run: |
+          set -e
+          TARGET="${{ inputs.target }}"; if [ -z "$TARGET" ]; then TARGET=$(tr -dc '0-9' < tools/us-data/drip_target.txt); fi
+          LIVE=$(npx wrangler d1 execute DB --remote --json --command "SELECT COUNT(*) AS n FROM firms WHERE status = 'live'" | python3 -c "import sys,json; t=sys.stdin.read(); print(json.loads(t[t.index('['):])[0]['results'][0]['n'])")
+          echo "live: $LIVE | target: $TARGET | live at the end of the previous run: ${{ inputs.prev }}"
+          if [ "$LIVE" -ge "$TARGET" ]; then echo "Target reached. Chain stops."; exit 0; fi
+          if [ "$LIVE" -le "${{ inputs.prev }}" ]; then echo "This run added nothing. Chain stops (candidate pools may be used up)."; exit 0; fi
+          gh workflow run drip.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}" -f dry_run=no -f per_hour="${{ inputs.per_hour }}" -f target="$TARGET" -f chain=yes -f prev="$LIVE"

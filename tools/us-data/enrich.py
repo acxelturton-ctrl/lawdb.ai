@@ -255,6 +255,24 @@ def enrich(row):
             res['home_title'] = (soup.title.string or '').strip()[:160] if soup.title else ''
             res['home_meta'] = ((meta.get('content') if meta else '') or '').strip()[:300]
             h1 = soup.find('h1'); res['home_h1'] = h1.get_text(' ').strip()[:160] if h1 else ''
+    # Opening hours are the most common reason a firm fails the bar. If none turned up, ask for the usual contact / location pages directly
+    # (still polite: robots.txt and one request a second per site; at most five extra requests).
+    if not (OH.from_jsonld(ld_objs) or page_hours):
+        tried = 0
+        for path in ('/contact', '/contact-us', '/contact-us/', '/contact/', '/locations', '/about-us'):
+            full = urllib.parse.urljoin(final_url, path)
+            if full in seen or full.rstrip('/') in seen or tried >= 5: continue
+            seen.add(full); tried += 1
+            got = site.get(full)
+            if not got: continue
+            u2, raw = got; res['pages'].append(u2)
+            try: soup = BeautifulSoup(raw, 'lxml')
+            except Exception: continue
+            ld_objs += jsonld(soup)
+            t = text_of(soup)
+            page_hours = OH.from_text(t)
+            pages_text.append({'url': u2, 'title': ((soup.title.string or '') if soup.title else '').strip()[:160], 'text': t[:7000]})
+            if page_hours or OH.from_jsonld(ld_objs): break
     # people named in structured data (name, job title)
     people_ld = []
     for o in ld_objs:
