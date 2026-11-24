@@ -88,7 +88,7 @@ def cmd_export(a):
 
 def cmd_build(a):
     from bios import make_biography, AREA, STATE, MIN_WORDS, MIN_FACTS
-    from profile_facts import extract, count_facts
+    from profile_facts import extract, count_facts, lawyer_list
     rows = json.load(open(os.path.join(D, 'firms.json')))
     enr = {}
     for l in open(os.path.join(D, 'enriched.jsonl')):
@@ -116,8 +116,12 @@ def cmd_build(a):
             path = []
             if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
             if facts.get('awards'): path += ["'$.awards'", f'json({q(json.dumps(facts["awards"], ensure_ascii=False))})']
-            if path: sets.append('data = json_set(data, ' + ', '.join(path) + ')')
-            has_lawyers = bool(facts.get('team') or facts.get('founder') or facts.get('admitted') or (e or {}).get('people_ld'))
+            lawyers = lawyer_list(facts, e or {})
+            expr = 'data'
+            if lawyers: expr = f"json_patch({expr}, json({q(json.dumps({'details': {'lawyers': lawyers}}, ensure_ascii=False))}))"   # the named lawyers, merged into data.details
+            if path: expr = f"json_set({expr}, " + ', '.join(path) + ')'
+            if expr != 'data': sets.append(f'data = {expr}')
+            has_lawyers = bool(lawyers)
             if reach and e.get('hours'): sets.append(f"hours = COALESCE(hours, {q(json.dumps(e['hours'], separators=(',', ':')))})")
             # a hidden firm goes live only when it meets the whole bar: logo and cover, a biography, opening hours and a named lawyer
             promote = r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') and reach and e.get('hours') and has_lawyers
@@ -142,6 +146,19 @@ def cmd_build(a):
     for line in report: print(line)
 
 
+# The whole bar for a live firm: logo, cover photo, a practice area, a biography without the old wording, opening hours and at least one named lawyer.
+MEETS_BAR = ("json_extract(data, '$.src') IS NOT NULL AND json_extract(data, '$.heroImage') IS NOT NULL AND json_array_length(json_extract(data, '$.tags')) >= 1 "
+             "AND length(about) >= 600 AND about NOT LIKE '%consultation%' AND about NOT LIKE '%own website%' AND about NOT LIKE '%blog%' "
+             "AND hours IS NOT NULL AND json_array_length(json_extract(data, '$.details.lawyers')) >= 1")
+
+def cmd_audit(a):
+    rows = d1(f"SELECT COUNT(*) AS live, SUM({MEETS_BAR}) AS meet_bar, SUM(hours IS NULL) AS no_hours, SUM(COALESCE(json_array_length(json_extract(data, '$.details.lawyers')), 0) = 0) AS no_lawyers, SUM(length(about) < 600) AS short_about FROM firms WHERE status = 'live'", json_out=True)[0]['results']
+    print(json.dumps(rows, indent=1))
+    if a.hide:
+        out = d1(f"UPDATE firms SET status = 'hidden', updated_at = datetime('now') WHERE status = 'live' AND NOT ({MEETS_BAR})", json_out=True)
+        print('hidden:', json.dumps(out[0].get('meta', {}).get('changes')))
+        print(json.dumps(d1("SELECT state, status, COUNT(*) AS firms FROM firms GROUP BY state, status ORDER BY state, status", json_out=True)[0]['results']))
+
 def cmd_load(a):
     d1(file=os.path.join('data', 'states', 'REF', 'refresh.sql'))
     out = d1("SELECT state, status, COUNT(*) AS firms, SUM(length(about) >= 150) AS described_150_plus, SUM(about IS NULL OR length(about) < 150) AS short_or_missing FROM firms GROUP BY state, status ORDER BY state, status", json_out=True)
@@ -153,4 +170,5 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(); sub = ap.add_subparsers(dest='cmd', required=True)
     e = sub.add_parser('export'); e.add_argument('--states', required=True); e.add_argument('--limit', type=int, default=0); e.add_argument('--stale', action='store_true')
     sub.add_parser('build'); sub.add_parser('load')
-    a = ap.parse_args(); {'export': cmd_export, 'build': cmd_build, 'load': cmd_load}[a.cmd](a)
+    au = sub.add_parser('audit'); au.add_argument('--hide', action='store_true')
+    a = ap.parse_args(); {'export': cmd_export, 'build': cmd_build, 'load': cmd_load, 'audit': cmd_audit}[a.cmd](a)

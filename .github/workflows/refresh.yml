@@ -14,6 +14,12 @@ on:
       load:
         description: 'Type yes to write the new descriptions into the LIVE database'
         default: 'no'
+      audit:
+        description: 'After the run: check = count live firms that meet the whole bar; hide = also hide the live firms that do not (logo, cover, area, biography, hours, a named lawyer)'
+        default: 'no'
+      skip_refresh:
+        description: 'yes = do not read any websites, only run the audit'
+        default: 'no'
       stale:
         description: 'yes = only firms whose description still has the old wording (website, consultation, blog sentences)'
         default: 'no'
@@ -39,12 +45,16 @@ jobs:
         run: |
           set -e
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
-          python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}" $( [ "${{ inputs.stale }}" = "yes" ] && echo --stale )
-          python3 tools/us-data/enrich.py REF --workers 6
-          python3 tools/us-data/press.py REF || true
-          python3 tools/us-data/refresh.py build
-          python3 tools/us-data/check_bios.py REF
-          if [ "${{ inputs.load }}" = "yes" ]; then python3 tools/us-data/refresh.py load; fi
+          if [ "${{ inputs.skip_refresh }}" != "yes" ]; then
+            python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}" $( [ "${{ inputs.stale }}" = "yes" ] && echo --stale )
+            python3 tools/us-data/enrich.py REF --workers 16
+            python3 tools/us-data/press.py REF || true
+            python3 tools/us-data/refresh.py build
+            python3 tools/us-data/check_bios.py REF
+            if [ "${{ inputs.load }}" = "yes" ]; then python3 tools/us-data/refresh.py load; fi
+          fi
+          if [ "${{ inputs.audit }}" = "check" ]; then python3 tools/us-data/refresh.py audit; fi
+          if [ "${{ inputs.audit }}" = "hide" ]; then python3 tools/us-data/refresh.py audit --hide; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
