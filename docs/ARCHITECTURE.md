@@ -71,3 +71,7 @@ Rules that keep it safe to scale: a firm needs a website and a US address to be 
 
 ## Deploy
 Pushes to `main` build and deploy through Cloudflare Workers Builds. Until lawdb.ai is connected the site is on its `workers.dev` address and is marked `noindex` (see `_headers`).
+
+## Google reviews
+
+Each firm can carry the three best Google reviews (`data.reviews`: place id, maps link, rating, count, `fetchedAt`, three items), fetched from the Places API (New) by `tools/us-data/google_reviews.py` (never scraped). The drip fetches them for new firms; `reviews.yml` backfills and refreshes live firms every 20 days (Google lets the content be kept for 30 days, and the page hides reviews older than 35). The page shows them word for word with Google named as the source, the reviewer's name and a link to the place. Needs the repository secret `GOOGLE_PLACES_API_KEY`. Whether three reviews are part of the live bar (drip gate and `refresh.py audit`) is switched by `tools/us-data/reviews_required.txt` (yes / no); switch it to yes only after the backfill has run.

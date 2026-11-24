@@ -151,3 +151,15 @@ body.pg-firm.pg-msp .pf-tabcard .fa p{ font-size:13px; }
 body.pg-firm.pg-msp .pf-tabcard .fa .fa-pic{ width:64px; flex:none; }
 body.pg-firm.pg-msp .pf-tabcard .fa .fa-pic img{ width:64px; height:64px; object-fit:cover; }
 @media (min-width:1000px){ body.pg-firm.pg-msp .pf-aside{ margin:44px 0 0; } }
+
+/* Google reviews on the firm page (three of the best, with Google named as the source) */
+.pf-reviews{margin:28px 0}
+.pf-rv-sum{display:inline-block;margin:0 0 12px;color:#5f5f5f;font-size:15px}
+.pf-rv-list{display:grid;gap:14px}
+@media(min-width:900px){.pf-rv-list{grid-template-columns:repeat(3,1fr)}}
+.pf-rv{margin:0;padding:16px 18px;border:1px solid #e3dcc7;border-radius:10px;background:#fffdf7}
+.pf-rv-stars{color:#b8892b;letter-spacing:2px;font-size:16px;margin-bottom:8px}
+.pf-rv blockquote{margin:0 0 10px;font-size:15px;line-height:1.55;color:#1a1a1a;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical;overflow:hidden}
+.pf-rv figcaption{font-size:13px;color:#5f5f5f}
+.pf-rv figcaption a{color:inherit}
+.pf-rv-src{margin:10px 0 0;font-size:13px;color:#5f5f5f}

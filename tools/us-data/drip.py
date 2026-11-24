@@ -100,6 +100,7 @@ def main():
                 if os.path.exists(os.path.join(sdir, fn)) and rnd == 0: os.remove(os.path.join(sdir, fn))
             if run([sys.executable, 'tools/us-data/enrich.py', st, '--workers', '16']).returncode != 0: print('crawl failed'); break
             run([sys.executable, 'tools/us-data/press.py', st])   # press coverage from other sites (best effort)
+            run([sys.executable, 'tools/us-data/google_reviews.py', st])   # the three best Google reviews (needs GOOGLE_PLACES_API_KEY; skipped without it)
             if run([sys.executable, 'tools/us-data/build_import_sql.py', st, '--keep', str(quota)]).returncode != 0: print('build failed'); break
             outcome = json.load(open(os.path.join(sdir, 'outcome.json')))
             kept = [r for r in batch if outcome.get(r['overture_id']) == 'kept']
