@@ -258,3 +258,26 @@ def count_facts(p, press=None):
     if len(p.get('topics') or []) >= 2: n += 1
     if press: n += 1
     return n
+
+
+# The lawyers a firm shows on its profile (data.details.lawyers; the Lawyers tab and the page's structured data read it). Same name rules as src/lib/details.js.
+_SITE_NAME = re.compile(r"^(?:Me|Mr\.?|Ms\.?|Mrs\.?|Dr\.?)?\s*[A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]+(?: [A-ZÀ-Ý][A-Za-zÀ-ÿ'’.-]*){1,3}$")
+_NOT_SITE_NAME = re.compile(r'\b(?:law|llp|lawyers?|attorneys?|team|contact|about|office|group|professional|corporation|services?|practice|our|the|and|call|email|read|more|learn|view|home|news|blog)\b', re.I)
+
+def lawyer_list(facts, enriched=None, limit=10):
+    """-> [{'name': ..., 'title': ...}] the named lawyers found on the firm's own site (founder, bar-admitted lawyer, team page, structured data); [] if none"""
+    out, seen = [], set()
+    def add(name, title=''):
+        n = re.sub(r'\s+', ' ', str(name or '')).strip()
+        if not _SITE_NAME.match(n) or _NOT_SITE_NAME.search(n) or n.lower() in seen: return
+        seen.add(n.lower())
+        t = re.sub(r'\s+', ' ', str(title or '')).strip()
+        t = t[:1].upper() + t[1:] if re.fullmatch(r"[A-Za-zÀ-ÿ&,' /.-]{2,60}", t) else ''
+        out.append({'name': n, **({'title': t} if t else {})})
+    facts = facts or {}
+    if facts.get('founder'): add(facts['founder'], 'Founder')
+    if facts.get('admitted'): add(facts['admitted'].get('name'), 'Attorney')
+    for n, t in facts.get('team') or []: add(n, t)
+    for o in (enriched or {}).get('people_ld') or []:
+        if re.search(r'attorney|lawyer|partner|counsel|associate|founder|principal', o.get('title') or '', re.I): add(o.get('name'), o.get('title'))
+    return out[:limit]

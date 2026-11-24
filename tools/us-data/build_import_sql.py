@@ -10,7 +10,7 @@ Descriptions ('about') are left empty on purpose: a page without a real, origina
 import csv, json, os, re, sys, unicodedata, datetime, email.utils
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bios import make_biography, MIN_WORDS, MIN_FACTS
-from profile_facts import extract as extract_facts, count_facts
+from profile_facts import extract as extract_facts, count_facts, lawyer_list
 
 ST = (sys.argv[1] if len(sys.argv) > 1 else 'FL').upper()
 KEEP = int(sys.argv[sys.argv.index('--keep') + 1]) if '--keep' in sys.argv else 0   # 0 = keep every picked firm; N = only the first N that can go live (the rest are dropped)
@@ -127,10 +127,12 @@ for r in rows:
     about = make_biography(slug, r['name'], r['city'], ST, region_if_near(ST, rec['region'], lat, lng), areas, facts, pr) if (has_pics and areas) else None
     # The bar for a firm to appear on the site: its own site was read; logo and cover photo; practice areas; a real biography; opening hours listed; and a named lawyer.
     hours = e.get('hours') if e else None
-    has_lawyers = bool(facts.get('team') or facts.get('founder') or facts.get('admitted') or (e or {}).get('people_ld'))
+    lawyers = lawyer_list(facts, e or {})
+    has_lawyers = bool(lawyers)
     if not hours: stats['no_hours'] += 1
     if not has_lawyers: stats['no_lawyers'] += 1
     is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and hours and has_lawyers)
+    if lawyers: rec.setdefault('details', {})['lawyers'] = lawyers   # shown on the firm's Lawyers tab and in its structured data
     if pr: rec['press'] = pr
     if facts.get('awards'): rec['awards'] = facts['awards']
     if not is_live: about = None
