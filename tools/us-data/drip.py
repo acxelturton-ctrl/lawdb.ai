@@ -64,12 +64,20 @@ def main():
         if run([sys.executable, 'tools/us-data/pull_overture.py', st, '--target', '5000', '--min-conf', '0.3']).returncode != 0: print('pull failed for', st); continue
         path = os.path.join(ROOT, 'data', 'states', st, 'candidates.csv')
         if not os.path.exists(path): continue
+        # a second source: OpenStreetMap lawyers for the same state (best effort; Overture has few law firms in most states)
+        pool = list(csv.DictReader(open(path)))
+        osm_path = os.path.join(ROOT, 'data', 'states', st, 'candidates_osm.csv')
+        if os.path.exists(osm_path): os.remove(osm_path)
+        run([sys.executable, 'tools/us-data/pull_osm.py', st])
+        if os.path.exists(osm_path):
+            known = {r['domain'] for r in pool}
+            pool += [r for r in csv.DictReader(open(osm_path)) if r['domain'] not in known]
         seen = {r['overture_id'] for r in rows(f"SELECT overture_id FROM collect_seen WHERE state = '{st}'")}
-        cand = [r for r in csv.DictReader(open(path))
+        cand = [r for r in pool
                 if r['overture_id'] not in seen and r['domain'] not in have
                 and not (NOT_A_FIRM.search(r['name']) or NAMELESS.match(r['name'].strip()) or r['name'].strip().lower() in MANUAL_NOT_FIRMS)]
         print(f'{st}: {len(cand)} candidates not yet seen', flush=True)
-        if len(cand) < 10: continue
+        if len(cand) < 3: continue
         fields = list(cand[0].keys())
         for rnd in range(MAX_ROUNDS):
             if quota <= 0 or not cand or time.time() - t0 > TIME_BUDGET: break
