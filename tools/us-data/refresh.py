@@ -64,10 +64,13 @@ def clean_old(text):
     return '\n\n'.join(paras)
 
 
+STALE = "(about LIKE '%consultation%' OR about LIKE '%own website%' OR about LIKE '%website states%' OR about LIKE '%by its own account%' OR about LIKE '%blog%' OR about LIKE '%Recent articles%' OR about LIKE '%firm’s website%')"
+
 def cmd_export(a):
     import random
     sts = ','.join("'" + s + "'" for s in a.states.split())
-    rows = d1(f"SELECT slug, name, city, state, status, about, data FROM firms WHERE state IN ({sts}) ORDER BY slug", json_out=True)[0]['results']
+    only = ' AND ' + STALE if a.stale else ''   # --stale: only firms whose description still has the old wording
+    rows = d1(f"SELECT slug, name, city, state, status, about, data FROM firms WHERE state IN ({sts}){only} ORDER BY slug", json_out=True)[0]['results']
     if a.limit: random.Random(1).shuffle(rows); rows = rows[:a.limit]
     os.makedirs(D, exist_ok=True)
     json.dump(rows, open(os.path.join(D, 'firms.json'), 'w'))
@@ -104,7 +107,7 @@ def cmd_build(a):
         facts = extract(e, r['name'], r['city']) if reach else {}
         pr = press.get(slug) or []
         rid = region_if_near(st, rec.get('region') or '', rec.get('lat'), rec.get('lng'))
-        new = make_biography(slug, r['name'], r['city'], st, rid, areas, facts, pr) if areas else ''
+        new = make_biography(slug, r['name'], r['city'], st, rid, areas, facts, pr)
         ok = bool(new) and len(new) >= MIN_CHARS and len(new.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS
         tier = 'A' if ok else '-'
         if ok:
@@ -144,6 +147,6 @@ def cmd_load(a):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(); sub = ap.add_subparsers(dest='cmd', required=True)
-    e = sub.add_parser('export'); e.add_argument('--states', required=True); e.add_argument('--limit', type=int, default=0)
+    e = sub.add_parser('export'); e.add_argument('--states', required=True); e.add_argument('--limit', type=int, default=0); e.add_argument('--stale', action='store_true')
     sub.add_parser('build'); sub.add_parser('load')
     a = ap.parse_args(); {'export': cmd_export, 'build': cmd_build, 'load': cmd_load}[a.cmd](a)
