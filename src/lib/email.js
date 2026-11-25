@@ -148,6 +148,27 @@ export function leadDigestEmail(origin, { firmName, week, fresh, featured }) {
   };
 }
 
+// LawDB Marketplace waitlist: a thank-you to the firm, and a note to the admin (the entry is also in the admin's leads list as form "marketplace-waitlist").
+export function marketplaceWaitlistEmail(origin, { name, firm }) {
+  const hi = name ? `Hi ${name.split(/\s+/)[0]},` : 'Hi,';
+  return {
+    subject: 'You are on the LawDB Marketplace list',
+    text: `${hi}\n\nThank you. ${firm ? firm + ' is' : 'You are'} on the waiting list for LawDB Marketplace, where verified law firms preview legal inquiries and unlock the ones that fit their practice. Joining is free and you pay only when you unlock an inquiry.\n\nWe will email you once when Marketplace opens, and only then. Nothing is sent by text message. You can reply to this email at any time to be taken off the list.\n\nMore about Marketplace: ${origin}/marketplace\n\nThe LawDB team`,
+    html: `<p>${esc(hi)}</p><p>Thank you. ${firm ? '<b>' + esc(firm) + '</b> is' : 'You are'} on the waiting list for <b>LawDB Marketplace</b>, where verified law firms preview legal inquiries and unlock the ones that fit their practice. Joining is free and you pay only when you unlock an inquiry.</p>` +
+      `<p>We will email you once when Marketplace opens, and only then. Nothing is sent by text message. Reply to this email at any time to be taken off the list.</p>${button(origin + '/marketplace', 'About LawDB Marketplace')}<p style="color:#586170">The LawDB team</p>`,
+  };
+}
+
+export function marketplaceWaitlistAdminEmail(origin, { name, email, firm, state, areas }) {
+  const link = `${origin}/admin/#leads`;
+  const lines = [['Firm', firm], ['Contact', `${name} <${email}>`], ['State', state], ['Practice areas', areas]].filter(([, v]) => v);
+  return {
+    subject: `Marketplace waitlist: ${firm || email}`,
+    text: `A firm joined the LawDB Marketplace waiting list.\n\n${lines.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nAll entries: ${link}`,
+    html: `<p>A firm joined the LawDB Marketplace waiting list.</p><table cellpadding="4">${lines.map(([k, v]) => `<tr><td style="color:#586170;vertical-align:top">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>${button(link, 'Open the admin')}`,
+  };
+}
+
 export function reportEmail(origin, { slug, reason, name, email, message }) {
   const link = `${origin}/admin/#leads`;
   const firm = slug ? `${origin}/firms/${slug}` : '(no firm given)';
