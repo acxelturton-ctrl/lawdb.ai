@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LawDB Marketplace for Law Firms | Coming Soon | LawDB.ai</title>
+<meta name="description" content="LawDB Marketplace is coming soon: verified law firms preview legal inquiries, unlock the ones that fit their practice and pay only when they unlock. Free to join.">
+<link rel="canonical" href="https://lawdb.ai/marketplace">
+<meta property="og:title" content="LawDB Marketplace for Law Firms | Coming Soon | LawDB.ai">
+<meta property="og:description" content="LawDB Marketplace is coming soon: verified law firms preview legal inquiries, unlock the ones that fit their practice and pay only when they unlock. Free to join.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lawdb.ai/marketplace">
+<meta property="og:site_name" content="LawDB.ai">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://lawdb.ai/images/og-default.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LawDB Marketplace for Law Firms | Coming Soon | LawDB.ai">
+<meta name="twitter:description" content="LawDB Marketplace is coming soon: verified law firms preview legal inquiries, unlock the ones that fit their practice and pay only when they unlock. Free to join.">
+<meta name="twitter:image" content="https://lawdb.ai/images/og-default.jpg">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "name": "LawDB Marketplace for Law Firms | Coming Soon | LawDB.ai",
+   "url": "https://lawdb.ai/marketplace",
+   "description": "LawDB Marketplace is coming soon: verified law firms preview legal inquiries, unlock the ones that fit their practice and pay only when they unlock. Free to join.",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "LawDB.ai",
+    "url": "https://lawdb.ai/"
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "Is LawDB Marketplace free to join?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Joining and browsing are free for every firm. You pay only when you unlock an inquiry, and the price is shown before you do."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is an inquiry shared with more than one firm?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Each inquiry is exclusive. The first verified firm to unlock it receives the contact details, and the inquiry disappears for every other firm."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What do I see before I unlock?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The practice area, city and state, how urgent it is, how long ago it came in and a one-line summary. The summary never names the person. Their name, email and phone number stay hidden until you unlock."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Who can unlock inquiries?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Firms verified by LawDB. At launch you send your state bar number or a link to your listing and we confirm it by hand."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is the price tied to whether the person hires me?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. The price is a flat advertising fee for the inquiry. It does not depend on whether the person becomes your client, and LawDB takes no share of any fee."
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --ink:#2a2a2a; --ink-soft:#5f5f5f; --brass:#c9a050; --brass-deep:#e2bd6a;
+    --red:#c9a050; --red-deep:#e2bd6a; --red-tint:#f4ecd8; --red-border:#e6d4a4;
+    --cream:#fffdf8; --card:#ffffff; --line:#ece6d3; --dark:#2a2a2a; --dark-2:#2a2a2a; --green:#3a3a3a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Inter',sans-serif; color:var(--ink); background:var(--cream);}
+  a{color:inherit;}
+  
+  .site-header{ height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; background:#fffdf8; border-bottom:1px solid #ece6d3; color:#2a2a2a; position:sticky; top:0; z-index:500; }
+  .site-header .mark{ text-decoration:none; display:flex; align-items:center; gap:10px; }
+  .site-header .mark img{ height:34px; width:auto; display:block; }
+  .site-header .mark .wordmark{ display:flex; flex-direction:column; line-height:1; }
+  .site-header .mark .wordmark .name{ font-family:'Inter',sans-serif; font-size:19px; font-weight:800; letter-spacing:-0.01em; color:#2a2a2a; }
+  .site-header .mark .wordmark .name .db{ color:#c9a050; }
+  .site-header .mark .wordmark .tagline{ font-size:7.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e2bd6a; margin-top:2px; }
+  .brand-icon{ flex-shrink:0; display:block; }
+  .site-header .header-right{ display:flex; align-items:center; gap:12px; }
+  .site-header .back-link{ font-size:12px; color:#5f5f5f; text-decoration:none; white-space:nowrap; }
+  .site-header .back-link:hover{ color:#2a2a2a; }
+  .add-firm-btn{ font-size:12.5px; font-weight:700; color:#2a2a2a; background:var(--brass,#c9a050); padding:8px 14px; border-radius:4px; text-decoration:none; white-space:nowrap; }
+  .add-firm-btn:hover{ filter:brightness(1.08); }
+  .hamburger-btn{ background:none; border:none; cursor:pointer; padding:6px; display:flex; flex-direction:column; gap:4px; }
+  .hamburger-btn span{ display:block; width:22px; height:2px; background:#2a2a2a; border-radius:2px; }
+  .menu-overlay{ position:fixed; inset:0; background:rgba(42,42,42,0.6); z-index:900; opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+  .menu-overlay.open{ opacity:1; pointer-events:auto; }
+  .menu-drawer{ position:fixed; top:0; right:0; height:100%; width:280px; max-width:82vw; background:#2a2a2a; z-index:901; transform:translateX(100%); transition:transform 0.25s ease; padding:22px 20px; display:flex; flex-direction:column; gap:2px; }
+  .menu-drawer.open{ transform:translateX(0); box-shadow:-6px 0 24px rgba(42,42,42,0.35); }
+  .menu-drawer .menu-close{ align-self:flex-end; background:none; border:none; color:#8c8c8c; font-size:26px; line-height:1; cursor:pointer; margin-bottom:14px; }
+  .menu-drawer a{ color:#f7f1e0; text-decoration:none; font-size:15px; font-weight:600; padding:14px 4px; border-bottom:1px solid #3a3a3a; }
+  .menu-drawer a:hover{ color:var(--brass,#c9a050); }
+  .menu-drawer .menu-cta{ margin-top:18px; background:var(--red,#c9a050); color:#2a2a2a; text-align:center; border-radius:4px; padding:13px; border-bottom:none; font-weight:700; }
+
+
+  .hero{ background:var(--dark); color:#fff; padding:52px 20px 46px; text-align:center; }
+  .hero h1{ font-family:'Source Serif 4',serif; font-size:33px; line-height:1.25; margin:0 auto 14px; max-width:640px; }
+  .hero p{ font-size:16px; line-height:1.7; color:#ece6d3; margin:0 auto; max-width:560px; }
+  .hero .hero-btns{ margin-top:26px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .btn-primary{ background:var(--brass); color:#2a2a2a; font-weight:700; font-size:14px;
+    padding:13px 22px; border-radius:5px; text-decoration:none; }
+  .btn-ghost{ border:1px solid #5f5f5f; color:#f7f1e0; font-weight:600; font-size:14px;
+    padding:13px 22px; border-radius:5px; text-decoration:none; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost:hover{ border-color:var(--brass); color:var(--brass); }
+
+  .stats-strip{ background:#2a2a2a; color:#fff; padding:22px 20px; }
+  .stats-strip .inner{ max-width:900px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; text-align:center; }
+  @media (max-width:620px){ .stats-strip .inner{ grid-template-columns:1fr 1fr; gap:20px; } }
+  .stats-strip .num{ font-family:'Source Serif 4',serif; font-size:27px; font-weight:700; color:var(--brass); display:block; }
+  .stats-strip .lbl{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.07em; color:#8c8c8c; margin-top:3px; display:block; }
+
+  .wrap{ max-width:900px; margin:0 auto; padding:52px 20px 70px; }
+  .sr-only{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  h2{ font-family:'Source Serif 4',serif; font-size:25px; margin:0 0 10px; }
+  .lede{ color:var(--ink-soft); font-size:14.5px; line-height:1.7; margin:0 0 30px; max-width:620px; }
+
+  .why-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:56px; }
+  @media (max-width:680px){ .why-grid{ grid-template-columns:1fr; } }
+  .why{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:22px 24px; }
+  .why h3{ font-family:'Source Serif 4',serif; font-size:17px; margin:0 0 8px; }
+  .why p{ font-size:14px; color:var(--ink-soft); line-height:1.7; margin:0; }
+
+
+  .fx-sec{ margin:34px 0 10px; }
+  .an-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:26px; align-items:start; margin:14px 0 6px; }
+  .an-list{ list-style:none; margin:0; padding:0; display:grid; gap:11px; font-size:15.5px; line-height:1.5; color:#3a3a3a; }
+  .an-list li{ padding-left:22px; position:relative; }
+  .an-list li::before{ content:''; position:absolute; left:0; top:.55em; width:10px; height:10px; border-radius:3px; background:#c9a050; }
+  .an-list b{ color:#2a2a2a; }
+  .an-img{ width:100%; height:auto; border:1px solid #ece6d3; border-radius:12px; box-shadow:0 12px 30px -16px rgba(42,42,42,.35); background:#fffdf8; }
+  @media (max-width:900px){ .an-grid{ grid-template-columns:1fr; } }
+  .fx-grid{ display:grid; grid-template-columns:1.05fr 1fr; gap:28px; align-items:start; margin-top:18px; }
+  @media (max-width:760px){ .fx-grid{ grid-template-columns:1fr; } }
+  .fx-box{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:0 10px 30px rgba(42,42,42,0.08); }
+  .fx-input{ border:2px solid var(--brass); border-radius:8px; padding:12px 14px; font-size:15px; color:var(--ink); background:#ffffff; margin-bottom:10px; }
+  .fx-input:after{ content:""; display:inline-block; width:1.5px; height:1.05em; background:var(--ink); vertical-align:-2px; margin-left:2px; animation:fxBlink 1s steps(1) infinite; }
+  @keyframes fxBlink{ 50%{ opacity:0; } }
+  .fx-row{ display:flex; align-items:center; gap:12px; padding:10px 10px; border-radius:8px; }
+  .fx-row.feat{ background:#f4ecd8; box-shadow:inset 3px 0 0 var(--brass); }
+  .fx-row + .fx-row{ margin-top:4px; }
+  .fx-av{ width:36px; height:36px; border-radius:8px; background:#ece6d3; color:#5f5f5f; display:grid; place-items:center; font-weight:700; font-family:'Source Serif 4',serif; flex:none; }
+  .fx-row.feat .fx-av{ background:var(--brass-deep,#e2bd6a); color:#2a2a2a; }
+  .fx-t{ display:flex; flex-direction:column; min-width:0; flex:1; }
+  .fx-t b{ font-size:14.5px; } .fx-t small{ font-size:12.5px; color:var(--ink-soft); }
+  .fx-b{ font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; background:var(--brass); color:#2a2a2a; padding:4px 9px; border-radius:999px; }
+  .fx-all{ margin-top:8px; padding:10px; text-align:center; font-weight:600; font-size:13.5px; color:var(--brass-deep,#e2bd6a); border-top:1px solid var(--line); }
+  .fx-points h3{ font-family:'Source Serif 4',serif; font-size:21px; margin:0 0 10px; }
+  .fx-points ul{ margin:0 0 14px; padding-left:18px; font-size:14.5px; line-height:1.7; color:var(--ink-soft); }
+  .fx-points li{ margin-bottom:4px; } .fx-points b{ color:var(--ink); }
+  .fx-note{ font-size:13.5px; color:var(--ink-soft); background:#fffdf8; border-radius:8px; padding:10px 12px; margin:0; }
+  @media (prefers-reduced-motion:reduce){ .fx-input:after{ animation:none; } }
+  .plans-note{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 30px; max-width:720px; }
+
+  .howitworks{ background:var(--card); border:1px solid var(--line); border-radius:8px;
+    padding:28px 26px; margin:46px 0 40px; }
+  .howitworks ol{ margin:0; padding-left:20px; }
+  .howitworks li{ font-size:14.5px; color:var(--ink-soft); line-height:1.75; margin-bottom:12px; }
+  .howitworks li strong{ color:var(--ink); }
+
+  .straight{ border-left:3px solid var(--brass); padding:4px 0 4px 18px; margin:0 0 46px; }
+  .straight p{ font-size:14.5px; color:var(--ink-soft); line-height:1.75; margin:0 0 12px; }
+  .straight p:last-child{ margin-bottom:0; }
+
+  .closer{ background:var(--dark); color:#fff; border-radius:8px; padding:34px 30px; text-align:center; }
+  .closer h2{ color:#fff; margin-bottom:8px; }
+  .closer p{ color:#ece6d3; font-size:14.5px; line-height:1.7; margin:0 auto 22px; max-width:480px; }
+
+  
+  .site-footer{ background:var(--dark,#2a2a2a); color:#bdbdbd; padding:48px 20px 24px; }
+  .site-footer .foot-grid{ max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; padding-bottom:32px; border-bottom:1px solid #3a3a3a; }
+  @media (max-width:760px){ .site-footer .foot-grid{ grid-template-columns:1fr 1fr; } }
+  .site-footer .fmark{ font-family:'Source Serif 4',serif; color:#fff; font-size:19px; font-weight:700; display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .site-footer .fblurb{ font-size:13px; line-height:1.7; max-width:280px; }
+  .site-footer h4{ color:#ece6d3; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 14px; font-weight:700; }
+  .site-footer ul{ list-style:none; margin:0; padding:0; }
+  .site-footer li{ margin-bottom:10px; }
+  .site-footer a{ color:#8c8c8c; text-decoration:none; font-size:13.5px; }
+  .site-footer a:hover{ color:#fff; }
+  .site-footer .foot-cta{ display:inline-block; margin-top:2px; background:var(--brass,#c9a050); color:#2a2a2a; font-weight:700; font-size:12.5px; padding:9px 14px; border-radius:4px; text-decoration:none; }
+  .site-footer .foot-bottom{ max-width:1100px; margin:20px auto 0; font-size:11.5px; line-height:1.7; color:#5f5f5f; }
+
+  footer .fmark{ font-family:'Source Serif 4',serif; color:#fff; font-size:16px; margin-bottom:6px; display:block; }
+
+  .desktop-nav{ display:none; }
+  @media (min-width:900px){
+    .site-header{ height:84px; }
+    .site-header .mark img{ height:46px; }
+    .site-header .mark .wordmark .name{ font-size:22px; }
+    .site-header .mark .wordmark .tagline{ font-size:8.5px; }
+    .desktop-nav{ display:flex; align-items:center; }
+    .desktop-nav a{ font-size:15.5px; font-weight:600; color:#2a2a2a; text-decoration:none; white-space:nowrap; margin-right:30px; display:inline-block; }
+    .desktop-nav a:hover{ color:#e2bd6a; }
+    .desktop-nav .nav-cta{ background:#c9a050; color:#2a2a2a; padding:12px 24px; border-radius:5px; font-weight:700; margin-right:0; font-size:15px; }
+    .desktop-nav .nav-cta:hover{ color:#2a2a2a; background:#e2bd6a; }
+    .hamburger-btn{ display:flex; margin-left:18px; }
+  }
+
+  /* ---- full-width hero: copy on the left, an interactive mock-up of a Featured listing on the right ---- */
+  .hx{ position:relative; overflow:hidden; background:linear-gradient(180deg,#fffdf8 0%,#f4ecd8 100%); }
+  .hx::after{ content:''; position:absolute; left:-10%; right:-10%; bottom:-120px; height:220px; background:radial-gradient(60% 100% at 50% 100%,#e6d4a4 0,rgba(230,212,164,0) 70%); pointer-events:none; }
+  .hx-in{ position:relative; z-index:1; max-width:1040px; margin:0 auto; padding:56px 20px 60px; text-align:center; }
+  .hx-head{ max-width:760px; margin:0 auto; } .hx-body{ margin-top:34px; } .hx-stage{ margin-top:36px; }
+  .hx-eyebrow{ font:700 12.5px 'Inter',sans-serif; letter-spacing:.2em; text-transform:uppercase; color:#c9a050; margin:0 0 10px; }
+  .hx h1{ font-family:'Source Serif 4',serif; font-size:clamp(38px,5.4vw,64px); line-height:1.04; letter-spacing:-.01em; margin:0 0 14px; color:#2a2a2a; }
+  .hx-sub{ font-size:17px; line-height:1.6; color:#3a3a3a; margin:0 auto; max-width:560px; }
+  .hx-feats{ list-style:none; margin:0 0 22px; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; text-align:left; }
+  @media (max-width:979px){ .hx-feats{ grid-template-columns:1fr; gap:8px; } }
+  .hx-feat{ display:flex; gap:14px; align-items:flex-start; width:100%; text-align:left; background:transparent; border:1.5px solid transparent; border-radius:14px; padding:10px 12px; cursor:pointer; font:inherit; color:inherit; transition:background .25s,border-color .25s,transform .25s; }
+  .hx-feat:hover{ background:rgba(255,255,255,.6); }
+  .hx-feat[aria-pressed="true"]{ background:#fff; border-color:#c9a050; box-shadow:0 6px 20px rgba(201,160,80,0.18); transform:translateX(4px); }
+  .hx-ico{ flex:0 0 46px; height:46px; border-radius:50%; background:#e6d4a4; display:grid; place-items:center; transition:background .25s; }
+  .hx-feat[aria-pressed="true"] .hx-ico{ background:#c9a050; }
+  .hx-ico svg{ width:22px; height:22px; fill:#c9a050; transition:fill .25s; }
+  .hx-feat[aria-pressed="true"] .hx-ico svg{ fill:#2a2a2a; }
+  .hx-feat b{ display:block; font:700 16.5px 'Inter',sans-serif; color:#2a2a2a; }
+  .hx-feat span.d{ display:block; font-size:14px; line-height:1.5; color:#5f5f5f; margin-top:2px; }
+  .hx .promo-links{ margin:26px 0 0; justify-content:center; }
+  .hx-stage{ position:relative; perspective:1400px; }
+  .hx-frame{ position:relative; aspect-ratio:981/938; width:100%; transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition:transform .25s ease-out; will-change:transform; animation:hxfloat 7s ease-in-out infinite; }
+  .hx-frame img{ position:absolute; inset:0; width:100%; height:100%; display:block;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 97%,transparent 100%),linear-gradient(180deg,transparent 0,#000 3%,#000 90%,transparent 100%); -webkit-mask-composite:source-in;
+    mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 97%,transparent 100%),linear-gradient(180deg,transparent 0,#000 3%,#000 90%,transparent 100%); mask-composite:intersect; }
+  .hx-spot{ position:absolute; border:3px solid #c9a050; box-shadow:0 0 0 6px rgba(201,160,80,0.22),0 0 28px rgba(201,160,80,0.55); opacity:0; transform:scale(.92); transition:opacity .35s,transform .35s; pointer-events:none; }
+  .hx-spot.on{ opacity:1; transform:scale(1); animation:hxpulse 1.8s ease-in-out infinite; }
+  .hx-spot.round{ border-radius:50%; } .hx-spot.box{ border-radius:12px; }
+  .hx-in > *{ animation:hxin .7s both; } .hx-in > :nth-child(2){ animation-delay:.12s; }
+  @keyframes hxin{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+  @keyframes hxfloat{ 0%,100%{ translate:0 0; } 50%{ translate:0 -8px; } }
+  @keyframes hxpulse{ 0%,100%{ box-shadow:0 0 0 4px rgba(201,160,80,0.22),0 0 22px rgba(201,160,80,0.45); } 50%{ box-shadow:0 0 0 12px rgba(201,160,80,0.1),0 0 38px rgba(201,160,80,0.7); } }
+  @media (max-width:979px){ .hx-in{ grid-template-columns:1fr; grid-template-areas:'head' 'stage' 'body'; grid-template-rows:auto; padding:28px 18px 44px; } .hx-stage{ max-width:640px; margin:0 auto 18px; width:100%; } .hx-sub{ font-size:16px; margin-bottom:6px; } }
+  /* the mock-up is the point of the page, so it gets the room: a wider column on a computer; the full screen width on a phone, where tapping a feature zooms in on its card */
+  @media (min-width:980px){ .hx-in{ max-width:1080px; } }
+  .hx-hint{ display:none; }
+  @media (max-width:979px){
+    .hx-stage{ width:calc(100% + 36px); max-width:none; margin:0 -18px 12px; overflow:hidden; perspective:none; }
+    .hx-frame{ transform-origin:0 0; transform:translate(var(--tx,0px),var(--ty,0px)) scale(var(--zs,1)); transition:transform .55s cubic-bezier(.2,.8,.2,1); animation:none; }
+    .hx-hint{ display:block; margin:0; padding:0 18px; text-align:center; font:600 12.5px 'Inter',sans-serif; color:#e2bd6a; }
+    .hx-stage.zoomed .hx-hint{ visibility:hidden; }
+  }
+  @media (prefers-reduced-motion:reduce){ .hx-frame,.hx-in > *,.hx-spot.on{ animation:none; } .hx-frame{ transition:none; } .hx-feat{ transition:none; } }
+  .promo-links{ display:flex; flex-wrap:wrap; gap:10px; margin:0 0 34px; }
+  .promo-links a{ display:inline-flex; align-items:center; border:1.5px solid #2a2a2a; border-radius:999px; padding:10px 18px; font-weight:700; font-size:14.5px; text-decoration:none; color:#2a2a2a; background:#fff; }
+  .promo-links a:hover{ background:#f4ecd8; border-color:#c9a050; }
+  .promo-links a.promo-go{ background:#c9a050; border-color:#c9a050; color:#2a2a2a; }
+  .promo-links a.promo-go:hover{ background:#c9a050; }
+  .hub-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:6px 0 34px; }
+  .hub-card{ display:flex; flex-direction:column; gap:6px; background:#fff; border:1px solid #ece6d3; border-radius:12px; padding:18px; text-decoration:none; color:#2a2a2a; }
+  .hub-card b{ font-family:'Source Serif 4',serif; font-size:18px; }
+  .hub-card span{ font-size:13.5px; line-height:1.55; color:#5f5f5f; flex:1; }
+  .hub-card em{ font-style:normal; font-weight:700; font-size:13px; color:#e2bd6a; }
+  .hub-card.feat{ background:#f4ecd8; border-color:#e6d4a4; }
+  .hub-card:hover{ border-color:#e2bd6a; }
+
+  /* the law-firm page, in the style of a directory's firm page: centerd intro, icon rows, and a navy band for the plans */
+  .center{ text-align:center; }
+  .lede.center{ margin-left:auto; margin-right:auto; }
+  .why-grid{ grid-template-columns:1fr; gap:14px; }
+  .why{ display:grid; grid-template-columns:44px minmax(0,1fr); column-gap:16px; align-items:start; }
+  .why::before{ content:"\2605"; grid-column:1; grid-row:1 / span 2; width:44px; height:44px; border-radius:50%; background:#f4ecd8; color:#c9a050; display:grid; place-items:center; font-size:18px; }
+  .why h3{ margin-top:2px; }
+  .tiers{ background:#2a2a2a; border-radius:16px; padding:42px 22px 30px; margin:8px 0 46px; }
+  .tiers h2{ color:#fff; }
+  .tiers .lede{ color:#ece6d3; }
+  .tiers .plans-note{ color:#bdbdbd; margin:24px auto 0; text-align:center; }
+  @media (max-width:680px){ .tiers{ padding:30px 6px 22px; border-radius:12px; } .tiers h2, .tiers .lede{ padding:0 10px; } .tiers .plans-note{ padding:0 10px; } }
+
+.pg-marketplace .mk-wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.mk-hero{padding:64px 0 40px;text-align:center}
+.mk-eyebrow{display:inline-block;font:600 12px/1 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#2a2a2a;background:#f4ecd8;border:1px solid #e6d4a4;border-radius:999px;padding:8px 14px;margin:0 0 18px}
+.mk-hero h1{font-family:'Source Serif 4',serif;font-size:clamp(34px,5vw,56px);line-height:1.06;letter-spacing:-.01em;margin:0 auto 16px;max-width:820px;color:#2a2a2a}
+.mk-hero p.mk-sub{font-size:18px;line-height:1.6;color:#5f5f5f;max-width:700px;margin:0 auto 26px}
+.mk-btn{display:inline-block;background:#c9a050;color:#2a2a2a;font-weight:700;border-radius:10px;padding:14px 26px;text-decoration:none;border:0;font-size:16px;cursor:pointer}
+.mk-btn:hover{background:#e2bd6a}
+.mk-sec{padding:40px 0}
+.mk-sec h2{font-family:'Source Serif 4',serif;font-size:clamp(26px,3.4vw,36px);margin:0 0 8px;color:#2a2a2a;text-align:center}
+.mk-lead{text-align:center;color:#5f5f5f;max-width:640px;margin:0 auto 28px;line-height:1.6}
+.mk-steps{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));counter-reset:s}
+.mk-step{background:#fff;border:1px solid #ece6d3;border-radius:14px;padding:22px;counter-increment:s}
+.mk-step::before{content:counter(s);display:inline-flex;width:34px;height:34px;border-radius:50%;background:#c9a050;color:#2a2a2a;font-weight:700;align-items:center;justify-content:center;margin-bottom:12px}
+.mk-step h3{margin:0 0 6px;font-size:18px}
+.mk-step p{margin:0;color:#5f5f5f;line-height:1.55;font-size:15px}
+.mk-ben{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.mk-b{background:#fffdf8;border:1px solid #ece6d3;border-left:4px solid #c9a050;border-radius:10px;padding:18px}
+.mk-b h3{margin:0 0 6px;font-size:17px}
+.mk-b p{margin:0;color:#5f5f5f;font-size:15px;line-height:1.55}
+.mk-demo{max-width:560px;margin:0 auto;background:#fff;border:1px solid #e6d4a4;border-radius:16px;padding:22px;position:relative;box-shadow:0 8px 28px rgba(42,42,42,.07)}
+.mk-tag{position:absolute;top:-12px;left:20px;background:#2a2a2a;color:#fff;font:600 12px/1 Inter,sans-serif;padding:7px 12px;border-radius:999px}
+.mk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+.mk-chip{background:#f4ecd8;border:1px solid #e6d4a4;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;color:#2a2a2a}
+.mk-sum{font-size:16px;line-height:1.55;color:#2a2a2a;margin:0 0 14px}
+.mk-blur{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+.mk-blur span{display:block;height:34px;border-radius:8px;background:#e8e2d0;filter:blur(5px)}
+.mk-demo .mk-btn{width:100%;text-align:center;opacity:.85;cursor:default}
+.mk-note{font-size:13px;color:#6b6b6b;text-align:center;margin:10px 0 0}
+.mk-form{max-width:560px;margin:0 auto;background:#fff;border:1px solid #ece6d3;border-radius:16px;padding:24px}
+.mk-form label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+.mk-form .mk-f{margin:0 0 14px}
+.mk-form input,.mk-form select{width:100%;padding:12px;border:1px solid #d9d2bd;border-radius:9px;font:inherit;background:#fff;box-sizing:border-box}
+.mk-form input:focus,.mk-form select:focus{outline:2px solid #c9a050;outline-offset:1px}
+.mk-hp{position:absolute;left:-9999px;opacity:0}
+.mk-fine{font-size:13px;color:#6b6b6b;line-height:1.5;margin:12px 0 0}
+.mk-ok{display:none;text-align:center;padding:14px;background:#f4ecd8;border:1px solid #e6d4a4;border-radius:10px;font-weight:600}
+.mk-err{display:none;color:#a33;font-size:14px;margin:0 0 10px}
+.mk-q{background:#fff;border:1px solid #ece6d3;border-radius:10px;padding:14px 18px;margin:0 0 10px}
+.mk-q summary{cursor:pointer;font-weight:600}
+.mk-q p{margin:10px 0 0;color:#5f5f5f;line-height:1.6}
+.mk-faq{max-width:760px;margin:0 auto}
+.mk-legal{max-width:760px;margin:0 auto;color:#6b6b6b;font-size:13px;line-height:1.6;text-align:center}
+</style>
+<link rel="stylesheet" href="desktop.css">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="lwa.css">
+</head>
+<body class="pg-marketplace">
+<header class="site-header">
+  <a class="mark" href="/"><img src="images/logo-icon.png" alt="LawDB"><span class="wordmark"><span class="name"><span class="law">Law</span><span class="db">DB</span><span class="ai" style="font-size:.62em;font-weight:500;margin-left:1px;color:#c9a050">.ai</span></span><span class="tagline">The Legal Directory</span></span></a>
+  <div class="header-right">
+    <nav class="desktop-nav" aria-label="Primary"><a href="/find-lawyers">Find Your Lawyer</a><a href="/news">LawDB News</a><a href="/add-your-firm">List Your Firm</a><button type="button" class="nav-ai" data-open-ai><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z"/></svg><span>LawDB AI</span></button><a href="/account/">Sign in</a></nav>
+    <button class="hamburger-btn" id="menuToggle" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<div class="menu-overlay" id="menuOverlay"></div>
+<nav class="menu-drawer" id="menuDrawer">
+  <button class="menu-close" id="menuClose" aria-label="Close menu">&times;</button>
+  <a href="/find-lawyers">Find Your Lawyer</a>
+  <a href="/news">LawDB News</a>
+  <a href="#" data-open-ai>LawDB AI</a>
+  <a href="/new-firms">New listed firms</a>
+  <a href="/for-firms">Grow Leads to Your Law Firm</a>
+  <a href="/add-your-firm">List Your Firm</a>
+  <a href="/contact">Contact Us</a>
+  <a class="menu-cta" href="/account/">Sign in</a>
+  <div class="menu-promo">
+    <p class="mp-eyebrow">For law firms</p>
+    <p class="mp-head">Grow leads to your law firm</p>
+    <ul class="mp-list">
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span><span><b>Ranked above Basic firms</b>First in search for your city and case type, with a Featured Partner card on top.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span><span><b>Your page, your way</b>Add your logo, cover and photos, and a Book a call button with your own booking link.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span><b>Analytics dashboard</b>See page views, visitors, every button clicked and where visitors come from, with a weekly email.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg></span><span><b>Inquiries dashboard</b>Read, filter, add notes, reply and export every inquiry, and send them to a second email address.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M2.5 19c.5-3 3-5 5.5-5s5 2 5.500 5M14 19c.4-2 1.800-3.500 3.500-3.500S20.600 17 21 19"/></svg></span><span><b>LawDB Connect</b>Find and connect with law firms in other cities and states for referrals and co-counsel.</span></li>
+      <li><span class="mp-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.6 6-11a6 6 0 1 0-12 0c0 5.4 6 11 6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></span><span><b>Gold pin and badge</b>Stand out on the map, in the search box and on your profile.</span></li>
+    </ul>
+    <a class="mp-cta" href="/list-your-firm?plan=featured">Get Featured</a>
+    <p class="mp-note">Your first 30 days are free, with no card needed. After that Featured is $89 a month, and you can cancel any time.</p>
+    <a class="mp-alt" href="/list-your-firm">List your firm free</a>
+  </div>
+
+
+
+</nav>
+
+<main class="mk-wrap">
+  <section class="mk-hero">
+    <span class="mk-eyebrow">LawDB Marketplace &middot; Coming soon</span>
+    <h1>Legal inquiries from people ready to talk to a lawyer</h1>
+    <p class="mk-sub">LawDB Marketplace lets verified law firms preview legal inquiries and unlock the ones that fit their practice. Joining is free. You pay only when you unlock an inquiry, and every inquiry goes to one firm only.</p>
+    <a class="mk-btn" href="#waitlist">Join the waiting list</a>
+  </section>
+
+  <section class="mk-sec" aria-labelledby="how">
+    <h2 id="how">How it works</h2>
+    <p class="mk-lead">Three steps from a new inquiry to a conversation with the person.</p>
+    <div class="mk-steps">
+      <div class="mk-step"><h3>Inquiries come in</h3><p>People describe their legal situation on LawDB. Inquiries that pass our checks are listed for verified firms in the matching practice area and state.</p></div>
+      <div class="mk-step"><h3>Preview and unlock</h3><p>See the practice area, location, urgency and a short summary. Unlock the inquiry with prepaid credits to reveal the person&rsquo;s contact details.</p></div>
+      <div class="mk-step"><h3>Contact the person</h3><p>The inquiry is yours alone. It disappears for every other firm, so you can reach out knowing no one else is competing for it.</p></div>
+    </div>
+  </section>
+
+  <section class="mk-sec" aria-labelledby="why">
+    <h2 id="why">Why firms will use it</h2>
+    <p class="mk-lead">Built for firms that want to pay for the inquiries they actually want.</p>
+    <div class="mk-ben">
+      <div class="mk-b"><h3>Exclusive inquiries</h3><p>One firm per inquiry. The first verified firm to unlock it gets it.</p></div>
+      <div class="mk-b"><h3>Pay only when you unlock</h3><p>Browsing costs nothing. The price is shown before you unlock.</p></div>
+      <div class="mk-b"><h3>No monthly fee</h3><p>Top up credits when you want them. There is no subscription for Marketplace.</p></div>
+      <div class="mk-b"><h3>Matched to your practice</h3><p>Your feed is filtered to your practice areas and your state. Widen it any time to browse everything.</p></div>
+    </div>
+  </section>
+
+  <section class="mk-sec" aria-labelledby="ex">
+    <h2 id="ex">What a preview looks like</h2>
+    <p class="mk-lead">Contact details stay hidden until you unlock.</p>
+    <div class="mk-demo">
+      <span class="mk-tag">Example inquiry, not a real inquiry</span>
+      <div class="mk-chips"><span class="mk-chip">Immigration</span><span class="mk-chip">Sample City, ST</span><span class="mk-chip">Urgent</span><span class="mk-chip">Example</span></div>
+      <p class="mk-sum">Looking for help with a family-based green card application and a form deadline coming up next month.</p>
+      <div class="mk-blur" aria-hidden="true"><span></span><span></span><span></span></div>
+      <span class="mk-btn" aria-disabled="true">Unlock this inquiry</span>
+      <p class="mk-note">Name, email and phone appear after you unlock. The price is shown before you confirm.</p>
+    </div>
+  </section>
+
+  <section class="mk-sec" id="waitlist" aria-labelledby="wl">
+    <h2 id="wl">Join the waiting list</h2>
+    <p class="mk-lead">Tell us about your firm. We will email you once when Marketplace opens, and only then.</p>
+    <form class="mk-form" id="mkForm" novalidate>
+      <div class="mk-f"><label for="mkFirm">Firm name</label><input id="mkFirm" name="firm" autocomplete="organization" required maxlength="150"></div>
+      <div class="mk-f"><label for="mkName">Your name</label><input id="mkName" name="name" autocomplete="name" required maxlength="120"></div>
+      <div class="mk-f"><label for="mkEmail">Work email</label><input id="mkEmail" name="email" type="email" autocomplete="email" required maxlength="200"></div>
+      <div class="mk-f"><label for="mkState">Main state of practice</label><select id="mkState" name="state" required><option value="">Choose a state</option><option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option><option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option><option value="DC">District of Columbia</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option><option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option><option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option><option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option><option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option><option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option><option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option><option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option></select></div>
+      <div class="mk-f"><label for="mkAreas">Practice areas you want inquiries for</label><input id="mkAreas" name="areas" placeholder="For example: personal injury, immigration" maxlength="300"></div>
+      <input class="mk-hp" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="mk-err" id="mkErr" role="alert"></p>
+      <button class="mk-btn" type="submit" id="mkGo">Join the waiting list</button>
+      <p class="mk-fine">We will use your details only to tell you about LawDB Marketplace. Nothing is sent by text message. See our <a href="/privacy-policy">privacy policy</a>.</p>
+      <div class="mk-ok" id="mkOk" role="status">Thank you. You are on the list, and a confirmation is on its way to your inbox.</div>
+    </form>
+  </section>
+
+  <section class="mk-sec" aria-labelledby="faq">
+    <h2 id="faq">Questions firms ask</h2>
+    <div class="mk-faq"><details class="mk-q"><summary>Is LawDB Marketplace free to join?</summary><p>Yes. Joining and browsing are free for every firm. You pay only when you unlock an inquiry, and the price is shown before you do.</p></details><details class="mk-q"><summary>Is an inquiry shared with more than one firm?</summary><p>No. Each inquiry is exclusive. The first verified firm to unlock it receives the contact details, and the inquiry disappears for every other firm.</p></details><details class="mk-q"><summary>What do I see before I unlock?</summary><p>The practice area, city and state, how urgent it is, how long ago it came in and a one-line summary. The summary never names the person. Their name, email and phone number stay hidden until you unlock.</p></details><details class="mk-q"><summary>Who can unlock inquiries?</summary><p>Firms verified by LawDB. At launch you send your state bar number or a link to your listing and we confirm it by hand.</p></details><details class="mk-q"><summary>Is the price tied to whether the person hires me?</summary><p>No. The price is a flat advertising fee for the inquiry. It does not depend on whether the person becomes your client, and LawDB takes no share of any fee.</p></details></div>
+  </section>
+
+  <p class="mk-legal">LawDB is an independent directory and is not a law firm. It is not affiliated with, endorsed by or representing any listed firm. Marketplace fees are flat advertising fees for the inquiry and never depend on whether a person hires a firm. Marketplace pages will be available to verified firms after sign-in only.</p>
+  <p class="mk-legal"><a href="/for-firms">Back to For Law Firms</a></p>
+</main>
+<script>
+(function(){
+  var f=document.getElementById('mkForm'); if(!f) return;
+  var err=document.getElementById('mkErr'), ok=document.getElementById('mkOk'), go=document.getElementById('mkGo');
+  f.addEventListener('submit',function(e){
+    e.preventDefault(); err.style.display='none';
+    var d={form:'marketplace-waitlist',firm:f.firm.value.trim(),name:f.name.value.trim(),email:f.email.value.trim(),state:f.state.value,areas:f.areas.value.trim(),botcheck:f.botcheck.checked?'1':'',page:location.pathname};
+    if(!d.firm||!d.name||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)||!d.state){err.textContent='Please fill in your firm, your name, a valid email and your state.';err.style.display='block';return;}
+    go.disabled=true; go.textContent='Sending...';
+    fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+      .then(function(r){ if(!r.ok) throw new Error('x'); f.querySelectorAll('.mk-f,button,.mk-fine').forEach(function(n){n.style.display='none';}); ok.style.display='block'; })
+      .catch(function(){ go.disabled=false; go.textContent='Join the waiting list'; err.textContent='Sorry, that did not go through. Please try again or write to info@lawdb.ai.'; err.style.display='block'; });
+  });
+})();
+</script>
+
+<footer class="site-footer">
+  <div class="foot-grid">
+    <div>
+      <span class="fmark"><img src="./images/logo-icon.png" alt="LawDB" style="height:26px;width:auto;display:block;">LawDB.ai</span>
+      <p class="fblurb">Find a real law firm near you by the kind of case you have. Florida and Texas are live now, with more states coming soon.</p>
+      
+    </div>
+    <div>
+      <h4>For Clients</h4>
+      <ul>
+        <li><a href="/find-lawyers">Find Your Lawyer</a></li>
+        <li><a href="/#cases">Browse by Case Type</a></li>
+        <li><a href="/news">LawDB News</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/how-it-works">How LawDB Works</a></li>
+        <li><a href="/book-a-call">Request a Consultation</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For Law Firms</h4>
+      <ul>
+        <li><a href="/for-firms">For Law Firms</a></li>
+        <li><a href="/marketplace">LawDB Marketplace</a></li>
+        <li><a href="/list-your-firm">List Your Firm (Free)</a></li>
+        <li><a href="/list-your-firm?plan=featured">Get Featured</a></li>
+        <li><a href="/account/">Manage Your Listing</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>LawDB</h4>
+      <ul>
+        <li><a href="/">Home</a></li><li><a href="/contact">Contact Us</a></li><li><a href="/terms">Terms &amp; Conditions</a></li><li><a href="/refund-policy">Refund Policy</a></li><li><a href="/privacy-policy">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    &copy; 2026 LawDB.ai. Listing data from Overture Maps (&copy; Overture Maps Foundation) and each firm's own public website. LawDB is an independent directory and is not affiliated with, endorsed by, or representing any listed firm. Practice-area tags and other details reflect a snapshot at the time each page was generated and may have changed since. Attorney advertising: a listing is not a recommendation.
+  </div>
+</footer>
+<script src="site.js" defer></script>
+<script src="lwa.js" defer></script>
+<script src="hero-anim.js" defer></script>
+</body>
+</html>

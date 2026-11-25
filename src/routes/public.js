@@ -1,5 +1,5 @@
 import { json, cached, clampInt, HttpError, isEmail } from '../lib/http.js';
-import { mailInBackground, leadEmail, reportEmail } from '../lib/email.js';
+import { mailInBackground, leadEmail, reportEmail, marketplaceWaitlistEmail, marketplaceWaitlistAdminEmail } from '../lib/email.js';
 import { sha256Hex } from '../lib/crypto.js';
 import { adminEmails } from '../lib/auth.js';
 import { PRACTICE } from '../lib/practice.js';
@@ -105,6 +105,16 @@ export async function createLead({ request, env, url, exec }) {
   if (form === 'report-listing') {
     const to = [...adminEmails(env)];
     if (to.length) mailInBackground(env, exec, { to, ...reportEmail(env.SITE_ORIGIN || url.origin, { slug: extra.reportedFirm, reason: extra.reason, name, email, message }) });
+    return json({ ok: true }, 201);
+  }
+
+  // The LawDB Marketplace waiting list (a firm, not a consumer): thank the firm once and tell the admin. Every entry stays in the leads list.
+  if (form === 'marketplace-waitlist') {
+    if (!extra.firm) throw new HttpError(422, 'Firm name is required');
+    const origin = env.SITE_ORIGIN || url.origin;
+    mailInBackground(env, exec, { to: email, ...marketplaceWaitlistEmail(origin, { name, firm: extra.firm }) });
+    const admins = [...adminEmails(env)];
+    if (admins.length) mailInBackground(env, exec, { to: admins, ...marketplaceWaitlistAdminEmail(origin, { name, email, firm: extra.firm, state: extra.state, areas: extra.areas }) });
     return json({ ok: true }, 201);
   }
 
