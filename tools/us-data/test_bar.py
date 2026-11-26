@@ -20,4 +20,6 @@ assert B.seo_score(5, 300, 8, 5, True, True, True, True, 15) == 100    # never a
 import re
 assert re.search(B.BOOKING_HOSTS, 'calendly.com') and re.search(B.BOOKING_HOSTS, 'app.acuityscheduling.com') and not re.search(B.BOOKING_HOSTS, 'notcalendly.com.evil.io')
 assert 'avvo.com' in B.DIRECTORIES and 'justia.com' in B.DIRECTORIES
+assert B.has_reviews([1, 2, 3], []) and B.has_reviews([], [1, 2, 3]) and B.has_reviews([1, 2, 3], [1])        # three of either kind
+assert not B.has_reviews([1, 2], [1, 2]) and not B.has_reviews(None, None)                                    # two of each is not enough
 print('bar: ok')

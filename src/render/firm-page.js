@@ -74,6 +74,17 @@ export function reviewsHtml(f, now = Date.now()) {
   return `\n    <section class="pf-reviews" aria-label="Google reviews of ${esc(f.name)}"><p class="pf-eyebrow">What clients say</p><h2>Google reviews</h2>${head}<div class="pf-rv-list">${cards}</div>` +
     `<p class="pf-rv-src">Reviews from Google${maps ? ` · <a href="${esc(maps)}" target="_blank" rel="noopener nofollow">See all on Google Maps</a>` : ''}</p></section>`;
 }
+// Testimonials the firm posts on its own website (tools/us-data/testimonials.py read them while crawling the site), quoted as written, with the firm named as the source and a link to
+// the page they are on. They are the firm's own words about itself, so the page says LawDB has not verified them, and they are never marked up as review structured data.
+export function testimonialsHtml(f) {
+  const t = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string' && x.text.length >= 40) : [];
+  if (!t.length) return '';
+  const shown = t.slice(0, 3);
+  const cards = shown.map((x) => `<figure class="pf-rv pf-tm"><blockquote>${esc(x.text)}</blockquote><figcaption>${x.author ? esc(x.author) : 'A client of the firm'}</figcaption></figure>`).join('');
+  const link = safeUrl((shown.find((x) => safeUrl(x.url)) || {}).url);
+  return `\n    <section class="pf-reviews pf-testimonials" aria-label="Testimonials on the website of ${esc(f.name)}"><p class="pf-eyebrow">In the firm&rsquo;s own words</p><h2>Testimonials from the firm&rsquo;s website</h2><div class="pf-rv-list">${cards}</div>` +
+    `<p class="pf-rv-src">Posted by the firm on its own website${link ? ` &middot; <a href="${esc(link)}" target="_blank" rel="noopener nofollow">Read them there</a>` : ''}. LawDB has not verified these testimonials. They describe one client&rsquo;s experience and do not guarantee a similar result.</p></section>`;
+}
 const localImg = (u) => (/^https:/.test(u) || u.startsWith('/') ? u : `../${u}`);
 
 // A logo that is drawn on its own color (a white wordmark on black, say) says so with `logoBg` (#rrggbb): it then fills the whole badge, with no white padding around it.
@@ -433,7 +444,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
   const leadScript = fill(C.LEAD_SCRIPT, { SLUG: String(f.slug).replace(/[^a-z0-9-]/g, ''), NAME: jsName });
 
   // The Overview is the whole profile; a tab page is its own content, then the contact form.
-  const overviewBody = aboutHtml + reviewsHtml(f) + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
+  const overviewBody = aboutHtml + reviewsHtml(f) + testimonialsHtml(f) + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
   const tabBody = tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
 
   const page = [

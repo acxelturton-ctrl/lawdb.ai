@@ -14,6 +14,7 @@ import requests
 from bs4 import BeautifulSoup
 import opening_hours as OH
 import bar as BAR
+import testimonials as TM
 
 UA = 'LawDBBot/1.0 (+https://lawdb.ai/bot; info@lawdb.ai)'
 MAX_BYTES = 1_500_000
@@ -52,7 +53,7 @@ SOCIAL = {
  'youtube': (r'^(?:www\.|m\.)?youtube\.com$', set()),
 }
 BAD_EMAIL = re.compile(r'(example\.|sentry|wixpress|\.png|\.jpg|\.gif|\.webp|\.svg|@2x|noreply|no-reply|donotreply|u003e|godaddy|domain\.com|yourdomain|email\.com$|test@)', re.I)
-PATH_HINTS = re.compile(r'(about|attorney|lawyer|team|people|practice|areas?|services|contact|blog|news|resources|why)', re.I)
+PATH_HINTS = re.compile(r'(about|attorney|lawyer|team|people|practice|areas?|services|contact|blog|news|resources|why|testimonial|reviews?\b|client[-_ ]?(say|feedback|stor))', re.I)
 
 class Site:
     def __init__(self, base):
@@ -196,11 +197,11 @@ def enrich(row):
     soups = {}; queue = [final_url]; seen = set()
     emails, socials, logos, feeds = {}, {}, [], []
     texts, nav_text = [], []; ld_objs = []; imgs = []; pages_text = []; page_hours = None
-    directories = {}; booking = ''; contact_form = False
+    directories = {}; booking = ''; contact_form = False; tm_raw = []
     host = urllib.parse.urlparse(final_url).hostname or ''
     pages = 0
     cache = {final_url: data}
-    while queue and pages < 8:
+    while queue and pages < 9:
         url = queue.pop(0)
         if url in seen: continue
         seen.add(url)
@@ -210,6 +211,7 @@ def enrich(row):
         try: soup = BeautifulSoup(raw, 'lxml')
         except Exception: continue
         ld_objs += jsonld(soup)
+        tm_raw += TM.from_page(soup, u2, ((soup.title.string or '') if soup.title else ''))   # the client testimonials the firm posts on its own pages
         if not contact_form and any(f.find('textarea') for f in soup.find_all('form')): contact_form = True
         imgs += [(u, h, 'home' if u2 == final_url else 'inner') for u, h in image_candidates(soup, u2)]
         # links
@@ -231,7 +233,7 @@ def enrich(row):
             if (p.hostname or '').replace('www.', '') == host.replace('www.', '') and PATH_HINTS.search(p.path + ' ' + a.get_text(' ')) and not re.search(r'\.(pdf|jpg|png|zip)$', p.path, re.I):
                 nav_text.append(a.get_text(' ').strip()[:80])
                 if full.split('#')[0] not in seen and len(queue) < 16:
-                    (queue.insert(0, full.split('#')[0]) if re.search(r'about|attorney|lawyer|team|people|award|recogni|why|bio|firm|profile', p.path, re.I) else queue.append(full.split('#')[0]))
+                    (queue.insert(0, full.split('#')[0]) if re.search(r'about|attorney|lawyer|team|people|award|recogni|why|bio|firm|profile|testimonial|reviews?$|reviews?/|client[-_ ]?(say|feedback|stor)', p.path, re.I) else queue.append(full.split('#')[0]))
         # feeds
         for l in soup.find_all('link', rel=True, href=True):
             if 'alternate' in [x.lower() for x in l.get('rel', [])] and re.search(r'rss|atom', l.get('type', ''), re.I):
@@ -280,6 +282,22 @@ def enrich(row):
             page_hours = OH.from_text(t)
             pages_text.append({'url': u2, 'title': ((soup.title.string or '') if soup.title else '').strip()[:160], 'text': t[:7000]})
             if page_hours or OH.from_jsonld(ld_objs): break
+    # Testimonials: if none turned up, ask for the usual testimonial pages directly (robots.txt and one request a second still apply; at most three extra requests).
+    if not TM.has_enough(TM.pick(tm_raw + TM.from_jsonld(ld_objs, final_url))):
+        tried = 0
+        for path in ('/testimonials', '/testimonials/', '/reviews', '/client-reviews', '/client-testimonials'):
+            full = urllib.parse.urljoin(final_url, path)
+            if full in seen or full.rstrip('/') in seen or tried >= 3: continue
+            seen.add(full); tried += 1
+            got = site.get(full)
+            if not got: continue
+            u2, raw = got; res['pages'].append(u2)
+            try: soup = BeautifulSoup(raw, 'lxml')
+            except Exception: continue
+            ld_objs += jsonld(soup)
+            tm_raw += TM.from_page(soup, u2, ((soup.title.string or '') if soup.title else ''))
+            if TM.has_enough(TM.pick(tm_raw + TM.from_jsonld(ld_objs, final_url))): break
+    res['testimonials'] = TM.pick(tm_raw + TM.from_jsonld(ld_objs, final_url))   # up to five, best first
     # people named in structured data (name, job title)
     people_ld = []
     for o in ld_objs:
