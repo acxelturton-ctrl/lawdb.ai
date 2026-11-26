@@ -20,6 +20,7 @@ PAGE_HINT = re.compile(r'testimonial|reviews?\b|client[-_ ]?(?:say|feedback|stor
 FIRST_PERSON = re.compile(r"\b(?:I|I'm|I've|I'd|I'll|my|me|we|we're|we've|our|us)\b", re.I)
 PRAISE = re.compile(r'thank|recommend|helped|help me|helping|professional|excellent|great|amazing|awesome|best|grateful|highly|knowledgeable|responsive|caring|compassion|patient|honest|kind|outstanding|fantastic|wonderful|stress|relief|handled|resolved|settle|fought|above and beyond|exceeded|trust|friendly|communicat|answered|explained|worked hard|results', re.I)
 BAD = re.compile(r'click here|read more|learn more|call us|call now|all rights reserved|©|privacy policy|cookies?|subscribe|newsletter|attorney advertising|https?://|www\.|@|\b\d{3}[-. )]\s?\d{3}[-. ]\d{4}\b|\blorem ipsum\b', re.I)
+FORMISH = re.compile(r'best time to call|briefly,? what|what happened|morning\s+afternoon|any time\s+morning|submit|captcha|required field|your (?:name|email|phone)|send (?:us )?a message|request a (?:free )?(?:consultation|case|callback)|reach out to us|fill out|disclaimer|terms of use', re.I)
 SKIP_PARENTS = ('form', 'nav', 'header', 'script', 'style', 'noscript', 'select', 'button')
 AUTHOR_SEL = ['cite', 'figcaption', '[itemprop=author]', '[class*=author]', '[class*=reviewer]', '[class*=client]', '[class*=name]', 'footer', 'strong', 'b']
 
@@ -31,14 +32,23 @@ def clean(t):
 
 
 def usable(text):
-    return MIN_CHARS <= len(text) <= MAX_CHARS and not BAD.search(text) and FIRST_PERSON.search(text) and PRAISE.search(text) and ' ' in text and not text.isupper()
+    if not (MIN_CHARS <= len(text) <= MAX_CHARS) or BAD.search(text) or FORMISH.search(text) or text.isupper(): return False
+    if '?' in text[:80] or len(text.split()) < 12 or not re.search(r'[.!\u2026]', text): return False   # a question at the start, a fragment, or words with no sentence in them: a form, not a testimonial
+    return bool(FIRST_PERSON.search(text) and PRAISE.search(text))
+
+
+NAME_NOISE = re.compile(r'\b(?:happy|satisfied|verified|former|past|current|previous|google|yelp|facebook|avvo)?\s*(?:client|customer|review(?:er)?|testimonial)s?\b', re.I)
+TOPIC_WORDS = re.compile(r'divorc|custody|conservator|guardian|probate|estate|injur|accident|dui\b|dwi\b|criminal|immigra|bankrupt|litigat|attorney|lawyer|\blaw\b|\bfirm\b|paralegal|esq|spouse|case\b|matter\b|real estate|employment|tickets?', re.I)
 
 
 def author_ok(a):
-    a = clean(re.sub(r'^(?:[-–—~]+\s*|by\s+|posted by\s+|reviewed by\s+|client:?\s+)', '', clean(a), flags=re.I))
-    a = re.sub(r'\s*[·|,]\s*(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.? \d{1,2},? \d{4}|\d+ (?:day|week|month|year)s? ago).*$', '', a, flags=re.I)
-    if not a or len(a) > 60 or len(a.split()) > 6 or re.search(r'\d|@|http|www|stars?|review|testimonial|read more|google|yelp|avvo|facebook', a, re.I): return ''
-    return a if re.fullmatch(r"[A-Za-z][A-Za-z .,'’-]*", a) else ''
+    """a person's name as the page shows it: the first part of "Maria G. - Divorce" or "Angelo L., Litigation Attorney", without labels such as HAPPY CLIENT, and never a topic or heading"""
+    a = clean(re.sub(r'^(?:[-\u2013\u2014~]+\s*|by\s+|posted by\s+|reviewed by\s+|client:?\s+)', '', clean(a), flags=re.I))
+    a = re.sub(r'\s*[\u00b7|,]\s*(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.? \d{1,2},? \d{4}|\d+ (?:day|week|month|year)s? ago).*$', '', a, flags=re.I)
+    a = clean(re.split(r'\s+[-\u2013\u2014|\u00b7]\s+|\s*\|\s*|,\s+(?!(?i:jr|sr|ii|iii))', a, maxsplit=1)[0])   # only the part before a dash, bar or comma
+    a = clean(NAME_NOISE.sub('', a))
+    if not a or len(a) > 60 or len(a.split()) > 5 or TOPIC_WORDS.search(a) or re.search(r'\d|@|http|www|stars?|read more|google|yelp|avvo|facebook', a, re.I): return ''
+    return a if re.fullmatch(r"[A-Za-z][A-Za-z .,'\u2019-]*", a) else ''
 
 
 def quote_text(q):

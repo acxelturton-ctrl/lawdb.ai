@@ -60,4 +60,13 @@ const two = testimonialsHtml({ name: 'Two only', testimonials: [tm(T1, 'Maria G.
 assert.equal((two.match(/<figure/g) || []).length, 2, 'a firm with two shows two');
 assert.equal((testimonialsHtml({ name: 'One only', testimonials: [tm(T1, 'Maria G.')] }).match(/<figure/g) || []).length, 1, 'and a firm with one shows one');
 
+// stored data from earlier reads: form text is not shown, and names are cleaned
+const real = 'I could not have asked for a better lawyer. She answered every question and explained each step along the way.';
+const formText = 'Briefly, what happened? Best time to call Any time Morning Afternoon After 5pm Back Request a free consultation Next Submit';
+const messy = testimonialsHtml({ name: 'Messy Law', testimonials: [tm(formText, 'Conservatorship'), tm(real, 'Alison - Divorce with children'), tm('Randy is an amazing attorney! He is smart and aggressive and he never gives up on you, I recommend him.', 'Alissa J. HAPPY CLIENT'), tm('I endorse this lawyer. I have known Wayne for 33 years as a trusted, dedicated lawyer and friend.', 'Angelo L., Litigation Attorney')] });
+assert.ok(!messy.includes('Best time to call'), 'form text is not shown as a testimonial');
+assert.equal((messy.match(/<figure/g) || []).length, 3, 'the three real ones are shown');
+assert.ok(messy.includes('>Alison<') && messy.includes('>Alissa J.<') && messy.includes('>Angelo L.<'), 'names are cleaned to the person');
+assert.ok(!/Divorce with children|HAPPY CLIENT|Litigation Attorney|Conservatorship/.test(messy), 'no topics, labels or titles in the names');
+
 console.log('reviews: ok');

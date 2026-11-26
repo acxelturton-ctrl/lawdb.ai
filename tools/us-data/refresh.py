@@ -125,9 +125,10 @@ def cmd_build(a):
             expr = 'data'
             if lawyers: expr = f"json_patch({expr}, json({q(json.dumps({'details': {'lawyers': lawyers}}, ensure_ascii=False))}))"   # the named lawyers, merged into data.details
             if path: expr = f"json_set({expr}, " + ', '.join(path) + ')'
+            if reach and not testi and rec.get('testimonials'): expr = f"json_remove({expr}, '$.testimonials')"   # the site was read and shows none now (or none that pass the checks): old ones are taken off
             has_lawyers = bool(lawyers)
             has_hours = bool((reach and e.get('hours')) or r.get('hours'))
-            seo = bar.seo_score(len(areas), len(new.split()), count_facts(facts, pr), len(lawyers), has_hours, bool(rec.get('social')), bool(pr or facts.get('awards')), bar.has_reviews((rec.get('reviews') or {}).get('items'), testi or rec.get('testimonials')), bar.extras_points(e if reach else None))
+            seo = bar.seo_score(len(areas), len(new.split()), count_facts(facts, pr), len(lawyers), has_hours, bool(rec.get('social')), bool(pr or facts.get('awards')), bar.has_reviews((rec.get('reviews') or {}).get('items'), testi if reach else rec.get('testimonials')), bar.extras_points(e if reach else None))
             expr = f"json_set({expr}, '$.seo', {seo})"   # the SEO score, saved on the firm
             sets.append(f'data = {expr}')
             if reach and e.get('hours'): sets.append(f"hours = COALESCE(hours, {q(json.dumps(e['hours'], separators=(',', ':')))})")

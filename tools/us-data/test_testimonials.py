@@ -113,4 +113,14 @@ ok(len(r) == 2 and sorted(x['author'] for x in r) == ['Lee S.', 'Maria G.'], 'tw
 three = T.pick([{'text': Q1, 'author': 'Bee Lopez', 'url': 'u'}, {'text': Q2, 'author': 'bee lopez', 'url': 'u'}, {'text': Q3, 'author': 'Bee Lopez', 'url': 'u'}])
 ok(len(three) == 3 and all(x['author'] == '' for x in three), 'one name on three is a shared label: the name is dropped, the words stay')
 
+# real cases from firm sites: form text, and names with labels or topics
+form = 'Briefly, what happened? Best time to call Any time Morning Afternoon After 5pm Back Request a free consultation Next Submit'
+ok(page(f'<div class="review"><p>{form}</p></div>') == [], 'contact-form text is not a testimonial')
+ok(page('<div class="testimonial"><p>Did we help you with your case? I would recommend them to anyone, they are great and very professional people.</p></div>') == [], 'a question at the start is not a testimonial')
+ok(page('<div class="testimonial"><p>I would highly recommend this great firm to everyone I know</p></div>') == [], 'words with no sentence in them are not a testimonial')
+for raw, want in [('Alison - Divorce with children', 'Alison'), ('Alissa J. HAPPY CLIENT', 'Alissa J.'), ('Angelo L., Litigation Attorney', 'Angelo L.'), ('Conservatorship', ''), ('Mark \u2013 Divorced with children', 'Mark'),
+                  ('Maria G.', 'Maria G.'), ('Verified Client', ''), ('Google Review', ''), ('Divorce', ''), ('Susan | Divorce', 'Susan'), ('John Smith, Jr.', 'John Smith, Jr.'), ('Bob and Barbara Carpenter', 'Bob and Barbara Carpenter'), ('Dr. A. Patel', 'Dr. A. Patel')]:
+    got = T.author_ok(raw)
+    ok(got == want, f'author {raw!r} -> {got!r}, wanted {want!r}')
+
 print(f'testimonials: ok ({n} checks)')

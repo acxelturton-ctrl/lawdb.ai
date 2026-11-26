@@ -80,13 +80,24 @@ export function testimonialsHtml(f) {
   // What the crawler saved is cleaned again here, so anything saved earlier shows correctly too: a review widget's reviewer and time in front of the words ("Karina Rangel 5 years ago ...")
   // and its stars after them are taken off (the reviewer becomes the name), the same testimonial saved twice shows once, and the same person never shows twice.
   const WIDGET = /^\s*([A-Z][A-Za-z'\u2019.-]+(?: [A-Z][A-Za-z'\u2019.-]+){0,3})\s+(?:\d+|an?|one)\s+(?:minute|hour|day|week|month|year)s?\s+ago\b[\s:,.-]*/;
+  // A name is the part before a dash, bar or comma, without labels (HAPPY CLIENT), and never a topic or heading ("Conservatorship"). Contact-form text is never a testimonial.
+  const NOISE = /\b(?:happy|satisfied|verified|former|past|current|previous|google|yelp|facebook|avvo)?\s*(?:client|customer|review(?:er)?|testimonial)s?\b/gi;
+  const TOPIC = /divorc|custody|conservator|guardian|probate|injur|accident|dui\b|dwi\b|criminal|immigra|bankrupt|litigat|attorney|lawyer|\blaw\b|\bfirm\b|paralegal|esq|spouse|case\b|matter\b|real estate|employment|tickets?/i;
+  const FORM = /best time to call|briefly,? what|what happened|morning\s+afternoon|any time\s+morning|submit|captcha|required field|your (?:name|email|phone)|send (?:us )?a message|request a (?:free )?(?:consultation|case|callback)|reach out to us|fill out|disclaimer|terms of use/i;
+  const niceName = (raw) => {
+    let a = String(raw || '').replace(/\s+/g, ' ').trim().replace(/^(?:[-\u2013\u2014~]+\s*|by\s+|posted by\s+|reviewed by\s+|client:?\s+)/i, '');
+    a = a.split(/\s+[-\u2013\u2014|\u00b7]\s+|\s*\|\s*|,\s+(?!(?:jr|sr|ii|iii)\b)/i)[0].replace(NOISE, '').replace(/\s+/g, ' ').trim();
+    if (!a || a.length > 60 || a.split(' ').length > 5 || TOPIC.test(a) || /\d|@|http|www|stars?|read more|google|yelp|avvo|facebook/i.test(a)) return '';
+    return /^[A-Za-z][A-Za-z .,'\u2019-]*$/.test(a) ? a : '';
+  };
   const tidy = (x) => {
-    let text = x.text.replace(/\s+/g, ' ').trim(), author = typeof x.author === 'string' ? x.author.trim() : '';
+    let text = x.text.replace(/\s+/g, ' ').trim(), author = typeof x.author === 'string' ? x.author : '';
     const m = text.match(WIDGET);
     if (m) { author = m[1]; text = text.slice(m[0].length); }
-    return { ...x, text: text.replace(/[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$/u, '').trim(), author };
+    return { ...x, text: text.replace(/[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$/u, '').trim(), author: niceName(author) };
   };
-  const all = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string').map(tidy).filter((x) => x.text.length >= 40) : [];
+  const looksReal = (t) => t.length >= 40 && !FORM.test(t) && !/\?/.test(t.slice(0, 80)) && /[.!\u2026]/.test(t) && t.split(' ').length >= 8;
+  const all = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string').map(tidy).filter((x) => looksReal(x.text)) : [];
   const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
   const words = (x) => new Set(x.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
   const same = (a, b) => {
