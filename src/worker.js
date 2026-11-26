@@ -259,6 +259,8 @@ export default {
       if (!path.startsWith('/api/')) {
         // Only GET/HEAD reach here for site content; everything else is passed to the static files.
         if (request.method !== 'GET' && request.method !== 'HEAD') return env.ASSETS.fetch(request);
+        // Google Search Console ownership file: answered directly (no redirect to an address without .html, which Google's check may not follow).
+        if (path === '/google2ac42884da01fc7b.html') return new Response('google-site-verification: google2ac42884da01fc7b.html', { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600', 'x-content-type-options': 'nosniff' } });
         const moved = legacyRedirect(url); // old addresses go to the clean one, permanently
         if (moved) return moved;
         const handler = DATA_FILES[path] || (path === '/report-listing' ? reportPage : path === '/news' ? newsPage : path === '/new-firms' ? newFirmsPage : path === '/sitemap-news.xml' ? storySitemap : path === '/sitemap-firms.xml' ? firmSitemap : path === '/sitemap-lawyers.xml' ? lawyerSitemap : path.startsWith('/lawyers/') ? lawyerPage : path.startsWith('/news/') ? storyPage : path.startsWith('/img/') ? serveImage : path.startsWith('/firms/') ? firmPage : dyn.page);
