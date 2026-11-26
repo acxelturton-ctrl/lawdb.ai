@@ -79,6 +79,15 @@ def title_city(c): return ' '.join(w.capitalize() for w in (c or '').split())
 
 STATES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split()
 
+STATE_NAMES = {'ALABAMA':'AL','ALASKA':'AK','ARIZONA':'AZ','ARKANSAS':'AR','CALIFORNIA':'CA','COLORADO':'CO','CONNECTICUT':'CT','DELAWARE':'DE','DISTRICT OF COLUMBIA':'DC','FLORIDA':'FL','GEORGIA':'GA','HAWAII':'HI','IDAHO':'ID','ILLINOIS':'IL','INDIANA':'IN','IOWA':'IA','KANSAS':'KS','KENTUCKY':'KY','LOUISIANA':'LA','MAINE':'ME','MARYLAND':'MD','MASSACHUSETTS':'MA','MICHIGAN':'MI','MINNESOTA':'MN','MISSISSIPPI':'MS','MISSOURI':'MO','MONTANA':'MT','NEBRASKA':'NE','NEVADA':'NV','NEW HAMPSHIRE':'NH','NEW JERSEY':'NJ','NEW MEXICO':'NM','NEW YORK':'NY','NORTH CAROLINA':'NC','NORTH DAKOTA':'ND','OHIO':'OH','OKLAHOMA':'OK','OREGON':'OR','PENNSYLVANIA':'PA','RHODE ISLAND':'RI','SOUTH CAROLINA':'SC','SOUTH DAKOTA':'SD','TENNESSEE':'TN','TEXAS':'TX','UTAH':'UT','VERMONT':'VT','VIRGINIA':'VA','WASHINGTON':'WA','WEST VIRGINIA':'WV','WISCONSIN':'WI','WYOMING':'WY'}
+
+def norm_region(v):
+    """Overture's address region comes as 'TX', 'US-TX', 'Texas', 'TEXAS' or 'tx.'; return the two-letter state code, or '' when it is not a US state."""
+    t = re.sub(r'\s+', ' ', str(v or '').replace('.', ' ')).strip().upper()
+    if t.startswith('US-') or t.startswith('US '): t = t[3:].strip()
+    if t in STATES: return t
+    return STATE_NAMES.get(t, '')
+
 def clean_and_pick(st, raw, target, min_conf):
     """cleaning rules for one state's raw rows -> (clean list, picked list, removal stats, per-city counter)"""
     stats = collections.Counter(); keep = []
@@ -149,9 +158,14 @@ def main():
         # contiguous US, Alaska and Hawaii boxes keep the read fast; the exact state comes from each place's own address
         geo = "((bbox.xmin BETWEEN -125.1 AND -66.5 AND bbox.ymin BETWEEN 24.3 AND 49.5) OR (bbox.xmin BETWEEN -171 AND -129 AND bbox.ymin BETWEEN 51 AND 72) OR (bbox.xmin BETWEEN -161 AND -154 AND bbox.ymin BETWEEN 18.5 AND 22.5)) AND addresses[1].country = 'US'"
         raw_all = fetch(con, lst, geo, spool='data/states/_us_raw.parquet'); print('raw US rows:', len(raw_all), flush=True)
-        by = collections.defaultdict(list)
+        by = collections.defaultdict(list); lost = collections.Counter(); matched_plain = 0
         for r in raw_all:
-            if r['region'] in STATES: by[r['region']].append(r)
+            code = norm_region(r['region'])
+            if code:
+                by[code].append(r); matched_plain += (r['region'] in STATES)
+            else: lost[str(r['region'])] += 1
+        print(f'rows whose region is exactly a state code: {matched_plain} | matched after normalising: {sum(len(v) for v in by.values())} | still unmatched: {sum(lost.values())}')
+        print('most common unmatched region values:', lost.most_common(25), flush=True)
         print(f"{'state':5} {'raw':>7} {'clean':>7} {'picked':>7}")
         total = 0
         for s_ in STATES:
