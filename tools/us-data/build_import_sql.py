@@ -137,7 +137,8 @@ for r in rows:
     rv = gr.get(r['overture_id']) or {}
     has_reviews = len(rv.get('items') or []) >= google_reviews.WANT
     if not has_reviews: stats['no_reviews'] = stats.get('no_reviews', 0) + 1
-    seo = bar.seo_score(len(areas), len(about.split()) if about else 0, count_facts(facts, pr), len(lawyers), bool(hours), bool(rec.get('social')), bool(pr or facts.get('awards')), has_reviews)
+    seo = bar.seo_score(len(areas), len(about.split()) if about else 0, count_facts(facts, pr), len(lawyers), bool(hours), bool(rec.get('social')), bool(pr or facts.get('awards')), has_reviews, bar.extras_points(e))
+    if e.get('directories'): rec['directories'] = e['directories']   # the firm's profiles on legal directories
     rec['seo'] = seo   # saved on the firm: the audit and the admin can see why it was listed
     if seo < SEO_MIN: stats['low_seo'] = stats.get('low_seo', 0) + 1
     is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and (hours or not HOURS_REQUIRED) and has_lawyers and (has_reviews or not REVIEWS_REQUIRED) and seo >= SEO_MIN)

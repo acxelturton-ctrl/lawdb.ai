@@ -26,8 +26,30 @@ def seo_min():
     except ValueError: return 0
 
 
-def seo_score(areas, about_words, facts, lawyers, has_hours, has_social, has_recognition, has_reviews):
-    """0-100. areas: practice areas listed; about_words: words in the biography; facts: firm-specific facts; lawyers: named lawyers."""
+# Legal directories whose profile pages count as a trust signal when the firm's own site links to one (the link must go to a profile, not the home page)
+DIRECTORIES = {'avvo.com': 'Avvo', 'martindale.com': 'Martindale-Hubbell', 'lawyers.com': 'Lawyers.com', 'superlawyers.com': 'Super Lawyers', 'justia.com': 'Justia',
+               'findlaw.com': 'FindLaw', 'lawinfo.com': 'LawInfo', 'bestlawyers.com': 'Best Lawyers', 'nolo.com': 'Nolo'}
+# Online booking tools: a firm that lets people book a time on its own site
+BOOKING_HOSTS = r'(?:^|\.)(calendly\.com|acuityscheduling\.com|setmore\.com|youcanbook\.me|squareup\.com|schedulicity\.com|hubspot\.com|zcal\.co|tidycal\.com|savvycal\.com|appointlet\.com|simplybook\.me|cal\.com)$'
+
+
+def extras_points(e):
+    """0-15 bonus from what the firm's own site offers, all of it read by enrich.py: client perks (free consultation, contingency, 24/7, virtual), languages,
+    articles, a booking link or contact form, and links to legal directory profiles (Avvo, Martindale, Super Lawyers, Justia ...)."""
+    e = e or {}
+    fx = e.get('facts') or {}
+    n = 0
+    n += sum(1 for k in ('free_consultation', 'contingency', 'available_24_7', 'virtual_consultations') if fx.get(k))   # up to 4
+    n += 2 if e.get('languages') else 0
+    posts = len([p for p in (e.get('posts') or []) if p.get('title') and p.get('url')])
+    n += 3 if posts >= 3 else (1 if posts else 0)
+    n += 1 if (e.get('booking') or e.get('contact_form')) else 0
+    n += min(len(e.get('directories') or []), 3) * 2                                                                  # up to 6
+    return min(n, 15)
+
+
+def seo_score(areas, about_words, facts, lawyers, has_hours, has_social, has_recognition, has_reviews, extras=0):
+    """0-100. areas: practice areas listed; about_words: words in the biography; facts: firm-specific facts; lawyers: named lawyers; extras: extras_points()."""
     s = min(areas, 5) * 4                       # up to 20
     s += min(about_words, 300) / 300 * 15       # up to 15
     s += min(facts, 8) * 2.5                    # up to 20
@@ -36,4 +58,5 @@ def seo_score(areas, about_words, facts, lawyers, has_hours, has_social, has_rec
     s += 5 if has_social else 0
     s += 5 if has_recognition else 0
     s += 10 if has_reviews else 0
-    return round(s)
+    s += extras
+    return min(round(s), 100)
