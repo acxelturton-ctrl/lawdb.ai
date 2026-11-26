@@ -175,7 +175,8 @@ def main():
         print('total clean firms in the US:', total); return
     box = BBOX.get(st)
     where_box = f'bbox.xmin BETWEEN {box[0]} AND {box[1]} AND bbox.ymin BETWEEN {box[2]} AND {box[3]} AND' if box else ''
-    raw = fetch(con, lst, f"{where_box} addresses[1].region = '{st}'"); print('raw rows:', len(raw))
+    # the address region is written many ways ('FL', 'US-FL', 'Florida'), so read the state's box and keep the rows that normalise to this state
+    raw = [r for r in fetch(con, lst, f"{where_box} addresses[1].country = 'US'") if norm_region(r['region']) == st]; print('raw rows:', len(raw))
     clean, picked, stats, per = clean_and_pick(st, raw, a.target, a.min_conf)
     print('after cleaning:', len(clean)); write_state(st, clean, picked)
     print('\nRemoved along the way:'); [print(f'  {v:6d}  {k}') for k, v in stats.most_common()]
