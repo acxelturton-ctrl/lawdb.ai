@@ -20,6 +20,9 @@ on:
       skip_refresh:
         description: 'yes = do not read any websites, only run the audit'
         default: 'no'
+      hidden:
+        description: 'yes = only firms that are currently hidden (to list the ones that meet the bar now)'
+        default: 'no'
       stale:
         description: 'yes = only firms whose description still has the old wording (website, consultation, blog sentences)'
         default: 'no'
@@ -46,7 +49,7 @@ jobs:
           set -e
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::CLOUDFLARE_API_TOKEN secret is missing"; exit 1; fi
           if [ "${{ inputs.skip_refresh }}" != "yes" ]; then
-            python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}" $( [ "${{ inputs.stale }}" = "yes" ] && echo --stale )
+            python3 tools/us-data/refresh.py export --states "${{ inputs.states }}" --limit "${{ inputs.limit }}" $( [ "${{ inputs.stale }}" = "yes" ] && echo --stale ) $( [ "${{ inputs.hidden }}" = "yes" ] && echo --hidden )
             python3 tools/us-data/enrich.py REF --workers 16
             python3 tools/us-data/press.py REF || true
             python3 tools/us-data/refresh.py build

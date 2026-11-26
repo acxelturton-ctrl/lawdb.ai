@@ -76,8 +76,8 @@ rows = [r for r in rows if not (NOT_A_FIRM.search(r['name']) or NAMELESS.match(r
 enr = {}
 press = json.load(open(os.path.join(D, 'press.json'))) if os.path.exists(os.path.join(D, 'press.json')) else {}   # coverage found on other sites (press.py)
 gr = json.load(open(os.path.join(D, 'reviews.json'))) if os.path.exists(os.path.join(D, 'reviews.json')) else {}   # three good Google reviews per firm (google_reviews.py)
-import google_reviews
-REVIEWS_REQUIRED = google_reviews.required()
+import google_reviews, bar
+REVIEWS_REQUIRED = google_reviews.required(); HOURS_REQUIRED = bar.hours_required(); SEO_MIN = bar.seo_min()
 p = os.path.join(D, 'enriched.jsonl')
 if os.path.exists(p):
     for l in open(p):
@@ -137,7 +137,10 @@ for r in rows:
     rv = gr.get(r['overture_id']) or {}
     has_reviews = len(rv.get('items') or []) >= google_reviews.WANT
     if not has_reviews: stats['no_reviews'] = stats.get('no_reviews', 0) + 1
-    is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and hours and has_lawyers and (has_reviews or not REVIEWS_REQUIRED))
+    seo = bar.seo_score(len(areas), len(about.split()) if about else 0, count_facts(facts, pr), len(lawyers), bool(hours), bool(rec.get('social')), bool(pr or facts.get('awards')), has_reviews)
+    rec['seo'] = seo   # saved on the firm: the audit and the admin can see why it was listed
+    if seo < SEO_MIN: stats['low_seo'] = stats.get('low_seo', 0) + 1
+    is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and (hours or not HOURS_REQUIRED) and has_lawyers and (has_reviews or not REVIEWS_REQUIRED) and seo >= SEO_MIN)
     if lawyers: rec.setdefault('details', {})['lawyers'] = lawyers   # shown on the firm's Lawyers tab and in its structured data
     if pr: rec['press'] = pr
     if has_reviews: rec['reviews'] = rv; rec['rating'] = rv.get('rating') or 0; rec['count'] = rv.get('count') or 0   # shown on the page with Google named as the source
