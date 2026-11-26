@@ -514,13 +514,44 @@ async function viewPhotos() {
     busy = false;
   }
   function reset() { grid.replaceChildren(); shown.clear(); next = null; load(); }
+
+  // Approve every waiting photo, not only the ones on screen. It walks the waiting list in pages and sends small batches (each approval copies a picture to LawDB's storage,
+  // so the server decides at most 30 at a time). A photo that fails is counted and skipped, so one bad address never stops the rest.
+  const progress = h('p', { class: 'muted' });
+  async function approveEveryWaiting() {
+    if (busy) return;
+    if (!counts.pending) { progress.textContent = 'Nothing is waiting.'; return; }
+    if (!confirm(`Approve all ${counts.pending} waiting photos without looking at each one?\n\nThe crawler can pick a logo or a group photo by mistake. Anything wrong can be rejected afterwards from the Approved tab.`)) return;
+    busy = true; bar.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    let after = 0, done = 0, failed = 0, firstError = '';
+    try {
+      for (;;) {
+        const q = await api('GET', `/api/admin/lawyer-photos?status=pending&limit=48&after=${after}`);
+        if (!q.lawyers.length) break;
+        const slugs = q.lawyers.map((l) => l.slug);
+        for (let i = 0; i < slugs.length; i += 20) {
+          const { results } = await api('POST', '/api/admin/lawyer-photos/decide', { decisions: slugs.slice(i, i + 20).map((slug) => ({ slug, action: 'approve' })) });
+          for (const r of results) {
+            if (r.ok) { done++; const c = shown.get(r.slug); if (c) { c.remove(); shown.delete(r.slug); } } else { failed++; firstError = firstError || r.error || 'Failed'; }
+          }
+          progress.textContent = `Approving… ${done} approved${failed ? `, ${failed} could not be saved` : ''}, ${Math.max(0, counts.pending - done - failed)} to go.`;
+        }
+        if (!q.next) break;
+        after = q.next;
+      }
+      progress.textContent = `Done: ${done} approved${failed ? `, ${failed} could not be saved (${firstError})` : ''}.`;
+    } catch (err) { progress.replaceChildren(note('msg-err', `Stopped after ${done} approved: ${err.message}. Press the button again to continue.`)); }
+    busy = false; bar.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+    await refreshCounts();
+  }
   bar.append(
     ...tabs,
+    h('button', { type: 'button', class: 'primary', onclick: approveEveryWaiting }, 'Approve every waiting photo'),
     h('button', { type: 'button', class: 'primary', onclick: () => { const s = [...shown.keys()]; if (s.length && confirm(`Approve the ${s.length} photos shown on this page? Look through them first.`)) decide(s, 'approve'); } }, 'Approve all shown'),
     h('button', { type: 'button', onclick: () => { const s = [...shown.keys()]; if (s.length && confirm(`Reject the ${s.length} photos shown on this page?`)) decide(s, 'reject'); } }, 'Reject all shown'));
   await load();
   return h('div', null, h('h1', null, 'Lawyer photos'),
-    h('div', { class: 'card' }, h('p', { class: 'muted' }, 'Photos of lawyers, found on each firm\'s own website. Nothing appears on LawDB until you approve it. Approve copies the picture to LawDB\'s own storage and lists the lawyer on the firm\'s Lawyers tab. Reject keeps the lawyer off the site. Check that the photo is a real head-and-shoulders picture of that person, not a logo or a group.'), bar, head),
+    h('div', { class: 'card' }, h('p', { class: 'muted' }, 'Photos of lawyers, found on each firm\'s own website. Nothing appears on LawDB until you approve it. Approve copies the picture to LawDB\'s own storage and lists the lawyer on the firm\'s Lawyers tab. Reject keeps the lawyer off the site. Check that the photo is a real head-and-shoulders picture of that person, not a logo or a group.'), bar, head, progress),
     grid, more);
 }
 
