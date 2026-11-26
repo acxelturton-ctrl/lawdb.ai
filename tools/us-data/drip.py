@@ -21,7 +21,7 @@ from seen import TABLE, seen_sql
 
 BATCH = 100         # candidates read per round
 MAX_ROUNDS = 8      # per state per run (few firms pass the bar, so many more are read)
-MAX_PER_DAY = 1300  # a second safety stop
+MAX_PER_DAY = 6000  # a second safety stop: firms loaded in any rolling 24 hours (was 1300; raised for the 10,000-firm push)
 TIME_BUDGET = 40 * 60   # seconds; no new round starts after this, so a run always ends inside the hour
 
 def run(cmd, **kw):
