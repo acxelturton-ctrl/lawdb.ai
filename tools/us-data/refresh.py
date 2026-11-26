@@ -70,6 +70,7 @@ def cmd_export(a):
     import random
     sts = ','.join("'" + s + "'" for s in a.states.split())
     only = ' AND ' + STALE if a.stale else ''   # --stale: only firms whose description still has the old wording
+    if a.hidden: only += " AND status = 'hidden'"   # --hidden: only firms not listed now (they are listed if they meet the bar today)
     rows = d1(f"SELECT slug, name, city, state, status, about, data FROM firms WHERE state IN ({sts}){only} ORDER BY slug", json_out=True)[0]['results']
     if a.limit: random.Random(1).shuffle(rows); rows = rows[:a.limit]
     os.makedirs(D, exist_ok=True)
@@ -89,6 +90,7 @@ def cmd_export(a):
 def cmd_build(a):
     from bios import make_biography, AREA, STATE, MIN_WORDS, MIN_FACTS
     from profile_facts import extract, count_facts, lawyer_list
+    import bar
     rows = json.load(open(os.path.join(D, 'firms.json')))
     enr = {}
     for l in open(os.path.join(D, 'enriched.jsonl')):
@@ -120,11 +122,14 @@ def cmd_build(a):
             expr = 'data'
             if lawyers: expr = f"json_patch({expr}, json({q(json.dumps({'details': {'lawyers': lawyers}}, ensure_ascii=False))}))"   # the named lawyers, merged into data.details
             if path: expr = f"json_set({expr}, " + ', '.join(path) + ')'
-            if expr != 'data': sets.append(f'data = {expr}')
             has_lawyers = bool(lawyers)
+            has_hours = bool((reach and e.get('hours')) or r.get('hours'))
+            seo = bar.seo_score(len(areas), len(new.split()), count_facts(facts, pr), len(lawyers), has_hours, bool(rec.get('social')), bool(pr or facts.get('awards')), len((rec.get('reviews') or {}).get('items') or []) >= 3)
+            expr = f"json_set({expr}, '$.seo', {seo})"   # the SEO score, saved on the firm
+            sets.append(f'data = {expr}')
             if reach and e.get('hours'): sets.append(f"hours = COALESCE(hours, {q(json.dumps(e['hours'], separators=(',', ':')))})")
-            # a hidden firm goes live only when it meets the whole bar: logo and cover, a biography, opening hours and a named lawyer
-            promote = r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') and reach and e.get('hours') and has_lawyers
+            # a hidden firm goes live only when it meets the bar today: logo and cover, a biography, a named lawyer, the SEO score (and hours, if bar.py says they are required)
+            promote = r['status'] == 'hidden' and rec.get('src') and rec.get('heroImage') and reach and (has_hours or not bar.hours_required()) and has_lawyers and seo >= bar.seo_min()
             if promote: sets.append("status = 'live'"); tally['A_live'] += 1
             sets.append("updated_at = datetime('now')")
             sql.append(f"INSERT OR IGNORE INTO about_backup (slug, about) SELECT slug, about FROM firms WHERE slug = {q(slug)};")
@@ -176,7 +181,7 @@ def cmd_load(a):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(); sub = ap.add_subparsers(dest='cmd', required=True)
-    e = sub.add_parser('export'); e.add_argument('--states', required=True); e.add_argument('--limit', type=int, default=0); e.add_argument('--stale', action='store_true')
+    e = sub.add_parser('export'); e.add_argument('--states', required=True); e.add_argument('--limit', type=int, default=0); e.add_argument('--stale', action='store_true'); e.add_argument('--hidden', action='store_true')
     sub.add_parser('build'); sub.add_parser('load')
     au = sub.add_parser('audit'); au.add_argument('--hide', action='store_true')
     a = ap.parse_args(); {'export': cmd_export, 'build': cmd_build, 'load': cmd_load, 'audit': cmd_audit}[a.cmd](a)
