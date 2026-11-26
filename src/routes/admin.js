@@ -20,7 +20,7 @@ import { placeFor } from '../lib/geocode.js';
 import { signinCheck } from '../lib/oauth.js';
 import { findLogos, fetchPicture } from '../lib/logo-finder.js';
 import { firmAnalytics, RANGES } from '../lib/firm-analytics.js';
-import { parseCollectInput, recentRuns, startCollect, loadedByState } from '../lib/collect.js';
+import { parseCollectInput, parseLawyersInput, recentRuns, lawyerRuns, startCollect, startLawyers, loadedByState } from '../lib/collect.js';
 import { startTrial, endTrial, getTrial, trialFunnel, trialAdminChanged } from '../lib/trial.js';
 
 export { CASE_TYPES };
@@ -611,8 +611,18 @@ export async function firmLocationUnlink({ request, env, params }) {
 export async function collectGet({ request, env }) {
   await requireAdmin(env, request);
   const connected = !!env.GITHUB_TOKEN;
-  const [loaded, runs] = await Promise.all([loadedByState(env), connected ? recentRuns(env).catch((err) => ({ error: err.message })) : []]);
-  return reply({ connected, loaded, runs: Array.isArray(runs) ? runs : [], runsError: Array.isArray(runs) ? '' : runs.error });
+  const [loaded, runs, lawyers, photos] = await Promise.all([loadedByState(env), connected ? recentRuns(env).catch((err) => ({ error: err.message })) : [], connected ? lawyerRuns(env).catch(() => []) : [],
+    env.DB.prepare("SELECT photo_status AS s, COUNT(*) AS n FROM lawyers WHERE photo_url IS NOT NULL AND status = 'live' GROUP BY photo_status").all().catch(() => ({ results: [] }))]);
+  const lawyerPhotos = { pending: 0, approved: 0, rejected: 0 }; for (const r of photos.results) lawyerPhotos[r.s] = r.n;
+  return reply({ connected, loaded, runs: Array.isArray(runs) ? runs : [], runsError: Array.isArray(runs) ? '' : runs.error, lawyerRuns: lawyers, lawyerPhotos });
+}
+
+export async function collectLawyers({ request, env }) {
+  const admin = await requireAdmin(env, request);
+  const input = parseLawyersInput(await readJson(request, 500).catch(() => ({})));
+  await startLawyers(env, input);
+  await audit(env, admin, 'collect.lawyers', 'site', 'lawyers', input);
+  return reply({ ok: true, ...input });
 }
 
 export async function collectRun({ request, env }) {
