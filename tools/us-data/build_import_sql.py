@@ -135,7 +135,9 @@ for r in rows:
     if not hours: stats['no_hours'] += 1
     if not has_lawyers: stats['no_lawyers'] += 1
     rv = gr.get(r['overture_id']) or {}
-    has_reviews = len(rv.get('items') or []) >= google_reviews.WANT
+    has_google = len(rv.get('items') or []) >= google_reviews.WANT
+    testi = (e.get('testimonials') or [])[:5]   # client testimonials the firm posts on its own website (testimonials.py)
+    has_reviews = bar.has_reviews(rv.get('items'), testi)
     if not has_reviews: stats['no_reviews'] = stats.get('no_reviews', 0) + 1
     seo = bar.seo_score(len(areas), len(about.split()) if about else 0, count_facts(facts, pr), len(lawyers), bool(hours), bool(rec.get('social')), bool(pr or facts.get('awards')), has_reviews, bar.extras_points(e))
     if e.get('directories'): rec['directories'] = e['directories']   # the firm's profiles on legal directories
@@ -144,7 +146,8 @@ for r in rows:
     is_live = bool(about and len(about.split()) >= MIN_WORDS and count_facts(facts, pr) >= MIN_FACTS and (hours or not HOURS_REQUIRED) and has_lawyers and (has_reviews or not REVIEWS_REQUIRED) and seo >= SEO_MIN)
     if lawyers: rec.setdefault('details', {})['lawyers'] = lawyers   # shown on the firm's Lawyers tab and in its structured data
     if pr: rec['press'] = pr
-    if has_reviews: rec['reviews'] = rv; rec['rating'] = rv.get('rating') or 0; rec['count'] = rv.get('count') or 0   # shown on the page with Google named as the source
+    if has_google: rec['reviews'] = rv; rec['rating'] = rv.get('rating') or 0; rec['count'] = rv.get('count') or 0   # shown on the page with Google named as the source
+    if testi: rec['testimonials'] = testi   # shown on the page as the firm's own words, from its website
     if facts.get('awards'): rec['awards'] = facts['awards']
     if not is_live: about = None
     if KEEP and not is_live: outcome[r['overture_id']] = 'skip'; continue
@@ -153,7 +156,7 @@ for r in rows:
     if about: bios[slug] = about
     if perks: perk_rows.append((slug, perks))
     out.append('INSERT OR IGNORE INTO firms (slug,name,city,state,region,featured,rating,review_count,lat,lng,data,hours,about,page_mode,status,created_by) VALUES ('
-               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', (q(rec['rating']) if has_reviews else 'NULL'), (q(rec['count']) if has_reviews else 'NULL'), q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), (q(json.dumps(hours, separators=(',', ':'))) if hours else 'NULL'), q(about), "'dynamic'", "'live'" if is_live else "'hidden'", 'NULL']) + ');')
+               + ','.join([q(slug), q(r['name']), q(r['city']), q(ST), q(rec['region']), '0', (q(rec['rating']) if has_google else 'NULL'), (q(rec['count']) if has_google else 'NULL'), q(lat), q(lng), q(json.dumps(rec, ensure_ascii=False, separators=(',', ':'))), (q(json.dumps(hours, separators=(',', ':'))) if hours else 'NULL'), q(about), "'dynamic'", "'live'" if is_live else "'hidden'", 'NULL']) + ');')
     stats['firms'] += 1
     if is_live: live_rows.append((r['city'], lat, lng, rec['region']))
     feed = e.get('blog_feed')
