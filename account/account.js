@@ -4,6 +4,7 @@
 import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, planPanel, lockIcon, STATES } from '/admin/ui.js';
 import { analyticsView, analyticsPreview } from '/admin/firm-analytics.js';
 import { viewPro } from '/account/network.js';
+import { viewMarketplace } from '/account/marketplace.js';
 import { profileEditor } from '/admin/profile-editor.js';
 
 const app = document.getElementById('app');
@@ -126,6 +127,7 @@ function shell(active, content, { wide = false } = {}) {
     ['stats', 'Analytics', !unlocked],
     ['leads', 'Inquiries', !unlocked],
     ['pro', 'Connect', !unlocked],
+    ['marketplace', 'Marketplace'],
   ];
   const more = [['profile', 'My profile'], ['find', mine.length ? 'Add or claim a firm' : 'Find or add my firm'], ['feed', 'Feed'], ['network', 'Following'], ['saved', 'Saved']];
   const moreActive = more.some(([id]) => id === active);
@@ -752,7 +754,7 @@ async function render() {
   document.body.classList.toggle('lw-focus', !!(user && !user.onboarded));
   if (user && !user.onboarded) return renderWizard();
   const [name, arg, sub] = location.hash.slice(1).split('/');
-  const tab = ['feed', 'network', 'saved', 'profile', 'find', 'leads', 'stats', 'pro'].includes(name) ? name : name === 'following' ? 'network' : 'firms';
+  const tab = ['feed', 'network', 'saved', 'profile', 'find', 'leads', 'stats', 'pro', 'marketplace'].includes(name) ? name : name === 'following' ? 'network' : 'firms';
   mount(shell(tab, h('p', { class: 'muted' }, 'Loading…')));
   try {
     let view;
@@ -764,6 +766,7 @@ async function render() {
     else if (name === 'edit' && arg) { view = await viewEdit(arg); if (seq !== renderSeq) return; return mount(shell('firms', view, { wide: true })); }
     else if (name === 'leads') view = await viewLeads(arg);
     else if (name === 'stats') view = viewStats(arg);
+    else if (name === 'marketplace') view = await viewMarketplace({ mine: approved(), slug: arg });
     else if (name === 'pro') view = await viewPro({ mine: approved(), slug: arg, tab: sub, onPlanChange: () => loadMe().catch(() => {}) });
     else { await loadMe(); view = viewFirms(); }
     if (seq !== renderSeq) return;

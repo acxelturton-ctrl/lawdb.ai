@@ -35,6 +35,7 @@ import * as invite from './routes/invite.js';
 import * as stats from './routes/stats.js';
 import * as projects from './routes/projects.js';
 import * as outreach from './routes/outreach.js';
+import * as marketplace from './routes/marketplace.js';
 
 const route = (method, pattern, handler) => ({
   method,
@@ -73,6 +74,21 @@ const ROUTES = [
   route('POST', '/api/ai/match', ai.match),
   route('POST', '/api/leads', pub.createLead),
   route('POST', '/api/a', stats.collect),
+
+  route('GET', '/api/marketplace/form', marketplace.form),
+  route('POST', '/api/marketplace/inquiry', marketplace.inquiry),
+  route('GET', '/api/account/firms/:slug/marketplace', marketplace.firmGet),
+  route('PUT', '/api/account/firms/:slug/marketplace', marketplace.firmSave),
+  route('GET', '/api/account/firms/:slug/marketplace/feed', marketplace.firmFeed),
+  route('GET', '/api/account/firms/:slug/marketplace/unlocked', marketplace.firmUnlocked),
+  route('GET', '/api/account/firms/:slug/marketplace/ledger', marketplace.firmLedger),
+  route('POST', '/api/account/firms/:slug/marketplace/leads/:id/unlock', marketplace.firmUnlock),
+  route('GET', '/api/admin/marketplace', marketplace.adminOverview),
+  route('PATCH', '/api/admin/marketplace', marketplace.adminSettings),
+  route('GET', '/api/admin/marketplace/leads', marketplace.adminLeads),
+  route('PATCH', '/api/admin/marketplace/leads/:id', marketplace.adminDecide),
+  route('POST', '/api/admin/marketplace/test-lead', marketplace.adminTestLead),
+  route('POST', '/api/admin/marketplace/credit', marketplace.adminCredit),
 
   route('POST', '/api/stripe/webhook', stripe.webhook),
 

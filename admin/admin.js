@@ -5,6 +5,7 @@
 import { h, api, when, note, hoursEditor, categoryChecks, splitTags, field, picturesPanel, feedPanel, CASE_LABELS, STATES } from './ui.js';
 import { analyticsView } from './firm-analytics.js';
 import { profileEditor } from './profile-editor.js';
+import { viewMarketplaceAdmin } from './marketplace-admin.js';
 
 const app = document.getElementById('app');
 
@@ -36,7 +37,7 @@ function renderLogin() {
 let pendingCount = 0;
 let paymentCount = 0;
 let commentCount = 0;
-const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['collect', 'Collect'], ['network', 'Connect'], ['logos', 'Logos'], ['photos', 'Lawyer photos'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
+const TABS = [['overview', 'Overview'], ['approvals', 'Approvals'], ['leads', 'Leads'], ['outreach', 'Outreach'], ['firms', 'Firms'], ['collect', 'Collect'], ['network', 'Connect'], ['logos', 'Logos'], ['photos', 'Lawyer photos'], ['marketplace', 'Marketplace'], ['news', 'News'], ['traffic', 'Traffic'], ['projects', 'Projects'], ['journal', 'Journal'], ['search', 'Search'], ['reviews', 'Reviews'], ['payments', 'Payments'], ['people', 'People'], ['activity', 'Activity']];
 
 // The bar at the top shows the live counts and the clock; the user menu is on its right. The menu bar under it is the list of sections.
 let appStats = null;
@@ -1356,7 +1357,7 @@ async function viewNetwork() {
     h('div', { class: 'card' }, data.reports.length ? data.reports.map(row) : h('p', { class: 'muted' }, status === 'new' ? 'No new reports.' : 'Nothing here.')));
 }
 
-const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, collect: viewCollect, photos: viewPhotos, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
+const VIEWS = { network: viewNetwork, overview: viewOverview, approvals: viewApprovals, leads: viewLeads, outreach: viewOutreach, firms: viewFirms, collect: viewCollect, photos: viewPhotos, marketplace: viewMarketplaceAdmin, logos: viewLogos, news: viewNews, traffic: viewTraffic, projects: viewProjects, journal: viewJournal, search: viewSearch, reviews: viewReviews, payments: viewPayments, people: viewPeople, activity: viewActivity };
 
 let me; // the signed-in admin, for re-rendering after an action
 // "#firms/edit/<username>", "#firms/new" and "#firms/import" are pages inside the Firms section; every other address is a section on its own.

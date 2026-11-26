@@ -3,9 +3,11 @@
 import { audit } from './audit.js';
 import { processTrials } from './trial.js';
 import { sendWeeklyReports } from './owner-reports.js';
+import { expireOld } from './marketplace.js';
 
 export async function hourly(env) {
   const failed = async (what, err) => { console.error(`${what} failed`, err); await audit(env, null, `${what}.failed`, 'system', 'hourly', { error: String(err.message || err).slice(0, 300) }); };
   try { await processTrials(env); } catch (err) { await failed('trial', err); }
   try { await sendWeeklyReports(env); } catch (err) { await failed('reports', err); }
+  try { await expireOld(env); } catch (err) { await failed('marketplace', err); } // inquiries older than 7 days stop being listed
 }
