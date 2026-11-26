@@ -67,10 +67,50 @@ r = T.from_jsonld(ld, 'https://firm.test/')
 ok(len(r) == 1 and r[0]['author'] == 'Chris P.', 'schema.org Review markup is read, short ones are not')
 
 # picking
-items = [{'text': Q3, 'author': '', 'url': 'u'}, {'text': Q1, 'author': 'Maria G.', 'url': 'u'}, {'text': Q1, 'author': 'Maria G.', 'url': 'u2'}] + [{'text': (f'I recommend them, they helped me a great deal number {i}. ' * 3).strip(), 'author': 'A', 'url': 'u'} for i in range(8)]
+items = [{'text': Q3, 'author': '', 'url': 'u'}, {'text': Q1, 'author': 'Maria G.', 'url': 'u'}, {'text': Q1, 'author': 'Maria G.', 'url': 'u2'}] + [{'text': t, 'author': 'Client ' + 'ABCDEFGH'[i], 'url': 'u'} for i, t in enumerate([
+    'My divorce was handled quickly and kindly, and I never felt rushed. I recommend this firm to anyone who needs a calm, honest advocate.',
+    'After my car accident I did not know where to turn. They fought the insurer for me and I am grateful for every phone call they returned.',
+    'We needed a will and a trust for our two kids. The attorney explained every option in plain words and our whole family felt at ease.',
+    'I was charged with a DUI and was terrified. My lawyer was professional, answered my calls at night and got the charge reduced. Highly recommend.',
+    'They helped our small business through a contract dispute with a vendor, and I trust their judgment completely. Great communication throughout.',
+    'The immigration team guided my wife and me through each form and interview. We are so thankful for their patience and kindness.',
+    'I was fired without warning and they took my case seriously from day one. I would recommend them to anybody facing the same thing.',
+    'Buying our first house felt overwhelming until this firm walked us through closing. They were friendly, responsive and thorough with us.'])]
 p = T.pick(items)
 ok(len(p) == T.KEEP and len({x['text'] for x in p}) == T.KEEP, 'at most five, no duplicates')
 ok(all(x['author'] for x in p), 'named authors come first')
 ok(T.has_enough(p) and not T.has_enough(p[:2]), 'three are enough')
+
+# duplicates: the same testimonial twice, however the copies differ
+A = 'Roy and especially America gave me 100% amazing service and I was so relieved. They explained everything so clearly. I will absolutely be recommending them to anyone who is looking for a firm who treats you like family and not a number.'
+B = 'Roy and especially America gave me 100% amazing service and I was so relieved. I will absolutely be recommending them to anyone who is looking for a firm who treats you like family and not a number.'
+C = 'Great experience. ' + A                                  # a heading or lead-in added in front
+D = A.upper().replace('.', '')                               # shouting, no punctuation
+E = A[:120]                                                  # cut short by a slider
+one = lambda xs: len(T.pick([{'text': x, 'author': 'Sheila V.', 'url': 'u'} for x in xs])) == 1
+ok(one([A, A]), 'the same text twice is one')
+ok(one([A, B]), 'a copy with a sentence missing (the one in the screenshot) is one')
+ok(one([A, C]) and one([A, D]) and one([A, E]), 'a lead-in, different case or punctuation, or a cut-short copy are one')
+ok(T.same(A, B) and T.same(B, A), 'sameness does not depend on the order')
+ok(not T.same(Q1, Q2) and not T.same(Q2, Q3) and not T.same(Q1, Q3), 'different testimonials stay different')
+kept = T.pick([{'text': B, 'author': '', 'url': 'u'}, {'text': A, 'author': 'Sheila V.', 'url': 'u'}, {'text': Q1, 'author': 'Maria G.', 'url': 'u'}, {'text': E, 'author': '', 'url': 'u'}])
+ok(len(kept) == 2 and {x['author'] for x in kept} == {'Sheila V.', 'Maria G.'}, 'of two copies the one with a name is kept')
+two_pages = page(f'<div class="testimonial"><p>{A}</p><span class="name">Sheila V.</span></div><div class="testimonial"><p>{B}</p><span class="name">Sheila V.</span></div>')
+ok(len(T.pick(two_pages)) == 1, 'slider clones on a page become one')
+
+# a review widget: the reviewer and the time are in front of the words, stars after them, and one owner name sits in every box (the screenshot)
+W = [('Karina Rangel', '5 years ago', "Jenny is simply the best ! She is very professional and attentive. She answers all your questions and works with you to make sure you understand every step of the process. I highly recommend them !"),
+     ('Nancy Aragon', '6 years ago', 'it took a little longer than expected but she cooperated good with us, and made sure we were satisfied with the results, and at the end we got what we wanted and left here happy.'),
+     ('Alena Escalante', '7 years ago', 'Jenny is amazing. She responded super fast. Office as well as Jenny is very organized. They were very detailed during the whole process and it was super easy. I would highly recommend it to everybody.')]
+html = ''.join(f'<div class="review-item"><p>{who} {when} {body} \u2b50\u2b50\u2b50\u2b50\u2b50</p><span class="name">Bee Lopez</span></div>' for who, when, body in W)
+r = T.pick(page(html))
+ok(sorted(x['author'] for x in r) == ['Alena Escalante', 'Karina Rangel', 'Nancy Aragon'], f'the reviewer in front of the words is the author, not the shared owner name ({[x["author"] for x in r]})')
+ok(all('years ago' not in x['text'] and '\u2b50' not in x['text'] and not x['text'].startswith(('Karina', 'Nancy', 'Alena')) for x in r), 'the reviewer, the time and the stars are not part of the words')
+# the same person never twice
+same_person = [{'text': Q1, 'author': 'Maria G.', 'url': 'u'}, {'text': Q2, 'author': 'Maria G.', 'url': 'u'}, {'text': Q3, 'author': 'Lee S.', 'url': 'u'}]
+r = T.pick(same_person)
+ok(len(r) == 2 and sorted(x['author'] for x in r) == ['Lee S.', 'Maria G.'], 'two testimonials from one name: only one is kept')
+three = T.pick([{'text': Q1, 'author': 'Bee Lopez', 'url': 'u'}, {'text': Q2, 'author': 'bee lopez', 'url': 'u'}, {'text': Q3, 'author': 'Bee Lopez', 'url': 'u'}])
+ok(len(three) == 3 and all(x['author'] == '' for x in three), 'one name on three is a shared label: the name is dropped, the words stay')
 
 print(f'testimonials: ok ({n} checks)')

@@ -163,7 +163,7 @@ def bar():
     """the whole bar; once reviews_required.txt says yes it also needs three good Google reviews saved on the firm"""
     import google_reviews, bar
     return (MEETS_BAR + (" AND hours IS NOT NULL" if bar.hours_required() else '')
-            + (" AND (COALESCE(json_array_length(json_extract(data, '$.reviews.items')), 0) >= 3 OR COALESCE(json_array_length(json_extract(data, '$.testimonials')), 0) >= 3)" if google_reviews.required() else '')
+            + (" AND (COALESCE(json_array_length(json_extract(data, '$.reviews.items')), 0) >= 3 OR COALESCE(json_array_length(json_extract(data, '$.testimonials')), 0) >= 2)" if google_reviews.required() else '')
             + f" AND COALESCE(json_extract(data, '$.seo'), 100) >= {bar.seo_min()}")   # firms listed before the score existed have none and pass
 
 def cmd_audit(a):

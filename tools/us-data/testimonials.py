@@ -11,9 +11,10 @@ name-like line next to the quote ("Maria G."); otherwise the page says "A client
 
 These are the firm's own words about itself, not verified by LawDB, and the page says so. They are never marked up as review structured data.
 """
+import difflib
 import re
 
-MIN_CHARS, MAX_CHARS, WANT, KEEP = 60, 500, 3, 5
+MIN_CHARS, MAX_CHARS, WANT, KEEP, ENOUGH = 60, 500, 3, 5, 2   # WANT: keep looking for more until there are three; ENOUGH: two count as proof of good reviews
 LABEL = re.compile(r'testimonial|review|client[-_ ]?(?:say|feedback|stor|quote|love|comment)|kind[-_ ]?words|what[-_ ]?(?:our|people|clients)[-_ ]?say|praise', re.I)
 PAGE_HINT = re.compile(r'testimonial|reviews?\b|client[-_ ]?(?:say|feedback|stor)|what[-_ ]?(?:our[-_ ])?clients', re.I)
 FIRST_PERSON = re.compile(r"\b(?:I|I'm|I've|I'd|I'll|my|me|we|we're|we've|our|us)\b", re.I)
@@ -52,9 +53,22 @@ def quote_text(q):
     return clean(' '.join(keep))
 
 
-def item(text, author, url):
+WIDGET_HEAD = re.compile(r"^\s*([A-Z][A-Za-z'\u2019.-]+(?: [A-Z][A-Za-z'\u2019.-]+){0,3})\s+(?:\d+|an?|one)\s+(?:minute|hour|day|week|month|year)s?\s+ago\b[\s:,.-]*")
+STARS = re.compile(r'[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$')
+
+
+def unwidget(text):
+    """a review widget puts the reviewer and the time in front of the words ("Karina Rangel 5 years ago Jenny is the best ...") and stars after them: returns (reviewer or '', the words alone)"""
     text = clean(text)
-    return {'text': text, 'author': author_ok(author), 'url': url[:300]} if usable(text) else None
+    m = WIDGET_HEAD.match(text)
+    who = ''
+    if m: who, text = m.group(1), text[m.end():]
+    return who, clean(STARS.sub('', text))
+
+
+def item(text, author, url):
+    who, text = unwidget(text)
+    return {'text': text, 'author': author_ok(who) or author_ok(author), 'url': url[:300]} if usable(text) else None
 
 
 def _inside_skipped(el):
@@ -110,18 +124,18 @@ def from_page(soup, url, title=''):
         if quote_el is None:
             ps = [p for p in el.find_all(['p', 'div', 'span']) if MIN_CHARS <= len(clean(p.get_text(' '))) <= MAX_CHARS]
             quote_el = max(ps, key=lambda p: len(clean(p.get_text(' ')))) if ps else el
-        text = quote_text(quote_el)
-        if usable(text): entries.append((el, quote_el, text, True))
+        who, text = unwidget(quote_text(quote_el))
+        if usable(text): entries.append((el, quote_el, text, True, who))
     if PAGE_HINT.search(urlpath(url) + ' ' + title):
         for q in soup.find_all(['blockquote', 'q']):
             if _inside_skipped(q) or any(q is e[1] for e in entries): continue
-            text = quote_text(q)
-            if usable(text): entries.append((q, q, text, False))
+            who, text = unwidget(quote_text(q))
+            if usable(text): entries.append((q, q, text, False, who))
     item_ids = {id(e[1]) for e in entries} | {id(e[0]) for e in entries if e[3]}
     out = []
-    for box, quote_el, text, lab in entries:
+    for box, quote_el, text, lab, who in entries:
         own = {id(quote_el)} | ({id(box)} if lab else set())
-        out.append({'text': text, 'author': _author_near(box, quote_el, own, item_ids, lab), 'url': url[:300]})
+        out.append({'text': text, 'author': author_ok(who) or _author_near(box, quote_el, own, item_ids, lab), 'url': url[:300]})   # a reviewer named in front of the words beats a name found elsewhere in the box
     return out
 
 
@@ -129,19 +143,44 @@ def urlpath(url):
     return re.sub(r'^https?://[^/]+', '', url or '')
 
 
+def _norm(t):
+    return re.sub(r'[^a-z0-9]+', '', (t or '').lower())
+
+
+def same(a, b):
+    """the same testimonial, even when one copy is shorter (a slider's clone, a version cut short, a heading in front): equal, one inside the other, the same opening, or nearly the same text"""
+    na, nb = _norm(a), _norm(b)
+    if not na or not nb: return False
+    if na == nb or na in nb or nb in na: return True
+    k = min(40, len(na), len(nb))
+    if k >= 25 and na[:k] == nb[:k]: return True                      # the same opening words
+    if len(na) >= 25 and len(nb) >= 25 and na[-25:] == nb[-25:]: return True   # the same closing words
+    return difflib.SequenceMatcher(None, na, nb).ratio() >= 0.8
+
+
 def pick(items, n=KEEP):
-    """de-duplicated, best first: named authors first, then lengths that read well (about 120 to 320 characters)"""
+    """de-duplicated (see same()), best first: named authors first, then lengths that read well (about 120 to 320 characters). Of two copies the one with a name, then the longer, is kept."""
+    kept = []
+    for it in sorted(items, key=lambda it: (0 if it['author'] else 1, -len(it['text']))):
+        if any(same(it['text'], k['text']) for k in kept): continue
+        kept.append(it)
+    # the same person never twice: of two testimonials with one name the better is kept. A name on three or more is a label shared by the whole box (an owner or page name), not a reviewer: the name is dropped, the words stay.
+    names = {}
+    for it in kept:
+        if it['author']: names[it['author'].lower()] = names.get(it['author'].lower(), 0) + 1
     seen, out = set(), []
-    for it in items:
-        key = re.sub(r'\W+', '', it['text'].lower())[:80]
-        if key in seen: continue
-        seen.add(key); out.append(it)
+    for it in kept:
+        a = it['author'].lower()
+        if a and names[a] >= 3: out.append({**it, 'author': ''}); continue
+        if a and a in seen: continue
+        if a: seen.add(a)
+        out.append(it)
     out.sort(key=lambda it: (0 if it['author'] else 1, abs(len(it['text']) - 220)))
     return out[:n]
 
 
 def has_enough(items):
-    return len(items or []) >= WANT
+    return len(items or []) >= WANT   # stop looking for more pages when there are three
 
 
 if __name__ == '__main__':
