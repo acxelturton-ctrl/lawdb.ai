@@ -157,6 +157,7 @@ const ROUTES = [
   route('POST', '/api/admin/search/inspect', admin.searchInspect),
   route('GET', '/api/admin/collect', admin.collectGet),
   route('POST', '/api/admin/collect', admin.collectRun),
+  route('POST', '/api/admin/collect/lawyers', admin.collectLawyers),
   route('GET', '/api/admin/news', admin.newsGet),
   route('PATCH', '/api/admin/news', admin.newsSettings),
   route('GET', '/api/admin/firms/:slug/feed', admin.feedGet),

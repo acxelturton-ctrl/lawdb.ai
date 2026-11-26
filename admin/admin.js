@@ -1255,6 +1255,22 @@ async function viewCollect() {
   });
   const runText = (r) => r.status === 'completed' ? (r.conclusion === 'success' ? 'Finished' : r.conclusion === 'cancelled' ? 'Cancelled' : 'Failed') : r.status === 'queued' ? 'Waiting to start' : 'Running';
   const loaded = Object.entries(data.loaded).sort((a, b) => b[1].total - a[1].total);
+  // Lawyers and their photos: reads each live firm's own website for the lawyers it names and their photos. Every photo then waits in the Lawyer photos tab for approval.
+  const lawLimit = h('input', { type: 'number', min: 0, max: 5000, value: 0, id: 'law-limit' });
+  const lawBusy = (data.lawyerRuns || []).some((r) => r.status !== 'completed');
+  const lawGo = h('button', { class: 'primary', type: 'button', disabled: !data.connected || lawBusy }, 'Collect lawyers and photos');
+  lawGo.addEventListener('click', async () => {
+    if (!confirm(`Visit ${Number(lawLimit.value) ? 'the first ' + lawLimit.value : 'every live'} firm's website for its lawyers and their photos? This can take an hour or more. Nothing shows on the site until you approve each photo.`)) return;
+    lawGo.disabled = true;
+    try { await api('POST', '/api/admin/collect/lawyers', { limit: Number(lawLimit.value) }); out.replaceChildren(note('msg-ok', 'Started. It shows below in a few seconds.')); setTimeout(() => render(me), 4000); }
+    catch (err) { out.replaceChildren(note('msg-err', err.message)); lawGo.disabled = false; }
+  });
+  const photoCard = h('div', { class: 'card' }, h('b', null, 'Lawyers and their photos'),
+    h('p', { class: 'muted' }, 'For every live firm we read its own website (politely, one request a second) for the lawyers it names and their photos, and keep up to ten per firm. Running it again only adds new ones. Each photo then waits for your approval in the Lawyer photos tab, and nothing is shown on the site before that.'),
+    h('p', null, `${data.lawyerPhotos?.pending ?? 0} waiting for approval, ${data.lawyerPhotos?.approved ?? 0} approved, ${data.lawyerPhotos?.rejected ?? 0} rejected. `, h('a', { href: '#photos' }, 'Open the Lawyer photos tab')),
+    h('div', { class: 'row' }, h('label', { for: 'law-limit' }, 'Test run: only visit this many firms (0 = every live firm)'), lawLimit),
+    h('div', { class: 'row' }, lawGo, lawBusy && h('span', { class: 'muted' }, 'Lawyers are already being collected.')),
+    (data.lawyerRuns || []).slice(0, 4).map((r) => h('div', { class: 'audit' }, h('div', null, h('b', null, 'Collect lawyers'), ' ', h('span', { class: 'muted' }, `${runText(r)} · ${when(r.startedAt)}`)), h('div', { class: 'row' }, h('a', { href: r.url, target: '_blank', rel: 'noopener' }, 'Open the run on GitHub')))));
   return h('div', null, h('h1', null, 'Collect firms'),
     !data.connected && h('div', { class: 'card' }, h('b', null, 'GitHub is not connected yet.'),
       h('ol', null,
@@ -1266,6 +1282,7 @@ async function viewCollect() {
       h('div', { class: 'row' }, stateBtns),
       h('div', { class: 'row' }, h('label', { for: 'col-target' }, 'Firms per state'), target, h('label', { for: 'col-limit' }, 'Test run: only visit this many (0 = all)'), limit),
       h('div', { class: 'row' }, go, busy && h('span', { class: 'muted' }, 'A collection is already running.')), out),
+    photoCard,
     h('div', { class: 'card' }, h('b', null, 'Recent runs'),
       data.runsError && note('msg-err', data.runsError),
       data.runs.length ? data.runs.map((r) => h('div', { class: 'audit' },

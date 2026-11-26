@@ -1,6 +1,6 @@
 // Checks for the admin "Collect firms" helpers (input rules, GitHub calls). Run: node scripts/test-collect.mjs
 import assert from 'node:assert/strict';
-import { parseCollectInput, startCollect, recentRuns } from '../src/lib/collect.js';
+import { parseCollectInput, startCollect, recentRuns, parseLawyersInput, startLawyers, lawyerRuns } from '../src/lib/collect.js';
 
 const fails = (fn, status) => { try { fn(); } catch (e) { assert.equal(e.status, status); return; } assert.fail('should have thrown'); };
 
@@ -33,4 +33,20 @@ assert.equal(calls.some((c) => c.init?.method === 'POST'), false, 'no second run
 await assert.rejects(() => recentRuns({}), (e) => e.status === 503);
 globalThis.fetch = async () => new Response('{}', { status: 404 });
 await assert.rejects(() => recentRuns(env), (e) => e.status === 502);
+// ---- lawyers and their photos
+assert.deepEqual(parseLawyersInput({}), { limit: 0 }, 'no number means every live firm');
+assert.deepEqual(parseLawyersInput({ limit: '25' }), { limit: 25 }, 'a test run');
+for (const bad of [-1, 1.5, 5001, 'abc']) assert.throws(() => parseLawyersInput({ limit: bad }), (e) => e.status === 422, `refused: ${bad}`);
+calls.length = 0;
+globalThis.fetch = respond([{ id: 3, status: 'completed', conclusion: 'success' }]);
+await startLawyers(env, { limit: 0 });
+const lpost = calls.find((c) => c.init?.method === 'POST');
+assert.ok(lpost.url.includes('/actions/workflows/lawyers.yml/dispatches'), 'it starts the lawyers workflow');
+assert.deepEqual(JSON.parse(lpost.init.body), { ref: 'main', inputs: { limit: '0', load: 'yes' } }, 'always loaded: every photo waits for approval');
+calls.length = 0;
+globalThis.fetch = respond([{ id: 4, status: 'in_progress', conclusion: null }]);
+await assert.rejects(() => startLawyers(env, { limit: 0 }), (e) => e.status === 409, 'not while another run is going');
+assert.equal(calls.some((c) => c.init?.method === 'POST'), false);
+assert.ok(typeof lawyerRuns === 'function');
+
 console.log('collect: ok');
