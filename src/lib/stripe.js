@@ -5,6 +5,7 @@
 // - When the subscription ends the firm goes back to Basic, unless it was already Featured before it paid (set by hand).
 
 import { audit } from './audit.js';
+import { creditFromCheckout } from './marketplace.js';
 import { adminEmails } from './auth.js';
 import { syncLocationFeatured, mainOf } from './locations.js';
 import { mailInBackground, featuredOnEmail, featuredOffEmail, paymentReviewEmail, paymentFailedEmail } from './email.js';
@@ -156,7 +157,10 @@ export async function handleStripeEvent(env, event, exec, origin) {
   const obj = event.data?.object;
   if (!obj) return;
   switch (event.type) {
-    case 'checkout.session.completed': return onCheckoutCompleted(env, obj, exec, origin);
+    case 'checkout.session.completed':
+      // A Marketplace credit top-up (a payment link opened with client_reference_id mp_<firm>) credits the firm's balance; everything else is a Featured subscription.
+      if (String(obj.client_reference_id || '').startsWith('mp_')) return creditFromCheckout(env, obj);
+      return onCheckoutCompleted(env, obj, exec, origin);
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':

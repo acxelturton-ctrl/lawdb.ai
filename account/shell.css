@@ -146,3 +146,7 @@ body.lw-auth .site-footer{ margin-top:0; }
   .auth-hero-art{ flex:1 1 100%; }
   .auth-card{ padding:22px 18px; }
 }
+
+/* Marketplace: contact details a firm paid to see */
+.ml-details { border-left: 3px solid #c9a050; padding: 2px 12px; margin: 8px 0; background: #fffdf8; }
+.ml-details p { margin: 4px 0; overflow-wrap: anywhere; }
