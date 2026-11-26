@@ -1,5 +1,5 @@
 import { json, cached, clampInt, HttpError, isEmail } from '../lib/http.js';
-import { mailInBackground, leadEmail, reportEmail, marketplaceWaitlistEmail, marketplaceWaitlistAdminEmail } from '../lib/email.js';
+import { mailInBackground, leadEmail, leadAdminCopyEmail, reportEmail, marketplaceWaitlistEmail, marketplaceWaitlistAdminEmail } from '../lib/email.js';
 import { sha256Hex } from '../lib/crypto.js';
 import { adminEmails } from '../lib/auth.js';
 import { PRACTICE } from '../lib/practice.js';
@@ -50,6 +50,7 @@ export async function listBlog({ url, env }) {
 const LIMITS = { name: 200, phone: 50, message: 5000, page: 300, field: 2000, fields: 40 };
 const MAX_LEAD_EMAILS_PER_FIRM_HOUR = 20;
 const MAX_LEADS_PER_IP_HOUR = 15;
+const MAX_ADMIN_COPIES_PER_HOUR = 30;
 const RESERVED = new Set(['access_key', 'botcheck', 'name', 'email', 'phone', 'message', 'form', 'page']);
 
 export async function createLead({ request, env, url, exec }) {
@@ -118,6 +119,7 @@ export async function createLead({ request, env, url, exec }) {
     return json({ ok: true }, 201);
   }
 
+  let ownersNotified = 0;
   // Tell the firm's approved owners right away. Capped per firm per hour so a flood of fake
   // inquiries cannot turn into a flood of email (every inquiry is still saved and shown in the dashboard).
   if (firm) {
@@ -130,6 +132,14 @@ export async function createLead({ request, env, url, exec }) {
     if (to.length && sent.n <= MAX_LEAD_EMAILS_PER_FIRM_HOUR) {
       mailInBackground(env, exec, { to, ...leadEmail(env.SITE_ORIGIN || url.origin, firm.name, { name, email, phone, message }) });
     }
+    ownersNotified = to.length && sent.n <= MAX_LEAD_EMAILS_PER_FIRM_HOUR ? to.length : 0;
+  }
+
+  // A copy for the site's admin(s), whatever the form: nothing a visitor sends is only in the database. Capped per hour so a flood cannot become a flood of email.
+  const admins = [...adminEmails(env)];
+  if (admins.length) {
+    const copies = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE created_at > datetime('now','-1 hour')").first();
+    if (copies.n <= MAX_ADMIN_COPIES_PER_HOUR) mailInBackground(env, exec, { to: admins, ...leadAdminCopyEmail(env.SITE_ORIGIN || url.origin, { form, firmName: firm ? firm.name : '', firmSlug: firm ? firm.slug : '', ownersNotified, name, email, phone, message }) });
   }
 
   return json({ ok: true }, 201);

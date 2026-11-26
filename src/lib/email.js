@@ -169,6 +169,17 @@ export function marketplaceWaitlistAdminEmail(origin, { name, email, firm, state
   };
 }
 
+// A copy of every form submission for the site's admin(s): the form, the firm it was for (if any), who was told, and what was sent. The admin Leads tab has the same entries.
+export function leadAdminCopyEmail(origin, { form, firmName, firmSlug, ownersNotified, name, email, phone, message }) {
+  const link = `${origin}/admin/#leads`;
+  const lines = [['Form', form], ['Firm', firmName ? `${firmName} (${origin}/firms/${firmSlug})` : null], ['Firm owners emailed', firmName ? (ownersNotified ? String(ownersNotified) : 'none: nobody manages this firm yet') : null], ['Name', name], ['Email', email], ['Phone', phone], ['Message', message]].filter(([, v]) => v);
+  return {
+    subject: `New ${form === 'firm-profile' ? 'inquiry' : form + ' form'}${firmName ? ` for ${firmName}` : ''}`,
+    text: `${lines.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nAll entries: ${link}`,
+    html: `<table cellpadding="4" style="border-collapse:collapse">${lines.map(([k, v]) => `<tr><td style="color:#586170;vertical-align:top">${esc(k)}</td><td>${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}</table>${button(link, 'Open the Leads list')}`,
+  };
+}
+
 export function reportEmail(origin, { slug, reason, name, email, message }) {
   const link = `${origin}/admin/#leads`;
   const firm = slug ? `${origin}/firms/${slug}` : '(no firm given)';
