@@ -49,8 +49,8 @@ def extras_points(e):
 
 
 def has_reviews(google_items, testimonials):
-    """the firm has at least three good Google reviews, or three testimonials on its own website: either counts for the score (and for reviews_required.txt, if it is switched on)"""
-    return len(google_items or []) >= 3 or len(testimonials or []) >= 3
+    """the firm has at least three good Google reviews, or at least two testimonials on its own website (a firm shows what it has: one or two are shown too, only two or more count for the score and for reviews_required.txt)"""
+    return len(google_items or []) >= 3 or len(testimonials or []) >= 2
 
 
 def seo_score(areas, about_words, facts, lawyers, has_hours, has_social, has_recognition, has_reviews, extras=0):

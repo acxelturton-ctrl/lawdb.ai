@@ -77,7 +77,41 @@ export function reviewsHtml(f, now = Date.now()) {
 // Testimonials the firm posts on its own website (tools/us-data/testimonials.py read them while crawling the site), quoted as written, with the firm named as the source and a link to
 // the page they are on. They are the firm's own words about itself, so the page says LawDB has not verified them, and they are never marked up as review structured data.
 export function testimonialsHtml(f) {
-  const t = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string' && x.text.length >= 40) : [];
+  // What the crawler saved is cleaned again here, so anything saved earlier shows correctly too: a review widget's reviewer and time in front of the words ("Karina Rangel 5 years ago ...")
+  // and its stars after them are taken off (the reviewer becomes the name), the same testimonial saved twice shows once, and the same person never shows twice.
+  const WIDGET = /^\s*([A-Z][A-Za-z'\u2019.-]+(?: [A-Z][A-Za-z'\u2019.-]+){0,3})\s+(?:\d+|an?|one)\s+(?:minute|hour|day|week|month|year)s?\s+ago\b[\s:,.-]*/;
+  const tidy = (x) => {
+    let text = x.text.replace(/\s+/g, ' ').trim(), author = typeof x.author === 'string' ? x.author.trim() : '';
+    const m = text.match(WIDGET);
+    if (m) { author = m[1]; text = text.slice(m[0].length); }
+    return { ...x, text: text.replace(/[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$/u, '').trim(), author };
+  };
+  const all = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string').map(tidy).filter((x) => x.text.length >= 40) : [];
+  const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const words = (x) => new Set(x.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+  const same = (a, b) => {
+    const na = norm(a), nb = norm(b);
+    if (!na || !nb) return false;
+    if (na === nb || na.includes(nb) || nb.includes(na)) return true;
+    const k = Math.min(40, na.length, nb.length);
+    if (k >= 25 && na.slice(0, k) === nb.slice(0, k)) return true;
+    if (na.length >= 25 && nb.length >= 25 && na.slice(-25) === nb.slice(-25)) return true;
+    const wa = words(a), wb = words(b);
+    let both = 0; for (const w of wa) if (wb.has(w)) both++;
+    return both / (wa.size + wb.size - both) >= 0.75;
+  };
+  const uniq = [];
+  for (const x of [...all].sort((a, b) => (b.author ? 1 : 0) - (a.author ? 1 : 0) || b.text.length - a.text.length)) if (!uniq.some((k) => same(k.text, x.text))) uniq.push(x);
+  const count = {};
+  for (const x of uniq) if (x.author) count[x.author.toLowerCase()] = (count[x.author.toLowerCase()] || 0) + 1;
+  const seenName = new Set(), t = [];
+  for (const x of uniq) {   // one name on three or more is a label shared by the whole box, not a reviewer: the name goes, the words stay
+    const k = x.author.toLowerCase();
+    if (k && count[k] >= 3) { t.push({ ...x, author: '' }); continue; }
+    if (k && seenName.has(k)) continue;   // the same person is never shown twice
+    if (k) seenName.add(k);
+    t.push(x);
+  }
   if (!t.length) return '';
   const shown = t.slice(0, 3);
   const cards = shown.map((x) => `<figure class="pf-rv pf-tm"><blockquote>${esc(x.text)}</blockquote><figcaption>${x.author ? esc(x.author) : 'A client of the firm'}</figcaption></figure>`).join('');
