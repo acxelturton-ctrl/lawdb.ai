@@ -1,0 +1,34 @@
+name: Explore candidate sources
+run-name: "Explore candidate sources (how many US law firms can we find?)"
+# Read-only. Prints how many law-firm candidates exist in each open source, so we know where the next thousands of firms can come from.
+# Nothing is written to the database.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install duckdb requests beautifulsoup4 lxml Pillow
+      - name: Overture Maps, whole United States (the real ceiling of the source we already use)
+        continue-on-error: true
+        run: python3 tools/us-data/pull_overture.py ALL --target 100000 --min-conf 0.0 2>&1 | tail -70
+      - name: Web Data Commons (schema.org data extracted from Common Crawl)
+        continue-on-error: true
+        run: |
+          for u in https://webdatacommons.org/structureddata/ https://webdatacommons.org/structureddata/schemaorgtables/ https://webdatacommons.org/structureddata/2024-12/stats/schema_org_subsets.html https://webdatacommons.org/structureddata/#toc3; do
+            echo "=== $u"; curl -sL -m 60 -A 'LawDBBot/1.0 (+https://lawdb.ai)' "$u" | grep -oiE 'href="[^"]+"' | grep -iE 'attorney|legalservice|localbusiness|lawyer|schema_?org|table' | sort -u | head -40
+          done
+      - name: Common Crawl index and Foursquare open places
+        continue-on-error: true
+        run: |
+          echo "=== Common Crawl collections"; curl -sL -m 60 https://index.commoncrawl.org/collinfo.json | head -c 600; echo
+          echo "=== Foursquare open source places (Hugging Face)"; curl -sL -m 60 https://huggingface.co/api/datasets/foursquare/fsq-os-places | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id'), d.get('license'), d.get('lastModified')); print([s['rfilename'] for s in d.get('siblings',[])][:15])"

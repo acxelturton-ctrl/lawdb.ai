@@ -13,7 +13,10 @@ ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.s
 UA = 'LawDBBot/1.0 (+https://lawdb.ai)'
 
 def query(st):
-    return f'[out:json][timeout:240];area["ISO3166-2"="US-{st}"][admin_level=4]->.a;(nwr["office"="lawyer"](area.a);nwr["amenity"="lawyer"](area.a););out center tags;'
+    # Also anything with a website whose name says it is a law practice (many are tagged office=yes or have no office tag at all)
+    name_rx = r'(^| )(Law|Attorneys?|Lawyers?|Legal|Esq\.?)( |$|,|\.)'
+    return (f'[out:json][timeout:240];area["ISO3166-2"="US-{st}"][admin_level=4]->.a;(nwr["office"="lawyer"](area.a);nwr["amenity"="lawyer"](area.a);'
+            f'nwr["name"~"{name_rx}",i]["website"](area.a);nwr["name"~"{name_rx}",i]["contact:website"](area.a););out center tags;')
 
 def osm_to_raw(elements, st):
     """Overpass elements -> rows shaped like the Overture query result, so the same cleaning applies"""
