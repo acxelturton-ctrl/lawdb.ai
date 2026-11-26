@@ -6,6 +6,7 @@ Disallow: /api/
 Disallow: /email-previews/
 
 Sitemap: https://lawdb.ai/sitemap.xml
+Sitemap: https://lawdb.ai/sitemap-pages.xml
 Sitemap: https://lawdb.ai/sitemap-news.xml
 Sitemap: https://lawdb.ai/sitemap-firms.xml
 Sitemap: https://lawdb.ai/sitemap-lawyers.xml

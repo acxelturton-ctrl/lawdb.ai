@@ -22,10 +22,10 @@
       "/*/", "/*/*/"
     ]
   },
-  // The site will live at lawdb.ai (a custom domain added in the dashboard). Until then the free *.workers.dev address and the per-version
-  // preview addresses are ON so the site can be looked at. Once lawdb.ai is connected, set both to false (and keep them false).
-  "workers_dev": true,
-  "preview_urls": true,
+  // The site lives at lawdb.ai (a custom domain added in the Cloudflare dashboard). The free *.workers.dev address and the per-version preview
+  // addresses are OFF so there is one public address and no duplicate copy of the site for search engines to find.
+  "workers_dev": false,
+  "preview_urls": false,
   // Keep anything added by hand in the dashboard (e.g. a "Text" variable) when this config is deployed.
   "keep_vars": true,
   // Non-secret settings. Secrets (BREVO_API_KEY, ADMIN_EMAILS) are set in the Cloudflare dashboard:

@@ -70,7 +70,7 @@ Lawyers are a listing of their own, apart from law firms. A lawyer on the Lawyer
 Rules that keep it safe to scale: a firm needs a website and a US address to be imported; pages with no real description stay `noindex` until they have one (thin-page guard); states are rolled out in waves, and the sitemaps only list indexable pages.
 
 ## Deploy
-Pushes to `main` build and deploy through Cloudflare Workers Builds. Until lawdb.ai is connected the site is on its `workers.dev` address and is marked `noindex` (see `_headers`).
+Pushes to `main` build and deploy through Cloudflare Workers Builds. The site is on lawdb.ai; the `workers.dev` address and preview URLs are switched off, and `_headers` marks any `workers.dev` host `noindex` as a safety net. `sitemap.xml` is an index of `sitemap-pages.xml` (static pages), `sitemap-firms.xml`, `sitemap-lawyers.xml` and `sitemap-news.xml`.
 
 ## Google reviews
 
