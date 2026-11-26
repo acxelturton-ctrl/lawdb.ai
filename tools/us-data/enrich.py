@@ -13,6 +13,7 @@ import argparse, csv, json, os, random, re, sys, time, urllib.parse, urllib.robo
 import requests
 from bs4 import BeautifulSoup
 import opening_hours as OH
+import bar as BAR
 
 UA = 'LawDBBot/1.0 (+https://lawdb.ai/bot; info@lawdb.ai)'
 MAX_BYTES = 1_500_000
@@ -195,6 +196,7 @@ def enrich(row):
     soups = {}; queue = [final_url]; seen = set()
     emails, socials, logos, feeds = {}, {}, [], []
     texts, nav_text = [], []; ld_objs = []; imgs = []; pages_text = []; page_hours = None
+    directories = {}; booking = ''; contact_form = False
     host = urllib.parse.urlparse(final_url).hostname or ''
     pages = 0
     cache = {final_url: data}
@@ -208,6 +210,7 @@ def enrich(row):
         try: soup = BeautifulSoup(raw, 'lxml')
         except Exception: continue
         ld_objs += jsonld(soup)
+        if not contact_form and any(f.find('textarea') for f in soup.find_all('form')): contact_form = True
         imgs += [(u, h, 'home' if u2 == final_url else 'inner') for u, h in image_candidates(soup, u2)]
         # links
         for a in soup.find_all('a', href=True):
@@ -217,6 +220,10 @@ def enrich(row):
                 if re.fullmatch(r'[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}', e) and not BAD_EMAIL.search(e): emails[e] = emails.get(e, 0) + 3
                 continue
             full = urllib.parse.urljoin(u2, h)
+            hh = (urllib.parse.urlparse(full).hostname or '').lower().replace('www.', '')
+            for dh, dn in BAR.DIRECTORIES.items():   # a link to the firm's profile on a legal directory (not the directory's home page)
+                if (hh == dh or hh.endswith('.' + dh)) and len(urllib.parse.urlparse(full).path.strip('/')) > 3 and dn not in directories: directories[dn] = full.split('#')[0][:300]
+            if not booking and re.search(BAR.BOOKING_HOSTS, hh): booking = full.split('#')[0][:300]
             for net in SOCIAL:
                 c = clean_social(net, full)
                 if c and net not in socials: socials[net] = c
@@ -282,6 +289,7 @@ def enrich(row):
     res['people_ld'] = people_ld[:20]
     res['hours'] = OH.from_jsonld(ld_objs) or page_hours   # {"1": [["09:00","17:00"]], ...} or None
     res['pages_text'] = pages_text
+    res['directories'] = [{'name': k, 'url': v} for k, v in directories.items()]; res['booking'] = booking; res['contact_form'] = contact_form
     res['nav_labels'] = [x[:80] for x in nav_text][:80]
     # schema.org
     for o in ld_objs:

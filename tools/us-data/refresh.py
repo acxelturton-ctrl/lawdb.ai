@@ -118,13 +118,14 @@ def cmd_build(a):
             path = []
             if pr: path += ["'$.press'", f'json({q(json.dumps(pr, ensure_ascii=False))})']
             if facts.get('awards'): path += ["'$.awards'", f'json({q(json.dumps(facts["awards"], ensure_ascii=False))})']
+            if reach and e.get('directories'): path += ["'$.directories'", f'json({q(json.dumps(e["directories"], ensure_ascii=False))})']
             lawyers = lawyer_list(facts, e or {})
             expr = 'data'
             if lawyers: expr = f"json_patch({expr}, json({q(json.dumps({'details': {'lawyers': lawyers}}, ensure_ascii=False))}))"   # the named lawyers, merged into data.details
             if path: expr = f"json_set({expr}, " + ', '.join(path) + ')'
             has_lawyers = bool(lawyers)
             has_hours = bool((reach and e.get('hours')) or r.get('hours'))
-            seo = bar.seo_score(len(areas), len(new.split()), count_facts(facts, pr), len(lawyers), has_hours, bool(rec.get('social')), bool(pr or facts.get('awards')), len((rec.get('reviews') or {}).get('items') or []) >= 3)
+            seo = bar.seo_score(len(areas), len(new.split()), count_facts(facts, pr), len(lawyers), has_hours, bool(rec.get('social')), bool(pr or facts.get('awards')), len((rec.get('reviews') or {}).get('items') or []) >= 3, bar.extras_points(e if reach else None))
             expr = f"json_set({expr}, '$.seo', {seo})"   # the SEO score, saved on the firm
             sets.append(f'data = {expr}')
             if reach and e.get('hours'): sets.append(f"hours = COALESCE(hours, {q(json.dumps(e['hours'], separators=(',', ':')))})")
