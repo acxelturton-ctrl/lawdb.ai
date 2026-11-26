@@ -21,6 +21,9 @@ jobs:
       - name: Overture Maps, whole United States (the real ceiling of the source we already use)
         continue-on-error: true
         run: python3 tools/us-data/pull_overture.py ALL --target 100000 --min-conf 0.0 2>&1 | tail -70
+      - name: Overture region values (why only about 7,000 of 314,561 rows matched a state)
+        continue-on-error: true
+        run: python3 tools/us-data/overture_regions.py 2>&1 | tail -40
       - name: Web Data Commons (schema.org data extracted from Common Crawl)
         continue-on-error: true
         run: |
