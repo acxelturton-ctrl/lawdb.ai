@@ -189,6 +189,21 @@
       return html;
     }
 
+    /* the firms that match what is typed, for a live preview next to the search box (opt.onLive is called after every keystroke; opt.api.live(raw) gives the same answer on demand) */
+    function live(raw){
+      if(!firms) return null;
+      var p=parse(raw||''), l, title='', st=function(v){ return PROV_NAME[v]||v; };
+      if(!p.q){ l=firms.slice().sort(rank); return {list:l.slice(0,3),total:l.length,title:'LawDB',idle:true}; }
+      var inC=function(f){ return p.city&&inCity(f,p.city); }, hasK=function(f){ return p.kase&&hasCase(f,p.kase); }, inS=function(f){ return p.prov&&f.state===p.prov; };
+      if(p.kase&&p.city){ l=firms.filter(function(f){ return inC(f)&&hasK(f); }); title=BYID[p.kase].label+' in '+p.city.c; if(!l.length){ l=firms.filter(inC); title=p.city.c; } }
+      else if(p.kase&&p.prov){ l=firms.filter(function(f){ return inS(f)&&hasK(f); }); title=BYID[p.kase].label+' in '+st(p.prov); }
+      else if(p.kase){ l=firms.filter(hasK); title=BYID[p.kase].label; }
+      else if(p.city){ l=firms.filter(inC); title=p.city.c; }
+      else if(p.prov){ l=firms.filter(inS); title=st(p.prov); }
+      else { var n=p.q; l=n.length>=3?firms.filter(function(f){ return norm(f.name).indexOf(n)!==-1; }):[]; title='"'+raw.trim()+'"'; }
+      l=l.slice().sort(rank);
+      return {list:l.slice(0,3),total:l.length,title:title};
+    }
     /* ---------- open / close / paint ---------- */
     function sync(){ if(field) field.classList.toggle('has-val',!!input.value); }
     function close(){ box.classList.remove('open'); input.setAttribute('aria-expanded','false'); input.removeAttribute('aria-activedescendant'); active=-1; }
@@ -200,7 +215,7 @@
     function render(){
       sync();
       var raw=input.value.trim(), my=++seq;
-      load().then(function(){ if(my!==seq) return; paint(build(raw)); }).catch(function(){ close(); });
+      load().then(function(){ if(my!==seq) return; paint(build(raw)); if(opt.onLive) opt.onLive(live(raw),raw); }).catch(function(){ close(); });
       // the towns can arrive before the firm list does: draw only once both are here
       if(raw.length>=3&&!placesOK) Promise.all([load(),loadPlaces()]).then(function(){ if(placesOK&&my===seq&&document.activeElement===input) paint(build(raw)); }).catch(function(){});
     }
@@ -276,7 +291,7 @@
       clearBtn.addEventListener('click',function(){ input.value=''; input.focus(); input.dispatchEvent(new Event('input',{bubbles:true})); });
     }
     sync();
-    opt.api={ load:load, close:close, render:render, setVal:fill };
+    opt.api={ load:load, close:close, render:render, setVal:fill, live:live };
     return opt.api;
   };
 })();
