@@ -71,7 +71,7 @@ def cmd_export(a):
     sts = ','.join("'" + s + "'" for s in a.states.split())
     only = ' AND ' + STALE if a.stale else ''   # --stale: only firms whose description still has the old wording
     if a.hidden: only += " AND status = 'hidden'"   # --hidden: only firms not listed now (they are listed if they meet the bar today)
-    rows = d1(f"SELECT slug, name, city, state, status, about, data FROM firms WHERE state IN ({sts}){only} ORDER BY slug", json_out=True)[0]['results']
+    rows = d1(f"SELECT slug, name, city, state, status, about, hours, data FROM firms WHERE state IN ({sts}){only} ORDER BY slug", json_out=True)[0]['results']
     if a.limit: random.Random(1).shuffle(rows); rows = rows[:a.limit]
     os.makedirs(D, exist_ok=True)
     json.dump(rows, open(os.path.join(D, 'firms.json'), 'w'))
