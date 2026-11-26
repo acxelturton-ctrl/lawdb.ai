@@ -44,6 +44,18 @@ export async function viewMarketplaceAdmin() {
   }
   await loadHeld();
 
+  // ---- reports of bad inquiries (a firm asked for its credit back)
+  const reportBox = h('div', null);
+  async function loadReports() {
+    const { reports } = await api('GET', '/api/admin/marketplace/reports?status=open');
+    const decide = async (id, action, noteIn) => { try { await api('PATCH', `/api/admin/marketplace/reports/${id}`, { action, note: noteIn.value }); await reload(); } catch (err) { say('msg-err', err.message); } };
+    reportBox.replaceChildren(...(reports.length ? reports.map((r) => { const noteIn = h('input', { type: 'text', maxlength: 300, placeholder: 'Note (optional)' }); return h('div', { class: 'card' },
+      h('b', null, `${r.firmName || r.firm}: ${r.practiceLabel}, ${r.city}, ${r.state}`), h('p', { class: 'muted' }, `Unlocked ${when(r.unlockedAt)} for ${money(r.paidCents)} · reported ${when(r.reportedAt)}`),
+      h('p', null, h('b', null, r.reasonText), r.detail ? `: ${r.detail}` : ''), h('p', null, `${r.details.name} · ${r.details.email}${r.details.phone ? ' · ' + r.details.phone : ''}`), h('p', null, r.details.description),
+      h('div', { class: 'row' }, noteIn, h('button', { type: 'button', class: 'primary', onclick: () => decide(r.id, 'approve', noteIn) }, `Refund ${money(r.paidCents)}`), h('button', { type: 'button', onclick: () => decide(r.id, 'deny', noteIn) }, 'No refund'))); }) : [note('muted', 'No reports waiting.')]));
+  }
+  await loadReports();
+
   // ---- prices and settings
   const priceInputs = Object.entries(o.areas).map(([k, label]) => { const i = h('input', { type: 'number', min: 0, max: 1000, step: 1, value: Math.round(o.prices[k] / 100), style: 'width:90px' }); return { k, i, el: h('label', null, `${label} $`, i) }; });
   const headIn = h('input', { type: 'number', min: 0, max: 180, value: o.headStartMinutes, style: 'width:80px' });
@@ -71,6 +83,6 @@ export async function viewMarketplaceAdmin() {
     o.accounts.length ? h('table', { class: 'tbl' }, h('thead', null, h('tr', null, ['Firm', 'Credit', 'Practice areas', 'States'].map((t) => h('th', null, t)))),
       h('tbody', null, o.accounts.map((a) => h('tr', null, h('td', null, h('a', { href: `/firms/${a.slug}`, target: '_blank', rel: 'noopener' }, a.name)), h('td', null, money(a.balanceCents)), h('td', null, a.practiceAreas.map((k) => o.areas[k]).join(', ')), h('td', null, a.states.join(', ')))))) : note('muted', 'No firm has opened the Marketplace yet.'));
 
-  root.append(h('h1', null, 'Marketplace'), msg, switchCard, numbers, h('div', { class: 'card' }, h('h2', null, `Waiting for your review (${o.counts.held})`), heldBox), settings, tools, accounts);
+  root.append(h('h1', null, 'Marketplace'), msg, switchCard, numbers, h('div', { class: 'card' }, h('h2', null, `Waiting for your review (${o.counts.held})`), heldBox), h('div', { class: 'card' }, h('h2', null, 'Bad-inquiry reports'), h('p', { class: 'muted' }, 'Refund only for something clearly junk: a disconnected number, spam or a fake. Never because the person did not hire the firm.'), reportBox), settings, tools, accounts);
   return root;
 }

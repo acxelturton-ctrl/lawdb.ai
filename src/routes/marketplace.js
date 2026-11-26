@@ -9,6 +9,8 @@ import { requireUser, requireAdmin } from '../lib/auth.js';
 import { audit } from '../lib/audit.js';
 import { STATES } from '../lib/us.js';
 import * as mp from '../lib/marketplace.js';
+import { adminEmails } from '../lib/auth.js';
+import { mailInBackground, esc } from '../lib/email.js';
 
 const reply = (body, status = 200) => json(body, status, NO_STORE);
 
@@ -40,7 +42,7 @@ export async function firmGet({ request, env, params }) {
   const base = { open: await mp.isLive(env), access, areas: mp.AREAS, states: STATES, consent: null };
   if (!access.verified) return reply({ ...base, message: 'The Marketplace is for verified firms. Ask for verification from your firm page, and it opens as soon as LawDB approves it.' });
   const account = mp.accountView(await mp.ensureAccount(env, params.slug));
-  return reply({ ...base, account, topups: mp.topupOptions(env, params.slug, user.email), decay: mp.DECAY });
+  return reply({ ...base, account, matching: await mp.matchingCount(env, params.slug), topups: mp.topupOptions(env, params.slug, user.email), decay: mp.DECAY, reportReasons: mp.REPORT_REASONS, reportHours: mp.REPORT_HOURS });
 }
 
 export async function firmSave({ request, env, params }) {
@@ -66,6 +68,17 @@ export async function firmUnlocked({ request, env, params }) {
   await owner(env, request, params.slug);
   if (!(await mp.marketplaceAccess(env, params.slug)).verified) throw new HttpError(403, 'Your firm must be verified first.');
   return reply({ leads: await mp.unlockedFor(env, params.slug) });
+}
+
+export async function firmReport({ request, env, params, url, exec }) {
+  const user = await owner(env, request, params.slug);
+  const id = clampInt(params.id, 0, 0, 1e12);
+  if (!id) throw new HttpError(404, 'Inquiry not found');
+  const body = await readJson(request, 1500);
+  const r = await mp.reportLead(env, params.slug, user.id, id, body);
+  const to = [...adminEmails(env)];
+  if (to.length) mailInBackground(env, exec, { to, subject: 'A firm reported a Marketplace inquiry', text: `${params.slug} reported inquiry #${id} (${body.reason}). Decide it in Admin, then Marketplace: ${(env.SITE_ORIGIN || url.origin)}/admin/#marketplace`, html: `<p><b>${esc(params.slug)}</b> reported inquiry #${id} (${esc(body.reason)}).</p><p>Decide it in Admin, then Marketplace.</p>` });
+  return reply({ ok: true, id: r.id }, 201);
 }
 
 export async function firmLedger({ request, env, params }) {
@@ -132,4 +145,15 @@ export async function adminSettings({ request, env }) {
   }
   await audit(env, admin, 'marketplace.settings', 'site', 'marketplace', changed);
   return reply({ ok: true, changed });
+}
+
+export async function adminReports({ request, env, url }) {
+  await requireAdmin(env, request);
+  return reply({ reports: await mp.adminReports(env, url.searchParams.get('status') || 'open') });
+}
+
+export async function adminResolve({ request, env, params }) {
+  const admin = await requireAdmin(env, request);
+  const body = await readJson(request, 600);
+  return reply(await mp.resolveReport(env, admin, clampInt(params.id, 0, 0, 1e12), body.action, body.note));
 }

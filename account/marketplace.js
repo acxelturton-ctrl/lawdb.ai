@@ -34,6 +34,7 @@ export async function viewMarketplace({ mine, slug }) {
     !info.open && note('muted', 'The Marketplace is not open to the public yet, so no real inquiries appear. A sample inquiry may show so you can try it out.'),
     h('div', { class: 'card' }, h('div', { class: 'row spread' }, h('span', null, 'Your credit: ', balanceEl), info.access.featured ? h('span', { class: 'badge featured' }, 'Featured: first look at new inquiries') : h('span', { class: 'badge' }, 'New inquiries reach you a little after Featured firms')), topups,
       h('p', { class: 'muted' }, `Unlocking an inquiry is a flat advertising fee, shown before you pay. It is the same whether or not the person hires you. Inquiries cost full price for ${info.decay.fullHours} hours, then ${Math.round((1 - info.decay.discount) * 100)}% less until day ${info.decay.expireDays}, then they expire.`)),
+    info.matching > 0 && note('msg-ok', `${info.matching} open ${info.matching === 1 ? 'inquiry matches' : 'inquiries match'} your firm right now.`),
     msg);
 
   // ---- what you want to see
@@ -96,6 +97,18 @@ export async function viewMarketplace({ mine, slug }) {
   const detailsView = (d) => h('div', { class: 'ml-details' },
     h('p', null, h('b', null, 'Name: '), d.name), h('p', null, h('b', null, 'Email: '), h('a', { href: `mailto:${d.email}` }, d.email)), d.phone && h('p', null, h('b', null, 'Phone: '), h('a', { href: `tel:${d.phone}` }, d.phone)),
     h('p', null, h('b', null, 'Their words: '), d.description));
+  // A report within the window, only for something clearly junk. The credit comes back after an admin approves it.
+  function reportBox(l) {
+    const out = h('div', null);
+    const reason = h('select', null, h('option', { value: '' }, 'Report a problem…'), Object.entries(info.reportReasons).map(([k, t]) => h('option', { value: k }, t)));
+    const detail = h('input', { type: 'text', maxlength: 500, placeholder: 'Anything we should know (optional)' });
+    const go = h('button', { type: 'button', onclick: async () => {
+      if (!reason.value) return out.replaceChildren(note('msg-err', 'Please choose a reason.'));
+      go.disabled = true;
+      try { await api('POST', `${base}/leads/${l.id}/report`, { reason: reason.value, detail: detail.value }); out.replaceChildren(note('msg-ok', 'Thank you. We will review it and return the credit if it is clearly not a real inquiry.')); } catch (err) { go.disabled = false; out.replaceChildren(note('msg-err', err.message)); }
+    } }, 'Send report');
+    return h('div', null, h('p', { class: 'muted' }, `You can report an inquiry within ${info.reportHours} hours of unlocking it, only if it is clearly junk. A refund never depends on whether the person hires you.`), h('div', { class: 'row' }, reason, detail, go), out);
+  }
   const history = h('div', { class: 'card' }, h('h2', null, 'Your history'));
   const histBody = h('div', null);
   history.append(h('div', { class: 'row' }, h('button', { type: 'button', onclick: () => showUnlocked() }, 'Unlocked inquiries'), h('button', { type: 'button', onclick: () => showLedger() }, 'Credit history')), histBody);
@@ -103,7 +116,8 @@ export async function viewMarketplace({ mine, slug }) {
   async function showUnlocked() {
     try {
       const { leads } = await api('GET', `${base}/unlocked`);
-      histBody.replaceChildren(...(leads.length ? leads.map((l) => h('div', { class: 'card' }, h('b', null, `${l.practiceLabel}: ${l.city}, ${l.state}`), h('p', { class: 'muted' }, `${l.urgency} · unlocked ${when(l.unlockedAt)} for ${money(l.paidCents)}`), detailsView(l))) : [note('muted', 'You have not unlocked any inquiries yet.')]));
+      histBody.replaceChildren(...(leads.length ? leads.map((l) => h('div', { class: 'card' }, h('b', null, `${l.practiceLabel}: ${l.city}, ${l.state}`), h('p', { class: 'muted' }, `${l.urgency} · unlocked ${when(l.unlockedAt)} for ${money(l.paidCents)}`), detailsView(l),
+        l.reportStatus ? h('p', { class: 'muted' }, `Your report: ${{ open: 'waiting for review', approved: 'approved, the credit was returned', denied: 'reviewed, no refund' }[l.reportStatus]}.`) : l.canReport ? reportBox(l) : null)) : [note('muted', 'You have not unlocked any inquiries yet.')]));
     } catch (err) { histBody.replaceChildren(note('msg-err', err.message)); }
   }
   async function showLedger() {

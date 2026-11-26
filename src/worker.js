@@ -24,6 +24,7 @@ import { nightly } from './lib/backup.js';
 import { hourly } from './lib/hourly.js';
 import { searchNightly } from './lib/gsc.js';
 import { feedBatch } from './lib/feeds.js';
+import { processAlerts } from './lib/marketplace-alerts.js';
 import { legacyRedirect } from './lib/redirects.js';
 import { storyPage, storySitemap } from './routes/story-page.js';
 import { firmSitemap } from './routes/firm-sitemap.js';
@@ -83,10 +84,13 @@ const ROUTES = [
   route('GET', '/api/account/firms/:slug/marketplace/unlocked', marketplace.firmUnlocked),
   route('GET', '/api/account/firms/:slug/marketplace/ledger', marketplace.firmLedger),
   route('POST', '/api/account/firms/:slug/marketplace/leads/:id/unlock', marketplace.firmUnlock),
+  route('POST', '/api/account/firms/:slug/marketplace/leads/:id/report', marketplace.firmReport),
   route('GET', '/api/admin/marketplace', marketplace.adminOverview),
   route('PATCH', '/api/admin/marketplace', marketplace.adminSettings),
   route('GET', '/api/admin/marketplace/leads', marketplace.adminLeads),
   route('PATCH', '/api/admin/marketplace/leads/:id', marketplace.adminDecide),
+  route('GET', '/api/admin/marketplace/reports', marketplace.adminReports),
+  route('PATCH', '/api/admin/marketplace/reports/:id', marketplace.adminResolve),
   route('POST', '/api/admin/marketplace/test-lead', marketplace.adminTestLead),
   route('POST', '/api/admin/marketplace/credit', marketplace.adminCredit),
 
@@ -242,7 +246,7 @@ export default {
   async scheduled(event, env, ctx) {
     if (!env.DB) return; // preview mode: nothing to run without a database
     ctx.waitUntil(event.cron === '37 7 * * *' ? searchNightly(env).catch((err) => console.error('search console run failed', err))
-      : event.cron === '*/5 * * * *' ? feedBatch(env).catch((err) => console.error('blog finder run failed', err))
+      : event.cron === '*/5 * * * *' ? Promise.all([feedBatch(env).catch((err) => console.error('blog finder run failed', err)), processAlerts(env).catch((err) => console.error('marketplace alerts failed', err))])
       : event.cron === '7 * * * *' ? hourly(env).catch((err) => console.error('hourly run failed', err))
       : nightly(env));
   },

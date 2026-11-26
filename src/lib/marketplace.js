@@ -275,12 +275,57 @@ export async function unlockLead(env, slug, userId, leadId) {
   throw new HttpError(402, `Not enough credit: this inquiry costs $${(lead.price / 100).toFixed(2)} and your balance is $${((bal?.balance_cents || 0) / 100).toFixed(2)}.`);
 }
 
-// The inquiries a firm has unlocked (with the contact details it paid for).
+// The inquiries a firm has unlocked (with the contact details it paid for), and whether each can still be reported (48 hours from the unlock).
 export async function unlockedFor(env, slug, limit = 100) {
   const { results } = await env.DB.prepare(
-    `SELECT id, practice_area, state, city, urgency, issue, details_private, paid_cents, unlocked_at FROM mp_leads WHERE unlocked_by = ? ORDER BY unlocked_at DESC, id DESC LIMIT ?`
+    `SELECT l.id, l.practice_area, l.state, l.city, l.urgency, l.issue, l.details_private, l.paid_cents, l.unlocked_at,
+            (l.unlocked_at > datetime('now', '-${REPORT_HOURS} hours')) AS can_report, r.status AS report_status
+     FROM mp_leads l LEFT JOIN mp_reports r ON r.lead_id = l.id AND r.firm_slug = l.unlocked_by
+     WHERE l.unlocked_by = ? ORDER BY l.unlocked_at DESC, l.id DESC LIMIT ?`
   ).bind(slug, limit).all();
-  return results.map((r) => { const d = JSON.parse(r.details_private); return { id: r.id, practiceLabel: AREAS[r.practice_area], state: r.state, city: r.city, urgency: URGENCY[r.urgency], issue: r.issue, name: d.name, email: d.email, phone: d.phone, description: d.description, paidCents: r.paid_cents, unlockedAt: r.unlocked_at }; });
+  return results.map((r) => { const d = JSON.parse(r.details_private); return { id: r.id, practiceLabel: AREAS[r.practice_area], state: r.state, city: r.city, urgency: URGENCY[r.urgency], issue: r.issue, name: d.name, email: d.email, phone: d.phone, description: d.description, paidCents: r.paid_cents, unlockedAt: r.unlocked_at, canReport: !!r.can_report && !r.report_status && r.paid_cents > 0, reportStatus: r.report_status || null }; });
+}
+
+// ---------------------------------------------------------------- bad inquiries
+// A firm may report an inquiry it unlocked within 48 hours, and only for something clearly junk: a number that is disconnected, spam, or a fake inquiry. Never because the person
+// did not hire the firm. An admin decides; an approved report returns the price to the firm's credit (once, however often it is retried).
+export const REPORT_HOURS = 48;
+export const REPORT_REASONS = { disconnected: 'The phone number is disconnected or the email bounces', spam: 'It is spam or an advertisement', fake: 'It is fake, a test or a joke', other: 'Something else that is clearly not a real inquiry' };
+
+export async function reportLead(env, slug, userId, leadId, { reason, detail } = {}) {
+  if (!Object.hasOwn(REPORT_REASONS, reason)) throw new HttpError(422, 'Please choose a reason.');
+  const lead = await env.DB.prepare(`SELECT unlocked_by, paid_cents, (unlocked_at > datetime('now', '-${REPORT_HOURS} hours')) AS in_window FROM mp_leads WHERE id = ?`).bind(leadId).first();
+  if (!lead || lead.unlocked_by !== slug) throw new HttpError(403, 'You can only report an inquiry your firm unlocked.');
+  if (!lead.paid_cents) throw new HttpError(409, 'This inquiry cost nothing, so there is nothing to refund.');
+  if (!lead.in_window) throw new HttpError(409, `Reports must be made within ${REPORT_HOURS} hours of unlocking.`);
+  const r = await env.DB.prepare('INSERT OR IGNORE INTO mp_reports (lead_id, firm_slug, reason, detail) VALUES (?, ?, ?, ?)').bind(leadId, slug, reason, String(detail || '').replace(/\s+/g, ' ').trim().slice(0, 500) || null).run();
+  if (!r.meta.changes) throw new HttpError(409, 'You already reported this inquiry.');
+  await audit(env, { id: userId, email: null }, 'marketplace.report', 'lead', String(leadId), { firm: slug, reason });
+  return { ok: true, id: r.meta.last_row_id };
+}
+
+export async function adminReports(env, status = 'open', limit = 50) {
+  const st = ['open', 'approved', 'denied'].includes(status) ? status : 'open';
+  const { results } = await env.DB.prepare(
+    `SELECT r.id, r.lead_id, r.firm_slug, r.reason, r.detail, r.status, r.admin_note, r.created_at, f.name AS firm_name, l.details_private, l.paid_cents, l.practice_area, l.city, l.state, l.unlocked_at
+     FROM mp_reports r JOIN mp_leads l ON l.id = r.lead_id LEFT JOIN firms f ON f.slug = r.firm_slug WHERE r.status = ? ORDER BY r.id DESC LIMIT ?`
+  ).bind(st, limit).all();
+  return results.map((r) => ({ id: r.id, leadId: r.lead_id, firm: r.firm_slug, firmName: r.firm_name, reason: r.reason, reasonText: REPORT_REASONS[r.reason], detail: r.detail, status: r.status, adminNote: r.admin_note, reportedAt: r.created_at, paidCents: r.paid_cents, practiceLabel: AREAS[r.practice_area], city: r.city, state: r.state, unlockedAt: r.unlocked_at, details: JSON.parse(r.details_private) }));
+}
+
+export async function resolveReport(env, admin, id, action, note = '') {
+  if (!['approve', 'deny'].includes(action)) throw new HttpError(422, 'Choose approve or deny');
+  const r = await env.DB.prepare("UPDATE mp_reports SET status = ?, resolved_by = ?, resolved_at = datetime('now'), admin_note = ? WHERE id = ? AND status = 'open'").bind(action === 'approve' ? 'approved' : 'denied', admin.id, String(note || '').slice(0, 300) || null, id).run();
+  if (!r.meta.changes) throw new HttpError(404, 'That report was already decided.');
+  const rep = await env.DB.prepare('SELECT r.lead_id, r.firm_slug, r.reason, l.paid_cents FROM mp_reports r JOIN mp_leads l ON l.id = r.lead_id WHERE r.id = ?').bind(id).first();
+  if (action === 'approve') await addCredit(env, rep.firm_slug, 'refund', rep.paid_cents, { ref: `report:${id}`, leadId: rep.lead_id, note: `Refund: ${rep.reason}`, actor: admin.id });
+  await audit(env, admin, `marketplace.report_${action}`, 'lead', String(rep.lead_id), { firm: rep.firm_slug, report: id });
+  return { ok: true };
+}
+
+// How many open inquiries match a firm right now (the dashboard says so; it is the in-dashboard notification).
+export async function matchingCount(env, slug) {
+  try { const f = await feed(env, slug, { limit: 60 }); return f.needsSetup ? 0 : f.leads.length; } catch { return 0; }
 }
 
 // ---------------------------------------------------------------- housekeeping and admin
