@@ -4,12 +4,12 @@
 /* hero */
 body .hero5{ color:#2a2a2a; background:linear-gradient(180deg,var(--wg1) 0%,var(--wg2) 55%,var(--wg4) 100%); padding-top:232px; }
 body .hero5::before{ display:none; }
-/* the skyline photo: a banner that fades into the gold on phones and tablets, the right side of the hero on wide screens */
-body .h5-photo{ inset:0 0 auto 0; width:100%; height:244px; left:0; object-position:27% 28%; -webkit-mask-image:linear-gradient(180deg,#000 0,#000 48%,transparent 100%); mask-image:linear-gradient(180deg,#000 0,#000 48%,transparent 100%); }
+/* the skyline photo: a banner that fades into the gold on phones and tablets (only the bottom quarter fades), the right three quarters of the hero on wide screens (a short fade on its left edge) */
+body .h5-photo{ inset:0 0 auto 0; width:100%; height:244px; left:0; object-position:27% 28%; -webkit-mask-image:linear-gradient(180deg,#000 0,#000 74%,transparent 100%); mask-image:linear-gradient(180deg,#000 0,#000 74%,transparent 100%); }
 @media(min-width:900px){ body .hero5{ padding-top:76px; } body .h5-photo{ height:300px; } }
 @media(min-width:1100px){
   body .hero5{ background:linear-gradient(90deg,var(--wg1) 0%,var(--wg2) 45%,var(--wg4) 100%); }
-  body .h5-photo{ inset:0 0 0 auto; left:auto; width:62%; height:100%; object-position:38% 30%; -webkit-mask-image:linear-gradient(90deg,transparent 0,transparent 20%,#000 55%); mask-image:linear-gradient(90deg,transparent 0,transparent 20%,#000 55%); }
+  body .h5-photo{ inset:0 0 0 auto; left:auto; width:76%; height:100%; object-position:38% 30%; -webkit-mask-image:linear-gradient(90deg,transparent 0,transparent 10%,#000 40%); mask-image:linear-gradient(90deg,transparent 0,transparent 10%,#000 40%); }
 }
 body .h5-eyebrow{ color:var(--wg-deep); }
 body .hero5 h1{ color:#2a2a2a; }
