@@ -27,8 +27,13 @@ The dashboard adds `client_reference_id=mp_<firm slug>` to each link; the existi
 - Phone and text rules (TCPA) if firms will call or text; this version sends no texts.
 - Whether to add an automated summary later (today it is built only from list choices, so it cannot reveal anything the person typed).
 
-## Not built yet (phase 2 and 3)
-Email alerts in waves, bad-inquiry reports and refunds, firm alert settings, a revenue chart. The tables for reports and alerts already exist. Admin can already approve held inquiries, set prices, give credit, and see the money in and out.
+## Phase 2: alerts and bad-inquiry reports
+- **Alerts** (`src/lib/marketplace-alerts.js`, run by the 5-minute cron): Featured firms are emailed at once, everyone else from the moment the inquiry opens. Waves of at most 15 firms, Featured first, at least 5 minutes apart, at most 3 after the first, only for inquiries under 24 hours old and only while unclaimed. Only firms whose practice areas and states match (and cities, if the firm chose some). A day's emails are capped at 150 (Brevo's free plan sends 300 and sign-in links share it). Emails carry only the blurred preview (summary, price) and a dashboard link, never a name, email, phone or anything typed. **Nothing is sent, or recorded as sent, until the Brevo key is set and the Marketplace is open.**
+- **Alert settings** per firm: right away, one daily summary (sent once a day at 14:00 UTC), or none. The dashboard also says how many open inquiries match.
+- **Reports and refunds:** within 48 hours of unlocking, a firm may report an inquiry as a disconnected number, spam, a fake, or something else clearly not real. An admin approves (the price returns as credit, once, written to the ledger) or denies in Admin, then Marketplace. A refund never depends on whether the person hires the firm. Free sample inquiries cannot be reported.
+
+## Not built yet
+A revenue chart and automated state-bar lookups for verification. Admin can approve held inquiries, set prices, give credit, resolve reports and see the money in and out.
 
 ## Tests
-`scripts/test-marketplace-engine.mjs` (screening, feed privacy, decay, head start, racing unlocks, ledger, Stripe credit) and `scripts/test-marketplace-routes.mjs` (who may see what, the open switch). Both run on a real SQLite database with the real migrations and are part of `npm run check`.
+`scripts/test-marketplace-engine.mjs` (screening, feed privacy, decay, head start, racing unlocks, ledger, Stripe credit) and `scripts/test-marketplace-routes.mjs` (who may see what, the open switch) and `scripts/test-marketplace-alerts.mjs` (alert waves, caps, digest, reports and refunds). Both run on a real SQLite database with the real migrations and are part of `npm run check`.
