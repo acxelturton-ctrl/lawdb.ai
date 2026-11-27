@@ -87,16 +87,24 @@ export function testimonialsHtml(f) {
   const niceName = (raw) => {
     let a = String(raw || '').replace(/\s+/g, ' ').trim().replace(/^(?:[-\u2013\u2014~]+\s*|by\s+|posted by\s+|reviewed by\s+|client:?\s+)/i, '');
     a = a.split(/\s+[-\u2013\u2014|\u00b7]\s+|\s*\|\s*|,\s+(?!(?:jr|sr|ii|iii)\b)/i)[0].replace(NOISE, '').replace(/\s+/g, ' ').trim();
+    const ini = a.match(/^([A-Z]{2,3})\s+(.+)$/);   // an avatar's initials in front of the name: "SO Sandra O."
+    if (ini && (ini[2].match(/[A-Za-z][\w'\u2019.-]*/g) || []).map((w) => w[0]).join('').toUpperCase().startsWith(ini[1])) a = ini[2];
     if (!a || a.length > 60 || a.split(' ').length > 5 || TOPIC.test(a) || /\d|@|http|www|stars?|read more|google|yelp|avvo|facebook/i.test(a)) return '';
     return /^[A-Za-z][A-Za-z .,'\u2019-]*$/.test(a) ? a : '';
   };
   const tidy = (x) => {
-    let text = x.text.replace(/\s+/g, ' ').trim(), author = typeof x.author === 'string' ? x.author : '';
+    let text = x.text.replace(/\s+/g, ' ').trim().replace(/^[A-Z]+(?:[-_][A-Z]+)+\s+(?=[A-Z])/, ''), author = typeof x.author === 'string' ? x.author : '';   // a widget label stuck to the words (R-CONTENT ...)
     const m = text.match(WIDGET);
     if (m) { author = m[1]; text = text.slice(m[0].length); }
     return { ...x, text: text.replace(/[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$/u, '').trim(), author: niceName(author) };
   };
-  const looksReal = (t) => t.length >= 40 && !FORM.test(t) && !/\?/.test(t.slice(0, 80)) && /[.!\u2026]/.test(t) && t.split(' ').length >= 8;
+  const GENERIC = /^(?:the best way|when you|if you|are you|looking for|at our firm|our (?:firm|team|attorneys|lawyers|clients|goal|mission)|we (?:are|will|believe|offer|provide|pride|fight|help|understand|know)|you (?:deserve|need|can|should)|call us|contact us)\b/i;
+  const looksReal = (t) => {
+    if (t.length < 40 || FORM.test(t) || /\?/.test(t.slice(0, 80)) || !/[.!\u2026]/.test(t) || t.split(' ').length < 8 || GENERIC.test(t)) return false;
+    const singular = /\b(?:I|I'm|I've|I'd|I'll|my|me)\b/.test(t);
+    if (!singular && (t.match(/\byou(?:r|rs)?\b/gi) || []).length >= 3) return false;   // the firm talking to the reader
+    return singular || (/\b(?:we|our|us)\b/i.test(t) && /\b(?:they|he|she|him|her|them|his|their|team|staff|firm|attorneys?|lawyers?)\b/i.test(t));   // a client speaking
+  };
   const all = f && Array.isArray(f.testimonials) ? f.testimonials.filter((x) => x && typeof x.text === 'string').map(tidy).filter((x) => looksReal(x.text)) : [];
   const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
   const words = (x) => new Set(x.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));

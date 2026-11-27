@@ -123,4 +123,13 @@ for raw, want in [('Alison - Divorce with children', 'Alison'), ('Alissa J. HAPP
     got = T.author_ok(raw)
     ok(got == want, f'author {raw!r} -> {got!r}, wanted {want!r}')
 
+# more real cases: avatar initials, a widget label stuck to the words, marketing copy
+for raw, want in [('SO Sandra O.', 'Sandra O.'), ('MT Michael T.', 'Michael T.'), ('ED Esther D.', 'Esther D.'), ('JC', 'JC'), ('Jack from Fort Lauderdale', 'Jack from Fort Lauderdale'), ('RW', 'RW')]:   # initials alone are how some clients sign: kept
+    ok(T.author_ok(raw) == want, f'author {raw!r} -> {T.author_ok(raw)!r}, wanted {want!r}')
+who, words = T.unwidget('R-CONTENT Attorney Natalie Lopez did her BIG ONE with my case. Got everything done and I recommend her to everyone.')
+ok(words.startswith('Attorney Natalie Lopez') and 'R-CONTENT' not in words, 'a widget label stuck in front of the words is removed')
+ok(page('<div class="testimonial"><p>The best way to get to know any law firm and the services it provides is to ask its past clients about their experience with the attorneys.</p></div>') == [], 'marketing copy is not a testimonial')
+ok(page('<div class="testimonial"><p>At our firm we fight for you and we will help you get the great results you deserve in every case that you bring to us.</p></div>') == [], 'the firm talking about itself is not a testimonial')
+ok(len(page('<div class="testimonial"><p>We were so grateful to the team. They handled our case with real compassion and we would recommend them to anyone.</p></div>')) == 1, '"we" about the firm in the third person is a client speaking')
+
 print(f'testimonials: ok ({n} checks)')
