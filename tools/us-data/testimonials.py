@@ -34,7 +34,9 @@ def clean(t):
 def usable(text):
     if not (MIN_CHARS <= len(text) <= MAX_CHARS) or BAD.search(text) or FORMISH.search(text) or text.isupper(): return False
     if '?' in text[:80] or len(text.split()) < 12 or not re.search(r'[.!\u2026]', text): return False   # a question at the start, a fragment, or words with no sentence in them: a form, not a testimonial
-    return bool(FIRST_PERSON.search(text) and PRAISE.search(text))
+    if GENERIC_START.search(text) or len(re.findall(r'\byou(?:r|rs)?\b', text, re.I)) >= 3 and not SINGULAR.search(text): return False   # the firm talking about itself, or to the reader
+    voice = SINGULAR.search(text) or (re.search(r"\b(?:we|our|us)\b", text, re.I) and THEY.search(text))   # a client speaking: I / my / me, or "we" about them
+    return bool(voice and PRAISE.search(text))
 
 
 NAME_NOISE = re.compile(r'\b(?:happy|satisfied|verified|former|past|current|previous|google|yelp|facebook|avvo)?\s*(?:client|customer|review(?:er)?|testimonial)s?\b', re.I)
@@ -47,6 +49,10 @@ def author_ok(a):
     a = re.sub(r'\s*[\u00b7|,]\s*(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.? \d{1,2},? \d{4}|\d+ (?:day|week|month|year)s? ago).*$', '', a, flags=re.I)
     a = clean(re.split(r'\s+[-\u2013\u2014|\u00b7]\s+|\s*\|\s*|,\s+(?!(?i:jr|sr|ii|iii))', a, maxsplit=1)[0])   # only the part before a dash, bar or comma
     a = clean(NAME_NOISE.sub('', a))
+    m = re.match(r"^([A-Z]{2,3})\s+(.+)$", a)   # an avatar's initials in front of the name: "SO Sandra O."
+    if m:
+        initials = ''.join(w[0] for w in re.findall(r"[A-Za-z][\w'\u2019.-]*", m.group(2))).upper()
+        if initials.startswith(m.group(1)): a = m.group(2)
     if not a or len(a) > 60 or len(a.split()) > 5 or TOPIC_WORDS.search(a) or re.search(r'\d|@|http|www|stars?|read more|google|yelp|avvo|facebook', a, re.I): return ''
     return a if re.fullmatch(r"[A-Za-z][A-Za-z .,'\u2019-]*", a) else ''
 
@@ -67,9 +73,16 @@ WIDGET_HEAD = re.compile(r"^\s*([A-Z][A-Za-z'\u2019.-]+(?: [A-Z][A-Za-z'\u2019.-
 STARS = re.compile(r'[\s\u2605\u2606\u2B50\uFE0F\u2729\u272D*]+$')
 
 
+ARTIFACT_HEAD = re.compile(r'^[A-Z]+(?:[-_][A-Z]+)+\s+(?=[A-Z])')   # "R-CONTENT Attorney Natalie ..." (a widget's label stuck to the words)
+GENERIC_START = re.compile(r"^(?:the best way|when you|if you|are you|looking for|at our firm|our (?:firm|team|attorneys|lawyers|clients|goal|mission)|we (?:are|will|believe|offer|provide|pride|fight|help|understand|know)|you (?:deserve|need|can|should)|call us|contact us)\b", re.I)
+SINGULAR = re.compile(r"\b(?:I|I'm|I've|I'd|I'll|my|me)\b")
+THEY = re.compile(r'\b(?:they|he|she|him|her|them|his|their|team|staff|firm|attorneys?|lawyers?)\b', re.I)
+
+
 def unwidget(text):
     """a review widget puts the reviewer and the time in front of the words ("Karina Rangel 5 years ago Jenny is the best ...") and stars after them: returns (reviewer or '', the words alone)"""
     text = clean(text)
+    text = ARTIFACT_HEAD.sub('', text)
     m = WIDGET_HEAD.match(text)
     who = ''
     if m: who, text = m.group(1), text[m.end():]

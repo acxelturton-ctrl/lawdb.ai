@@ -69,4 +69,15 @@ assert.equal((messy.match(/<figure/g) || []).length, 3, 'the three real ones are
 assert.ok(messy.includes('>Alison<') && messy.includes('>Alissa J.<') && messy.includes('>Angelo L.<'), 'names are cleaned to the person');
 assert.ok(!/Divorce with children|HAPPY CLIENT|Litigation Attorney|Conservatorship/.test(messy), 'no topics, labels or titles in the names');
 
+// more real cases: avatar initials, a widget label in front of the words, marketing copy
+const more = testimonialsHtml({ name: 'Real Cases Law', testimonials: [
+  tm('I have 2 children. Matt made sure that my children and I were taken care of. He was great and I recommend him.', 'SO Sandra O.'),
+  tm('R-CONTENT Attorney Natalie Lopez did her BIG ONE with my case. Got everything done and I recommend her to everyone.', 'Sharonda Allen'),
+  tm('The best way to get to know any law firm and the services it provides is to ask its past clients about their experience with the attorneys.', 'Marketing'),
+  tm('At our firm we fight for you and we will help you get the great results you deserve in every case that you bring to us.', 'Firm') ] });
+assert.equal((more.match(/<figure/g) || []).length, 2, 'the firm talking about itself is not shown');
+assert.ok(more.includes('>Sandra O.<') && !more.includes('SO Sandra'), 'avatar initials in front of a name are dropped');
+assert.ok(!more.includes('R-CONTENT') && more.includes('Attorney Natalie Lopez'), 'a widget label stuck to the words is removed');
+assert.ok(!more.includes('best way to get to know'), 'marketing copy is not a testimonial');
+
 console.log('reviews: ok');
