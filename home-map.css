@@ -1,19 +1,16 @@
 /* Decorative US map on /find-lawyers: a ring of firm logos over the map (home-map.js). Purely a picture: no hover, no clicks. */
-.hm{ background:radial-gradient(120% 90% at 50% 0%, #fffdf8 0%, #faf5e6 70%, #f6efd9 100%); padding:48px 20px 40px; border-top:1px solid #ece6d3; border-bottom:1px solid #ece6d3; }
+.hm{ background:radial-gradient(120% 90% at 50% 0%, #fffdf8 0%, #faf5e6 70%, #f6efd9 100%); padding:28px 20px 12px; border-top:1px solid #ece6d3; border-bottom:1px solid #ece6d3; }
 .hm-in{ max-width:1180px; margin:0 auto; }
-.hm-head{ text-align:center; margin:0 auto 22px; max-width:760px; }
+.hm-head{ text-align:center; margin:0 auto 4px; max-width:760px; }
 .hm-eyebrow{ display:inline-block; font:600 12px/1 Inter,sans-serif; letter-spacing:.16em; text-transform:uppercase; color:#8a6a1f; margin:0 0 12px; padding:7px 12px; border:1px solid #e3d3a4; border-radius:99px; background:rgba(255,255,255,.7); }
 .hm-head h2{ font-family:'Source Serif 4',Georgia,serif; font-size:clamp(28px,4.2vw,42px); line-height:1.12; margin:0 0 10px; color:#2a2a2a; letter-spacing:-.01em; }
 .hm-head p{ margin:0; color:#5f5f5f; font-size:16.5px; line-height:1.5; }
-.hm-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding:30px 0 84px; margin:-6px 0 -28px; }
+.hm-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding:14px 0 6px; margin:0; }
 .hm-map{ position:relative; width:100%; aspect-ratio:975/610; --pin:clamp(18px,2.3vw,30px); }
 .hm-bg{ position:absolute; inset:0; width:100%; height:100%; display:block; user-select:none; pointer-events:none; filter:drop-shadow(0 14px 22px rgba(138,106,31,.16)); }
 .hm-bg svg{ width:100%; height:100%; display:block; }
 .hm-pin{ position:absolute; width:var(--pin); height:var(--pin); margin:calc(var(--pin) / -2) 0 0 calc(var(--pin) / -2); border-radius:50%; background:#fff; border:0; padding:calc(var(--pin) * .1); box-sizing:border-box; overflow:hidden; display:flex; align-items:center; justify-content:center; pointer-events:none; box-shadow:0 0 0 1.5px #fff, 0 0 0 2.5px #d2b46a, 0 3px 7px rgba(42,42,42,.26); animation:hm-in .45s cubic-bezier(.2,.8,.3,1.2) both; }
 .hm-pin img{ width:100%; height:100%; object-fit:contain; display:block; border-radius:50%; }
 @keyframes hm-in{ from{ opacity:0; transform:scale(.3); } to{ opacity:1; transform:scale(1); } }
-.hm-foot{ text-align:center; margin:0; }
-.hm-foot a{ display:inline-block; background:#2a2a2a; color:#fff; font:600 14px Inter,sans-serif; padding:12px 22px; border-radius:99px; text-decoration:none; transition:background .15s; }
-.hm-foot a:hover{ background:#8a6a1f; }
-@media(max-width:760px){ .hm{ padding:38px 0 32px; } .hm-head{ padding:0 20px; } .hm-map{ min-width:780px; --pin:22px; } }
+@media(max-width:760px){ .hm{ padding:24px 0 8px; } .hm-head{ padding:0 20px; } .hm-map{ min-width:780px; --pin:22px; } }
 @media(prefers-reduced-motion:reduce){ .hm-pin{ animation:none; } }
