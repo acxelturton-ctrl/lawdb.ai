@@ -257,7 +257,7 @@
     .site-header .mark .wordmark .name{ font-size:22px; }
     .site-header .mark .wordmark .tagline{ font-size:8.5px; }
     .desktop-nav{ display:flex; align-items:center; }
-    .desktop-nav a{ font-size:15.5px; font-weight:600; color:#2a2a2a; text-decoration:none; white-space:nowrap; margin-right:30px; display:inline-block; }
+    .desktop-nav a{ font-size:clamp(14px,1.45vw,15.5px); font-weight:600; color:#2a2a2a; text-decoration:none; white-space:nowrap; margin-right:clamp(14px,1.8vw,30px); display:inline-block; }
     .desktop-nav a:hover{ color:#e2bd6a; }
     .desktop-nav .nav-cta{ background:#c9a050; color:#2a2a2a; padding:12px 24px; border-radius:5px; font-weight:700; margin-right:0; font-size:15px; }
     .desktop-nav .nav-cta:hover{ color:#2a2a2a; background:#e2bd6a; }
@@ -269,7 +269,7 @@
 <header class="site-header lw-light">
   <a class="mark" href="/"><img src="images/logo-icon.png" alt="LawDB"><span class="wordmark"><span class="name"><span class="law">Law</span><span class="db">DB</span><span class="ai" style="font-size:.62em;font-weight:500;margin-left:1px;color:#c9a050">.ai</span></span><span class="tagline">The Legal Directory</span></span></a>
   <div class="header-right">
-    <nav class="desktop-nav" aria-label="Primary"><a href="/find-lawyers">Find Your Lawyer</a><a href="/news">LawDB News</a><a href="/add-your-firm">List Your Firm</a><button type="button" class="nav-ai" data-open-ai><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z"/></svg><span>LawDB AI</span></button><a href="/account/">Sign in</a></nav>
+    <nav class="desktop-nav" aria-label="Primary"><a href="/find-lawyers">Find Your Lawyer</a><a href="/marketplace">Marketplace</a><a href="/add-your-firm">List Your Firm</a><button type="button" class="nav-ai" data-open-ai><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7zM19 15l.9 2.4 2.4.9-2.4.9L19 21.6l-.9-2.4-2.4-.9 2.4-.9z"/></svg><span>LawDB AI</span></button><a href="/news">LawDB News</a><a href="/account/">Sign in</a></nav>
     <button class="hamburger-btn" id="menuToggle" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
 </header>
@@ -277,11 +277,11 @@
 <nav class="menu-drawer" id="menuDrawer">
   <button class="menu-close" id="menuClose" aria-label="Close menu">&times;</button>
   <a href="/find-lawyers">Find Your Lawyer</a>
-  <a href="/news">LawDB News</a>
-  <a href="#" data-open-ai>LawDB AI</a>
+  <a href="/marketplace">Marketplace</a>
   <a href="/new-firms">New listed firms</a>
-  <a href="/for-firms">Grow Leads to Your Law Firm</a>
   <a href="/add-your-firm">List Your Firm</a>
+  <a href="/for-firms">Elevate Your Practice</a>
+  <a href="/news">LawDB News</a>
   <a href="/contact">Contact Us</a>
   <a class="menu-cta" href="/account/">Sign in</a>
   <div class="menu-promo">
