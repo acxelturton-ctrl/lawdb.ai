@@ -78,3 +78,11 @@ Pushes to `main` build and deploy through Cloudflare Workers Builds. The site is
 ## Google reviews
 
 Each firm can carry the three best Google reviews (`data.reviews`: place id, maps link, rating, count, `fetchedAt`, three items), fetched from the Places API (New) by `tools/us-data/google_reviews.py` (never scraped). The drip fetches them for new firms; `reviews.yml` backfills and refreshes live firms every 20 days (Google lets the content be kept for 30 days, and the page hides reviews older than 35). The page shows them word for word with Google named as the source, the reviewer's name and a link to the place. Needs the repository secret `GOOGLE_PLACES_API_KEY`. Whether three reviews are part of the live bar (drip gate and `refresh.py audit`) is switched by `tools/us-data/reviews_required.txt` (yes / no); switch it to yes only after the backfill has run.
+
+
+## Firm addresses (slugs)
+
+A firm's page is `lawdb.ai/firms/<handle>`. The handle is how the firm is known on social media (`ericramoslaw`), taken from its Instagram, X, Facebook, LinkedIn company or YouTube handle, then its website's name, and only when it plainly belongs to the firm (`src/lib/handle-slug.js`). With nothing usable it is the firm's name without city, state or PA/PLLC. A clash adds the state (`smithlaw-tx`), then a number.
+
+New firms are imported with the long address (`name-city-st`) because the importer cannot see which handles are taken. The 5-minute cron then shortens them: `shortenSlugs` runs only while `site_settings.slug_shorten_batch` is above 0 (firms per run, at most 150), walks the firms by address (`slug_shorten_cursor`), and stops and switches itself off at the end (progress in `slug_shorten_stats`). To run it again after more firms are added, set `slug_shorten_cursor` to an empty string and `slug_shorten_batch` to 100.
+Every change goes through `renameFirmSlug`, so the old address becomes a permanent 301 redirect (`firm_redirects`), for the page, its tabs and its story pages. A firm with Marketplace credit history keeps its address (the ledger is append-only).

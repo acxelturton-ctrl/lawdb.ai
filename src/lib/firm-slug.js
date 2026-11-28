@@ -12,7 +12,8 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // Every table that stores a firm's slug in a column called firm_slug. scripts/test-firm-slug.mjs reads the migrations and fails if a table with such a
 // column is missing here, so a table added later cannot be forgotten.
 export const SLUG_TABLES = ['firm_members', 'firm_images', 'firm_feeds', 'firm_posts', 'firm_subscriptions', 'follows', 'firm_ratings', 'firm_invites',
-  'firm_stats_daily', 'firm_trials', 'firm_verifications', 'leads', 'outreach', 'lawyers'];
+  'firm_stats_daily', 'firm_trials', 'firm_verifications', 'leads', 'outreach', 'lawyers',
+  'mp_accounts', 'mp_reports', 'mp_alerts'];   // Marketplace. mp_ledger is append-only (see below) and mp_leads.unlocked_by is moved separately
 
 export function cleanSlug(v) {
   const s = typeof v === 'string' ? v.trim().toLowerCase() : '';
@@ -37,10 +38,14 @@ export async function renameFirmSlug(env, admin, oldSlug, rawNew) {
   const formerly = await env.DB.prepare('SELECT new_slug FROM firm_redirects WHERE old_slug = ?').bind(next).first();
   if (formerly && formerly.new_slug !== oldSlug) throw new HttpError(409, 'That address used to belong to another firm, whose old links still point to it.');
 
+  // The Marketplace credit ledger can never be edited, so a firm with credit history keeps its address.
+  if (await env.DB.prepare('SELECT 1 FROM mp_ledger WHERE firm_slug = ? LIMIT 1').bind(oldSlug).first()) throw new HttpError(409, 'This firm has Marketplace credit history, so its address cannot change.');
+
   const move = SLUG_TABLES.map((t) => env.DB.prepare(`UPDATE ${t} SET firm_slug = ? WHERE firm_slug = ?`).bind(next, oldSlug));
   await env.DB.batch([
     env.DB.prepare('PRAGMA defer_foreign_keys = on'),
     ...move,
+    env.DB.prepare('UPDATE mp_leads SET unlocked_by = ? WHERE unlocked_by = ?').bind(next, oldSlug),
     env.DB.prepare("UPDATE firms SET slug = ?, data = json_set(data, '$.slug', ?), updated_at = datetime('now') WHERE slug = ?").bind(next, next, oldSlug),
     env.DB.prepare('UPDATE firm_locations SET location_slug = ? WHERE location_slug = ?').bind(next, oldSlug),   // office-page links (not firm_slug columns, so not in SLUG_TABLES)
     env.DB.prepare('UPDATE firm_locations SET main_slug = ? WHERE main_slug = ?').bind(next, oldSlug),
