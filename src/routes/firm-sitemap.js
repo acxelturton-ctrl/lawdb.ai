@@ -34,7 +34,7 @@ export async function firmSitemap({ request, env }) {
         // The Overview, plus a page for each tab the firm has content for (the same rule the pages use, src/render/firm-tabs.js).
         const people = { length: counts.get(r.slug) || 0 };
         const lm = day(r.updatedAt) ? `<lastmod>${day(r.updatedAt)}</lastmod>` : '';
-        const base = `${origin}/firms/${encodeURIComponent(r.slug)}`;
+        const base = `${origin}/${encodeURIComponent(r.slug)}`;
         return [
           ...tabsFor({ details }, Math.min(Number(r.posts) || 0, 20), people.length).map((t) => `  <url><loc>${base}${t === 'overview' ? '' : '/' + t}</loc>${lm}</url>`),
         ];

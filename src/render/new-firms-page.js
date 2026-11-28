@@ -36,7 +36,7 @@ const ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" strok
 
 const card = (f) => {
   const tags = f.tags.slice(0, 2).map((t) => `<i>${esc(t)}</i>`).join('');
-  return `<a class="nf-card" href="/firms/${esc(f.slug)}">` +
+  return `<a class="nf-card" href="/${esc(f.slug)}">` +
     `<span class="nf-cover"><img src="${esc(picUrl(f.cover))}" alt="" loading="lazy" decoding="async" style="object-position:${POS.test(f.coverPos || '') ? f.coverPos : 'center'}"></span>` +
     (f.featured ? '<span class="nf-feat">Featured</span>' : '') +
     '<span class="nf-body">' +

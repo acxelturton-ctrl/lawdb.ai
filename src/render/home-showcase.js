@@ -36,7 +36,7 @@ export function badges(f) {
 
 // f: { slug, name, city, state, tags, phone, src, heroImage, featured, verified, perks, details }
 export function firmCard(f, { eager = false } = {}) {
-  const href = '/firms/' + esc(f.slug);
+  const href = '/' + esc(f.slug);
   const tags = (f.tags || []).slice(0, 2).map((t) => `<span>${esc(t)}</span>`).join('');
   const chips = badges(f).map((b) => `<li>${esc(b)}</li>`).join('');
   return `<article class="hv-card" data-state="${esc(f.state)}">` +
@@ -49,7 +49,7 @@ export function firmCard(f, { eager = false } = {}) {
 }
 
 export function spotlightHtml(f, about) {
-  const href = '/firms/' + esc(f.slug);
+  const href = '/' + esc(f.slug);
   const tags = (f.tags || []).slice(0, 3).map((t) => `<span>${esc(t)}</span>`).join('');
   const chips = badges(f).map((b) => `<li>${esc(b)}</li>`).join('');
   return `<article class="hv-spot"><p class="hv-kicker">Firm spotlight${f.featured ? ' <i>Featured</i>' : ''}</p>` +

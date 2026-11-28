@@ -199,7 +199,7 @@ function viewFirms() {
         h('a', { href: `#stats/${m.slug}` }, h('button', { type: 'button' }, !m.featured && m.firmStatus === 'live' ? 'Analytics and free month' : 'Analytics')),
         !m.featured && m.firmStatus === 'live' && h('a', { href: `#edit/${m.slug}` }, h('button', { type: 'button' }, 'Upgrade to Featured')),
         h('a', { href: `#leads/${m.slug}` }, h('button', { type: 'button' }, 'Inquiries')),
-        m.firmStatus === 'live' && h('a', { href: `/firms/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View public page')));
+        m.firmStatus === 'live' && h('a', { href: `/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View public page')));
   }));
 }
 
@@ -457,7 +457,7 @@ function storyRow(s, onChange) {
     save.disabled = false;
   });
   return h('div', { class: 'audit' },
-    h('div', null, h('a', { href: `/firms/${s.firm.slug}` }, h('b', null, s.firm.name)), ' ', s.firm.featured && h('span', { class: 'badge featured' }, 'Featured'), ' ', h('span', { class: 'muted' }, s.publishedAt ? when(s.publishedAt) : '')),
+    h('div', null, h('a', { href: `/${s.firm.slug}` }, h('b', null, s.firm.name)), ' ', s.firm.featured && h('span', { class: 'badge featured' }, 'Featured'), ' ', h('span', { class: 'muted' }, s.publishedAt ? when(s.publishedAt) : '')),
     h('div', null, h('a', { href: s.href }, s.title)),
     s.excerpt && h('div', { class: 'muted' }, shortText(s.excerpt)),
     h('div', { class: 'row' }, h('a', { href: s.href }, 'Read the story'), save));
@@ -531,8 +531,8 @@ function firmRow(f, onChange) {
   const place = `${f.city}, ${STATES[f.state] || f.state}`;
   const facts = [f.why, f.followers ? `${f.followers.toLocaleString('en-US')} follower${f.followers === 1 ? '' : 's'}` : '', f.rating ? `★ ${Number(f.rating).toFixed(1)}` : ''].filter(Boolean).join(' · ');
   return h('div', { class: 'nw-row' },
-    h('a', { class: 'nw-ava', href: `/firms/${f.slug}`, 'aria-hidden': 'true', tabindex: '-1' }, src ? h('img', { src, alt: '', loading: 'lazy' }) : initialsOf(f.name)),
-    h('div', { class: 'nw-info' }, h('a', { href: `/firms/${f.slug}` }, h('b', null, f.name)), f.featured && h('span', { class: 'badge featured' }, 'Featured'), h('span', { class: 'muted' }, place), facts && h('span', { class: 'muted' }, facts)),
+    h('a', { class: 'nw-ava', href: `/${f.slug}`, 'aria-hidden': 'true', tabindex: '-1' }, src ? h('img', { src, alt: '', loading: 'lazy' }) : initialsOf(f.name)),
+    h('div', { class: 'nw-info' }, h('a', { href: `/${f.slug}` }, h('b', null, f.name)), f.featured && h('span', { class: 'badge featured' }, 'Featured'), h('span', { class: 'muted' }, place), facts && h('span', { class: 'muted' }, facts)),
     followPill(f, onChange));
 }
 
@@ -645,7 +645,7 @@ async function viewProfile() {
   const drawMine = () => mine.replaceChildren(...(ratings.length ? ratings.map((r) => {
     const del = h('button', { type: 'button' }, 'Remove');
     del.addEventListener('click', async () => { del.disabled = true; try { await api('DELETE', `/api/account/ratings/${encodeURIComponent(r.slug)}`); ratings.splice(ratings.indexOf(r), 1); drawMine(); } catch { del.disabled = false; } });
-    return h('div', { class: 'audit' }, h('div', null, h('a', { href: `/firms/${r.slug}#rate` }, h('b', null, r.name)), ' ', h('span', { class: 'muted' }, '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + (r.commentStatus === 'pending' ? ' · comment waiting for review' : ''))), r.comment && h('div', { class: 'muted' }, r.comment), h('div', { class: 'row' }, del));
+    return h('div', { class: 'audit' }, h('div', null, h('a', { href: `/${r.slug}#rate` }, h('b', null, r.name)), ' ', h('span', { class: 'muted' }, '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + (r.commentStatus === 'pending' ? ' · comment waiting for review' : ''))), r.comment && h('div', { class: 'muted' }, r.comment), h('div', { class: 'row' }, del));
   }) : [h('p', { class: 'muted' }, 'You have not rated any firms yet. Open a firm page and use "Rate this firm".')]));
   drawMine();
   return h('div', null, h('h1', null, 'Your profile'), h('p', { class: 'muted' }, `Signed in as ${user.email}. Your name personalizes your dashboard and emails.`), photoCard(), h('div', { class: 'card' }, form), h('h2', null, 'Your ratings'), mine,

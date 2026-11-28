@@ -21,18 +21,18 @@ assert.deepEqual(tabsFor({ ...firm, details: { lawyers: lawyers.slice(0, MIN_LAW
 assert.deepEqual(tabsFor({ ...firm, details: null }, MIN_ARTICLES), ['overview', 'articles']);
 assert.deepEqual(tabsFor({ ...firm, details: null }, MIN_ARTICLES - 1), ['overview']);
 assert.deepEqual(tabsFor({ ...firm, details: { lawyers: [{ name: 'Our Team', title: '' }, { name: 'Contact Us' }] } }, 0), ['overview'], 'junk names do not count');
-assert.equal(tabPath('x', 'overview'), '/firms/x');
-assert.equal(tabPath('x', 'lawyers'), '/firms/x/lawyers');
+assert.equal(tabPath('x', 'overview'), '/x');
+assert.equal(tabPath('x', 'lawyers'), '/x/lawyers');
 
 // --- the Lawyers page
 const tabs = ['overview', 'lawyers', 'articles'];
 const lw = renderFirmPage({ firm, tab: 'lawyers', tabs, allPosts: [post(1), post(2), post(3)] });
 assert.match(lw, /<title>Lawyers at Test Law \| Miami, FL \| LawDB<\/title>/);
-assert.match(lw, /rel="canonical" href="https:\/\/lawdb\.ai\/firms\/test-law\/lawyers"/);
+assert.match(lw, /rel="canonical" href="https:\/\/lawdb\.ai\/test-law\/lawyers"/);
 assert.match(lw, /Jane Roe/); assert.match(lw, /John Doe/);
-assert.match(lw, /"name": "Lawyers",\s+"item": "https:\/\/lawdb\.ai\/firms\/test-law\/lawyers"/, 'breadcrumb ends at the tab');
-assert.match(lw, /<a href="\/firms\/test-law\/lawyers" aria-current="page" class="on">Lawyers<\/a>/);
-assert.match(lw, /<a href="\/firms\/test-law">Overview<\/a>/);
+assert.match(lw, /"name": "Lawyers",\s+"item": "https:\/\/lawdb\.ai\/test-law\/lawyers"/, 'breadcrumb ends at the tab');
+assert.match(lw, /<a href="\/test-law\/lawyers" aria-current="page" class="on">Lawyers<\/a>/);
+assert.match(lw, /<a href="\/test-law">Overview<\/a>/);
 assert.doesNotMatch(lw, /(?:href|src)="\.\.\//, 'no relative links on a page one folder deeper');
 assert.doesNotMatch(lw, /class="pf-about"/, 'the Overview text is not repeated on a tab');
 assert.match(lw, /id="contact"/, 'the consultation buttons still have a form to open');
@@ -40,12 +40,12 @@ assert.match(lw, /id="contact"/, 'the consultation buttons still have a form to 
 // --- the Articles page
 const ar = renderFirmPage({ firm, tab: 'articles', tabs, allPosts: [post(1), post(2), post(3)] });
 assert.match(ar, /<title>Articles by Test Law \| Miami, FL \| LawDB<\/title>/);
-assert.match(ar, /href="https:\/\/lawdb\.ai\/firms\/test-law\/articles"/);
+assert.match(ar, /href="https:\/\/lawdb\.ai\/test-law\/articles"/);
 assert.match(ar, /Post 3/);
 
 // --- the Overview keeps its address and gains only the tab bar
 const ov = renderFirmPage({ firm, tabs, posts: [post(1)] });
-assert.match(ov, /rel="canonical" href="https:\/\/lawdb\.ai\/firms\/test-law"/);
+assert.match(ov, /rel="canonical" href="https:\/\/lawdb\.ai\/test-law"/);
 assert.match(ov, /<title>Test Law \| Miami, FL Lawyers \| LawDB<\/title>/);
 assert.match(ov, /class="pf-ptabs"/);
 assert.match(ov, /class="pf-about"/);
@@ -63,7 +63,7 @@ const counts = [{ firm: 'c-firm', n: 2 }]; // c-firm shows two lawyers on its La
 const env = { SITE_ORIGIN: 'https://lawdb.ai', DB: { prepare: (sql) => ({ all: async () => ({ results: /FROM lawyers/.test(sql) ? counts : rows }) }) } };
 const xml = await (await firmSitemap({ request: new Request('https://lawdb.ai/sitemap-firms.xml'), env })).text();
 const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-assert.deepEqual(locs, ['https://lawdb.ai/firms/a-firm', 'https://lawdb.ai/firms/a-firm/lawyers', 'https://lawdb.ai/firms/b-firm', 'https://lawdb.ai/firms/b-firm/articles', 'https://lawdb.ai/firms/c-firm', 'https://lawdb.ai/firms/c-firm/lawyers']); // a lawyer's own page is never listed under a firm
+assert.deepEqual(locs, ['https://lawdb.ai/a-firm', 'https://lawdb.ai/a-firm/lawyers', 'https://lawdb.ai/b-firm', 'https://lawdb.ai/b-firm/articles', 'https://lawdb.ai/c-firm', 'https://lawdb.ai/c-firm/lawyers']); // a lawyer's own page is never listed under a firm
 
 // --- lawyer rows: only what is safe and complete reaches a page
 const raw = { slug: 'maria-lopez', name: 'Maria Lopez', title: 'Partner', photo_status: 'approved', photo_id: 'a'.repeat(24), photo_url: 'https://example.com/maria.jpg', phone: '(305) 555-0199', email: 'maria@example.com', source_url: 'https://example.com/team/maria',
@@ -90,7 +90,7 @@ assert.match(lp, /<title>Maria Lopez - Partner at Test Law \| Miami, FL \| LawDB
 assert.match(lp, /rel="canonical" href="https:\/\/lawdb\.ai\/lawyers\/maria-lopez-miami-fl"/);
 assert.match(lp, /"@type": "Person"/); assert.match(lp, /"jobTitle": "Partner"/); assert.match(lp, /"worksFor"/);
 assert.match(lp, /href="tel:\+13055550199"/); assert.match(lp, /href="mailto:maria@example\.com"/); assert.match(lp, /linkedin\.com\/in\/maria-lopez/);
-assert.match(lp, new RegExp('<img src="/img/' + 'a'.repeat(24) + '"')); assert.match(lp, /href="\/firms\/test-law"/);
+assert.match(lp, new RegExp('<img src="/img/' + 'a'.repeat(24) + '"')); assert.match(lp, /href="\/test-law"/);
 assert.doesNotMatch(lp, /(?:href|src)="\.\.\//);
 // a lawyer with no firm at all has the same page: no firm line, no worksFor, and no photo is fine
 const solo = renderLawyerPage({ ...linked, slug: 'sam-lee-austin-tx', name: 'Sam Lee', title: '', city: 'Austin', state: 'TX', firmSlug: '', firmName: '', photo: '', phone: '', email: '', socials: {}, sourceUrl: '' });

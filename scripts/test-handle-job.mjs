@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { shortenSlugs } from '../src/lib/handle-slug.js';
 import { redirectTarget } from '../src/lib/firm-slug.js';
 import { setting, setSetting } from '../src/lib/marketplace.js';
+import { firmPage } from '../src/routes/firm-page.js';
 
 const raw = new DatabaseSync(':memory:');
 raw.exec('PRAGMA foreign_keys = ON');
@@ -26,6 +27,7 @@ add('smith-law-miami-fl', 'Smith Law', 'Miami', 'FL', { website: 'https://smithl
 add('smith-law-dallas-tx', 'Smith Law', 'Dallas', 'TX', { website: 'https://smithlaw.com' });
 add('sammis-law-firm-pa-clearwater-fl', 'Sammis Law Firm, PA', 'Clearwater', 'FL', { website: 'https://criminaldefenseattorneytampa.com' });
 add('has-credit-orlando-fl', 'Hascredit Law', 'Orlando', 'FL', { website: 'https://hascredit.com' });
+add('marketplace-co-tampa-fl', 'Marketplace Law', 'Tampa', 'FL', { website: 'https://marketplace.com' });
 raw.prepare("INSERT INTO mp_accounts (firm_slug) VALUES ('smith-law-miami-fl')").run();
 raw.prepare("INSERT INTO mp_ledger (firm_slug, kind, amount_cents, balance_after) VALUES ('has-credit-orlando-fl', 'promo', 500, 500)").run();
 
@@ -49,6 +51,20 @@ assert.deepEqual(smith, ['smithlaw', 'smithlaw-fl'], 'two firms with one handle:
 assert.equal(raw.prepare("SELECT slug FROM firms WHERE name LIKE 'Sammis%'").get().slug, 'sammis-law-firm', 'keyword domain ignored, name used without city, state or PA');
 assert.equal(raw.prepare('SELECT firm_slug FROM mp_accounts').get().firm_slug, 'smithlaw-fl', 'Marketplace account moved with the firm (Miami, FL)');
 assert.ok(raw.prepare("SELECT 1 FROM firms WHERE slug = 'has-credit-orlando-fl'").get(), 'the firm with credit history keeps its address');
+
+assert.ok(raw.prepare("SELECT 1 FROM firms WHERE slug = 'marketplace-fl'").get() || raw.prepare("SELECT 1 FROM firms WHERE slug LIKE 'marketplace-%' AND slug <> 'marketplace-co-tampa-fl'").get(), 'a handle equal to a site page (marketplace) is never used as it is');
+assert.ok(!raw.prepare("SELECT 1 FROM firms WHERE slug = 'marketplace'").get());
+
+// the pages: /<handle> serves the firm, the old /firms/<address> and the very old addresses go there for good
+const assets = { fetch: async (req) => new Response('static ' + new URL(req.url).pathname, { status: 404 }) };
+const penv = { ...env, ASSETS: assets, PUBLIC_CACHE_TTL: '0' };
+const ask = (path) => firmPage({ request: new Request('https://lawdb.ai' + path), env: penv, ctx: { waitUntil() {} } });
+let r = await ask('/firms/ericramoslaw'); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/ericramoslaw', '/firms/<handle> -> /<handle>');
+r = await ask('/firms/eric-ramos-law-pllc-san-antonio-tx'); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/ericramoslaw', 'the original long address -> /<handle>');
+r = await ask('/firms/eric-ramos-law-pllc-san-antonio-tx/lawyers'); assert.equal(r.headers.get('location'), '/ericramoslaw/lawyers', 'tabs are kept');
+r = await ask('/eric-ramos-law-pllc-san-antonio-tx'); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/ericramoslaw', 'the long address without /firms/ too');
+r = await ask('/contact'); assert.equal(r.status, 404, 'a site page is left to the static files');
+r = await ask('/no-such-firm'); assert.equal(r.status, 404);
 
 // it reaches the end, turns itself off, and a second run changes nothing
 // (firms renamed into the part not yet visited are looked at once more and found unchanged)

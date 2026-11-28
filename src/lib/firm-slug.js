@@ -1,10 +1,11 @@
-// Changing a firm's page address (its slug): lawdb.ai/firms/<slug>. Admin only.
+// Changing a firm's page address (its slug): lawdb.ai/<slug>. Admin only.
 //
 // The slug is the firm's key in many tables, so a change has to move every one of them in one step, and the old address must keep working:
 // it becomes a permanent redirect (firm_redirects), for the page and for the firm's story pages, so no link or search result breaks.
 // Everything happens in one batch (all or nothing); foreign keys are checked at the end of it, so the tables can be moved in any order.
 import { HttpError } from './http.js';
 import { audit } from './audit.js';
+import { isReserved } from './reserved-paths.js';
 
 export const SLUG_MIN = 3, SLUG_MAX = 80;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -20,6 +21,7 @@ export function cleanSlug(v) {
   if (s.length < SLUG_MIN || s.length > SLUG_MAX || !SLUG_RE.test(s)) {
     throw new HttpError(422, `The address can have lowercase letters, digits and single dashes, ${SLUG_MIN} to ${SLUG_MAX} characters (for example smith-injury-lawyers-miami).`);
   }
+  if (isReserved(s)) throw new HttpError(422, 'That address is one of the site\'s own pages. Choose another.');
   return s;
 }
 

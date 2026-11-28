@@ -81,7 +81,7 @@ export async function viewMarketplaceAdmin() {
   // ---- firms with credit
   const accounts = h('div', { class: 'card' }, h('h2', null, 'Firms in the Marketplace'),
     o.accounts.length ? h('table', { class: 'tbl' }, h('thead', null, h('tr', null, ['Firm', 'Credit', 'Practice areas', 'States'].map((t) => h('th', null, t)))),
-      h('tbody', null, o.accounts.map((a) => h('tr', null, h('td', null, h('a', { href: `/firms/${a.slug}`, target: '_blank', rel: 'noopener' }, a.name)), h('td', null, money(a.balanceCents)), h('td', null, a.practiceAreas.map((k) => o.areas[k]).join(', ')), h('td', null, a.states.join(', ')))))) : note('muted', 'No firm has opened the Marketplace yet.'));
+      h('tbody', null, o.accounts.map((a) => h('tr', null, h('td', null, h('a', { href: `/${a.slug}`, target: '_blank', rel: 'noopener' }, a.name)), h('td', null, money(a.balanceCents)), h('td', null, a.practiceAreas.map((k) => o.areas[k]).join(', ')), h('td', null, a.states.join(', ')))))) : note('muted', 'No firm has opened the Marketplace yet.'));
 
   root.append(h('h1', null, 'Marketplace'), msg, switchCard, numbers, h('div', { class: 'card' }, h('h2', null, `Waiting for your review (${o.counts.held})`), heldBox), h('div', { class: 'card' }, h('h2', null, 'Bad-inquiry reports'), h('p', { class: 'muted' }, 'Refund only for something clearly junk: a disconnected number, spam or a fake. Never because the person did not hire the firm.'), reportBox), settings, tools, accounts);
   return root;

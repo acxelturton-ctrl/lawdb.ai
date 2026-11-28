@@ -1,4 +1,4 @@
-// /firms/<slug>: every live firm's page is drawn from the database (src/render/firm-page.js), the same way for every firm, whenever it was listed. Each success
+// /<handle>: every live firm's page is drawn from the database (src/render/firm-page.js), the same way for every firm, whenever it was listed. Each success
 // is cached at the edge for PUBLIC_CACHE_TTL seconds (default 60), so the database is read about once a minute per page, not once per visitor.
 // If the database cannot answer, the saved copy of the page in the site files is served instead (an emergency copy, never a second kind of page).
 import { storyPath } from '../lib/stories.js';
@@ -8,6 +8,7 @@ import { listLawyers } from '../lib/lawyers.js';
 import { isIndexable } from '../lib/indexing.js';
 import { getVerification, publicView } from '../lib/verification.js';
 import { redirectTarget } from '../lib/firm-slug.js';
+import { isReserved } from '../lib/reserved-paths.js';
 import { siblingsOf } from '../lib/locations.js';
 import { firmStats } from '../lib/firm-stats.js';
 import { bookingRow } from '../render/booking.js';
@@ -74,11 +75,23 @@ const nameOf = (row) => { try { return JSON.parse(row.data).name || 'This firm';
 
 export async function firmPage({ request, env, ctx }) {
   const url = new URL(request.url);
-  // /firms/<slug> is the Overview; /firms/<slug>/lawyers and /articles are sub-pages that exist only for firms with that content (see src/render/firm-tabs.js).
-  const m = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles))?\/?$/);
-  if (!m) return env.ASSETS.fetch(request);
+  // A firm's page is lawdb.ai/<handle> (the Overview); /<handle>/lawyers and /articles are sub-pages that exist only for firms with that content (see src/render/firm-tabs.js).
+  // The old /firms/<slug> addresses go permanently to the new ones.
+  const legacy = url.pathname.match(/^\/firms\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles))?\/?$/);
+  const m = legacy || url.pathname.match(/^\/([a-z0-9][a-z0-9-]*?)(?:\/(lawyers|articles))?\/?$/);
+  if (!m || (!legacy && isReserved(m[1]))) return env.ASSETS.fetch(request);
   const tab = m[2] || 'overview';
   if (tab !== 'overview' && !TAB_SLUGS.includes(tab)) return env.ASSETS.fetch(request);
+  const here = (slug) => `/${slug}${tab === 'overview' ? '' : '/' + tab}${url.search}`;
+
+  if (legacy) {
+    try {
+      const own = await env.DB.prepare('SELECT 1 AS x FROM firms WHERE slug = ?').bind(m[1]).first();
+      const to = own ? m[1] : await redirectTarget(env, m[1]);
+      if (to) return new Response(null, { status: 301, headers: { location: here(to), 'cache-control': 'public, max-age=3600' } });
+    } catch (err) { console.error('old firm address lookup failed', m[1], err); }
+    return env.ASSETS.fetch(request);
+  }
 
   const ttl = ttlOf(env);
   const key = new Request(url.origin + url.pathname + '?g=' + CACHE_GENERATION, { method: 'GET' });
@@ -99,7 +112,7 @@ export async function firmPage({ request, env, ctx }) {
   if (!row) {
     let moved = null;
     try { moved = await redirectTarget(env, m[1]); } catch (err) { console.error('firm redirect lookup failed', m[1], err); }
-    if (moved) return new Response(null, { status: 301, headers: { location: `/firms/${moved}${tab === 'overview' ? '' : '/' + tab}${url.search}`, 'cache-control': 'public, max-age=3600' } });
+    if (moved) return new Response(null, { status: 301, headers: { location: here(moved), 'cache-control': 'public, max-age=3600' } });
   }
 
   // A firm switched off in the admin is shown nowhere. A firm that is not live (waiting for approval) or not listed at all has no page.

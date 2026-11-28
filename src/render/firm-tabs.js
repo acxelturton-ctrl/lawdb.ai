@@ -1,4 +1,4 @@
-// Tabs on a firm profile: /firms/<slug> (Overview), /firms/<slug>/lawyers, /firms/<slug>/articles.
+// Tabs on a firm profile: /<handle> (Overview), /<handle>/lawyers, /<handle>/articles.
 // Every tab is its own page with its own address, title, description, canonical and breadcrumb, so each can be found in search on its own.
 // A tab exists only when the firm has real content for it (tabsFor); a firm without it has no page at that address and no tab button, so nothing thin is published.
 import { cleanDetails } from '../lib/details.js';
@@ -20,7 +20,7 @@ export function tabsFor(firm, postCount = 0, lawyerCount = 0) {
   return tabs;
 }
 
-export const tabPath = (slug, tab) => `/firms/${slug}${tab && tab !== 'overview' ? `/${tab}` : ''}`;
+export const tabPath = (slug, tab) => `/${slug}${tab && tab !== 'overview' ? `/${tab}` : ''}`;
 export const lawyerPath = (slug) => `/lawyers/${slug}`; // a lawyer's own page is not under a firm
 
 const LABEL = { overview: 'Overview', lawyers: 'Lawyers', articles: 'Articles' };
