@@ -506,7 +506,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<meta name="description" content="${esc(desc)}">`,
     `<meta property="og:title" content="${ogTitle}">`,
     `<meta property="og:description" content="${esc(desc)}">`,
-    '<meta property="og:type" content="business.business">',
+    '<meta property="og:type" content="website">',
     `<link rel="canonical" href="${esc(url)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
     '<meta property="og:site_name" content="LawDB.ai">\n<meta property="og:locale" content="en_US">',
