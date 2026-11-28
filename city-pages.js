@@ -81,7 +81,7 @@
       if (!a) return;
       var rt = parseFloat(td[1].textContent), ct = parseInt(td[2].textContent.replace(/\D/g, ''), 10);
       out.push({
-        slug: (a.getAttribute('href') || '').replace(/^\/firms\//, ''), name: a.textContent.trim(), featured: !!td[0].querySelector('.seo-feat'),
+        slug: (a.getAttribute('href') || '').replace(/^\/(?:firms\/)?/, ''), name: a.textContent.trim(), featured: !!td[0].querySelector('.seo-feat'),
         rating: isNaN(rt) ? 0 : rt, count: isNaN(ct) ? 0 : ct, address: td[3].textContent.trim(), phone: td[4].textContent.trim(), tags: [], logo: ''
       });
     });
