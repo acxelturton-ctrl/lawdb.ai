@@ -25,5 +25,5 @@ export function welcomePost({ name, city, state, tags, slug, origin }) {
   const kinds = (Array.isArray(tags) ? tags : []).filter(Boolean).slice(0, 2).join(' and ');
   const where = [city, STATES[state] || state].filter(Boolean).join(', ');
   const what = kinds ? `${kinds}${where ? ` in ${where}` : ''}` : where ? `law firm in ${where}` : 'law firm';
-  return `Welcome to LawDB, ${name}! \u{1F389}\n\nTheir profile is now live on the LawDB legal directory: ${what}.\n\nSee their profile: ${origin}/firms/${slug}`;
+  return `Welcome to LawDB, ${name}! \u{1F389}\n\nTheir profile is now live on the LawDB legal directory: ${what}.\n\nSee their profile: ${origin}/${slug}`;
 }

@@ -56,7 +56,7 @@ ok(badges({ details: { languages: ['Spanish', 'English'] } }).includes('Habla es
 eq(badges({ perks: {}, details: {} }), [], 'no perks, no chips');
 eq(badges({ verified: true, perks: { free: true, h24: true, virtual: true }, details: { languages: ['Spanish'] } }).length, 3, 'at most three chips');
 const plain = firmCard(mk(1, 'FL'));
-ok(!plain.includes('hv-flag') && plain.includes('href="/firms/f-FL-1"') && plain.includes('tel:+13055550100') && plain.includes('Miami, Florida') || plain.includes('Tampa, Florida'), 'a plain card links to the firm page, shows the full state name and a Call link');
+ok(!plain.includes('hv-flag') && plain.includes('href="/f-FL-1"') && plain.includes('tel:+13055550100') && plain.includes('Miami, Florida') || plain.includes('Tampa, Florida'), 'a plain card links to the firm page, shows the full state name and a Call link');
 ok(firmCard(mk(1, 'FL'), { eager: true }).includes('loading="eager"') && firmCard(mk(1, 'FL')).includes('loading="lazy"'), 'the first cards load at once');
 eq(excerpt('one two three', 5), 'one two three', 'short text is kept');
 ok(excerpt('word '.repeat(80), 34).endsWith('…') && excerpt('word '.repeat(80), 34).split(' ').length === 34, 'long text is cut at a word with an ellipsis');

@@ -582,7 +582,7 @@
     var logo=(f.type==='logo'&&f.src)?'<img src="'+esc(f.src)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'';
     var tags=(f.tags||[]).slice(0,2).map(function(t){ return '<i>'+esc(t)+'</i>'; }).join('');
     var rate=(+f.rating>0&&+f.count>0)?'<i>&#9733; '+Number(f.rating).toFixed(1)+' ('+f.count+')</i>':'';
-    return '<a class="d-card" href="/firms/'+esc(f.slug)+'"><span class="d-av">'+ini+logo+'</span><div><b>'+esc(f.name)+'</b><small>'+esc(f.city)+', '+esc(f.state)+'</small><span class="d-tags">'+tags+rate+'</span></div></a>';
+    return '<a class="d-card" href="/'+esc(f.slug)+'"><span class="d-av">'+ini+logo+'</span><div><b>'+esc(f.name)+'</b><small>'+esc(f.city)+', '+esc(f.state)+'</small><span class="d-tags">'+tags+rate+'</span></div></a>';
   }
   function draw(info,raw){
     if(!card||!list||!info) return;

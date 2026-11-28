@@ -372,7 +372,7 @@ body.pg-add{background:#fffdf8}
   // find your firm
   var q=document.getElementById('ayQ'), res=document.getElementById('ayRes'), none=document.getElementById('ayNone'), t, last='';
   function show(list){ res.textContent=''; none.hidden=list.length>0;
-    list.forEach(function(f){ var li=document.createElement('li'), a=document.createElement('a'); a.href='/firms/'+encodeURIComponent(f.slug);
+    list.forEach(function(f){ var li=document.createElement('li'), a=document.createElement('a'); a.href='/'+encodeURIComponent(f.slug);
       var d=document.createElement('div'), b=document.createElement('b'), s=document.createElement('small'); b.textContent=f.name; s.textContent=f.city+', '+f.state;
       d.appendChild(b); d.appendChild(s); var g=document.createElement('span'); g.className='go'; g.textContent='View & claim \u2192'; a.appendChild(d); a.appendChild(g); li.appendChild(a); res.appendChild(li); }); }
   q.addEventListener('input',function(){ clearTimeout(t); var v=q.value.trim(); if(v.length<2){ res.textContent=''; none.hidden=true; last=''; return; }

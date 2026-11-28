@@ -259,7 +259,7 @@ async function viewFirms() {
             h('td', { class: 'n' }, f.rating ? `${Number(f.rating).toFixed(1)} (${f.review_count})` : ''),
             h('td', { class: 'n', title: 'Profile strength: how complete the profile is, out of 100' }, f.strength == null ? '' : String(f.strength)),
             h('td', { class: 'n' }, f.updated_at ? f.updated_at.slice(0, 10) : ''),
-            h('td', { class: 'act' }, h('a', { href: `#firms/edit/${f.slug}` }, 'Edit'), f.status === 'live' && h('a', { href: `/firms/${f.slug}`, target: '_blank', rel: 'noopener' }, 'View')))) : [h('tr', null, h('td', { colspan: 10 }, h('p', { class: 'muted' }, 'No firms match.')))]))),
+            h('td', { class: 'act' }, h('a', { href: `#firms/edit/${f.slug}` }, 'Edit'), f.status === 'live' && h('a', { href: `/${f.slug}`, target: '_blank', rel: 'noopener' }, 'View')))) : [h('tr', null, h('td', { colspan: 10 }, h('p', { class: 'muted' }, 'No firms match.')))]))),
         h('div', { class: 'pager' }, h('span', null, `${from.toLocaleString('en-US')}–${to.toLocaleString('en-US')} of ${total.toLocaleString('en-US')}`),
           h('div', { class: 'row' }, h('button', { type: 'button', disabled: state.page === 0, onclick: () => { state.page--; load(); } }, '‹ Previous'),
             h('button', { type: 'button', disabled: to >= total, onclick: () => { state.page++; load(); } }, 'Next ›'))));
@@ -284,7 +284,7 @@ async function viewFirmEdit(slug, flash) {
 
 // One firm's analytics, as the firm sees them, plus the free-month controls.
 function viewFirmAnalytics(slug) {
-  return h('div', null, h('p', null, h('a', { href: `#firms/edit/${encodeURIComponent(slug)}` }, '\u2190 Back to the firm'), ' \u00b7 ', h('a', { href: `/firms/${slug}`, target: '_blank', rel: 'noopener' }, 'View public page')),
+  return h('div', null, h('p', null, h('a', { href: `#firms/edit/${encodeURIComponent(slug)}` }, '\u2190 Back to the firm'), ' \u00b7 ', h('a', { href: `/${slug}`, target: '_blank', rel: 'noopener' }, 'View public page')),
     analyticsView({ base: '/api/admin/firms/' + encodeURIComponent(slug), mode: 'admin', slug }));
 }
 
@@ -609,7 +609,7 @@ async function viewApprovals() {
         h('p', { class: 'muted' }, 'The address could not be found exactly. You can approve as is: LawDB puts the pin in the middle of the city and hides the map on the firm page. Or enter the exact position (optional):'),
         h('a', { href: `https://www.google.com/maps/search/${mapQuery}`, target: '_blank', rel: 'noopener' }, 'Find on Google Maps'),
         h('div', { class: 'row' }, lat, lng)),
-      h('div', { class: 'row' }, approve, reject, h('a', { href: `/firms/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View page')), out);
+      h('div', { class: 'row' }, approve, reject, h('a', { href: `/${m.slug}`, target: '_blank', rel: 'noopener' }, 'View page')), out);
   }
 
   function decidedRow(m) {
@@ -817,7 +817,7 @@ async function viewOutreach() {
     body.append(
       h('div', { class: 'row spread' },
         h('div', null, h('b', null, r.person), ' ',
-          r.firmSlug && r.firmState !== 'unlisted' ? h('a', { href: `/firms/${r.firmSlug}`, target: '_blank', rel: 'noopener' }, r.firmName) : r.firmName ? h('span', null, r.firmName) : h('span', { class: 'muted' }, 'no firm yet'),
+          r.firmSlug && r.firmState !== 'unlisted' ? h('a', { href: `/${r.firmSlug}`, target: '_blank', rel: 'noopener' }, r.firmName) : r.firmName ? h('span', null, r.firmName) : h('span', { class: 'muted' }, 'no firm yet'),
           state && [' ', h('span', { class: `badge ${state[0]}` }, state[1])]),
         h('span', { class: 'muted' }, OUTREACH_CHANNELS.find(([k]) => k === r.channel)?.[1] || r.channel, r.lastContact ? ` · last contact ${shortDay(r.lastContact)}` : '', r.link ? [' · ', h('a', { href: r.link, target: '_blank', rel: 'noopener noreferrer' }, 'open')] : '')),
       h('div', { class: 'row' }, stage, h('label', { class: 'o-date' }, 'Follow up ', follow), week),
@@ -1061,7 +1061,7 @@ async function viewSearch() {
     data.heldBack && h('div', { class: 'card' }, h('h2', null, 'Profiles held back from Google'),
       h('p', { class: 'muted' }, `A profile with no real description (under ${data.heldBack.minWords} words) is a thin page, so it carries a noindex tag and stays out of the sitemap until a description is added. ${data.heldBack.count} of ${data.heldBack.of} database-built profiles are held back right now.`),
       data.heldBack.sample.length
-        ? h('ul', null, ...data.heldBack.sample.map((f) => h('li', null, h('a', { href: '/firms/' + f.slug, target: '_blank', rel: 'noopener' }, f.name), ` (${f.words} words)`)))
+        ? h('ul', null, ...data.heldBack.sample.map((f) => h('li', null, h('a', { href: '/' + f.slug, target: '_blank', rel: 'noopener' }, f.name), ` (${f.words} words)`)))
         : h('p', { class: 'muted' }, 'None. Every profile has a description.')),
     h('div', { class: 'card' }, h('h2', null, 'What Google says'),
       data.states.length ? h('ul', null, ...data.states.map((s) => h('li', null, `${s.state}: ${s.n}`))) : h('p', { class: 'muted' }, 'No pages checked yet. Press "Check the next 40 pages".')),
@@ -1087,7 +1087,7 @@ async function viewReviews() {
   const row = (r, pending) => h('div', { class: 'audit' },
     h('div', null, h('b', null, r.firm), ' ', h('span', { class: 'muted' }, `${stars(r.stars)} · ${r.email} · ${when(r.at)}${r.status === 'hidden' ? ' · HIDDEN' : ''}${!pending && r.comment ? ' · comment ' + r.commentStatus : ''}`)),
     r.comment && h('div', null, r.comment),
-    h('div', { class: 'row' }, pending ? [act(r, 'approve', 'Approve comment'), act(r, 'reject', 'Reject comment')] : [], r.status === 'hidden' ? act(r, 'show', 'Show rating') : act(r, 'hide', 'Hide rating'), h('a', { href: `/firms/${r.slug}`, target: '_blank', rel: 'noopener' }, 'Open firm')));
+    h('div', { class: 'row' }, pending ? [act(r, 'approve', 'Approve comment'), act(r, 'reject', 'Reject comment')] : [], r.status === 'hidden' ? act(r, 'show', 'Show rating') : act(r, 'hide', 'Hide rating'), h('a', { href: `/${r.slug}`, target: '_blank', rel: 'noopener' }, 'Open firm')));
   return h('div', null, h('h1', null, 'Reviews'), out,
     h('h2', null, `Comments waiting for you (${data.pending.length})`),
     h('div', { class: 'card' }, data.pending.length ? data.pending.map((r) => row(r, true)) : h('p', { class: 'muted' }, 'Nothing waiting.')),
@@ -1366,7 +1366,7 @@ async function viewNetwork() {
     h('div', null, h('b', null, r.reportedName), ' ', h('span', { class: 'muted' }, `reported by ${r.reporterName} · ${when(r.createdAt)} · ${REASON[r.reason] || r.reason}${r.suspended ? ' · REMOVED FROM NETWORK' : ''}`)),
     r.detail && h('div', null, r.detail),
     h('div', { class: 'row' }, r.status === 'new' ? act(r, 'Mark reviewed', { status: 'reviewed' }) : null, r.status !== 'actioned' ? act(r, r.suspended ? 'Mark actioned' : 'Remove from network and mark actioned', { status: 'actioned', suspend: !r.suspended }) : null,
-      h('a', { href: `/firms/${encodeURIComponent(r.reportedSlug)}`, target: '_blank', rel: 'noopener' }, 'Public page'),
+      h('a', { href: `/${encodeURIComponent(r.reportedSlug)}`, target: '_blank', rel: 'noopener' }, 'Public page'),
       r.suspended ? (() => { const b = h('button', { type: 'button' }, 'Restore to network'); b.addEventListener('click', async () => { b.disabled = true; try { await api('PATCH', `/api/admin/network/firms/${encodeURIComponent(r.reportedSlug)}`, { suspended: false, why: 'restored by admin' }); render(me); } catch (err) { b.disabled = false; out.replaceChildren(note('msg-err', err.message)); } }); return b; })() : null));
   return h('div', null, h('h1', null, 'LawDB Connect'), out,
     h('p', { class: 'muted' }, 'Reports from firms about other firms in the members-only directory. Removing a firm switches it off and ends its connections.'),

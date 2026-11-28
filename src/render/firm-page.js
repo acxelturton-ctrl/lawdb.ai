@@ -309,7 +309,7 @@ function officesHtml(f) {
 function locationsHtml(f, locations) {
   const list = (Array.isArray(locations) ? locations : []).filter((l) => l && l.slug && l.slug !== f.slug).slice(0, 12);
   if (!list.length) return '';
-  const items = list.map((l) => `<li><a href="/firms/${esc(l.slug)}" class="office-name">${esc(l.name)}</a><span>${esc([l.city, STATES[l.state] ? l.state : ''].filter(Boolean).join(', '))}</span></li>`).join('');
+  const items = list.map((l) => `<li><a href="/${esc(l.slug)}" class="office-name">${esc(l.name)}</a><span>${esc([l.city, STATES[l.state] ? l.state : ''].filter(Boolean).join(', '))}</span></li>`).join('');
   return `\n    <section class="offices other-locations" aria-label="Other ${esc(f.name)} locations"><h2>Other locations</h2><ul>${items}</ul></section>`;
 }
 
@@ -380,7 +380,7 @@ function likeAside(nearby, articlesHtml = '') {
     const src = safeUrl(n.src), remote = safeUrl(n.logoUrl);
     const av = src ? `<img src="${esc(rootImg(src))}" alt="" loading="lazy">` : remote ? `<img src="${esc(remote)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : monogram(n);
     const sub = (n.tags || []).filter(Boolean)[0] || 'Law practice';
-    return `<div class="pf-like-row"><a class="pf-like-av" href="/firms/${esc(n.slug)}" tabindex="-1" aria-hidden="true">${av}</a><div class="pf-like-t"><a href="/firms/${esc(n.slug)}"><b>${esc(n.name)}</b></a><span>${esc(sub)} &middot; ${esc(n.city)}</span><button class="lw-fbtn pf-btn pf-sm" type="button" data-follow="${esc(n.slug)}">+ Follow</button></div></div>`;
+    return `<div class="pf-like-row"><a class="pf-like-av" href="/${esc(n.slug)}" tabindex="-1" aria-hidden="true">${av}</a><div class="pf-like-t"><a href="/${esc(n.slug)}"><b>${esc(n.name)}</b></a><span>${esc(sub)} &middot; ${esc(n.city)}</span><button class="lw-fbtn pf-btn pf-sm" type="button" data-follow="${esc(n.slug)}">+ Follow</button></div></div>`;
   }).join('');
   if (!rows && !articlesHtml) return '';
   // Two tabs when the firm has articles: the firms nearby, and the firm's own recent articles. One panel alone gets a plain heading.
@@ -405,12 +405,12 @@ function stickyBar(f) {
   return `<div class="pf-sticky">${call}<a class="sk-msg" href="#contact" data-open-contact>Request a consultation</a></div>\n  `;
 }
 
-// `tab` is 'overview' (the whole profile, at /firms/<slug>) or one of the sub-pages (see firm-tabs.js); `tabs` is the list this firm has; `allPosts` feeds the Articles tab.
+// `tab` is 'overview' (the whole profile, at /<handle>) or one of the sub-pages (see firm-tabs.js); `tabs` is the list this firm has; `allPosts` feeds the Articles tab.
 export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [] }) {
   const prov = STATES[f.state] || f.state;
   const customCover = /^img\/[0-9a-f]{24}$/.test(f.heroImage || '');
   const ogImage = customCover ? `${origin}/${f.heroImage}` : `${origin}/images/og-default.jpg`;
-  const baseUrl = `${origin}/firms/${f.slug}`;
+  const baseUrl = `${origin}/${f.slug}`;
   const url = `${origin}${tabPath(f.slug, tab)}`; // this page's own address (the canonical); the Overview keeps the firm's address
   const isTab = tab !== 'overview';
   const about = typeof f.about === 'string' ? f.about.trim() : '';

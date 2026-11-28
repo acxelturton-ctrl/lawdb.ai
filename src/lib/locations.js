@@ -64,7 +64,7 @@ export async function linkLocation(env, admin, locationSlug, rawMain) {
     env.DB.prepare('SELECT slug, name FROM firms WHERE slug = ?').bind(mainSlug).first(),
   ]);
   if (!loc) throw new HttpError(404, 'Firm not found');
-  if (!main) throw new HttpError(404, `There is no listing at /firms/${mainSlug}. Enter the address of the firm's main listing.`);
+  if (!main) throw new HttpError(404, `There is no listing at /${mainSlug}. Enter the address of the firm's main listing.`);
   const current = await mainOf(env, locationSlug);
   if (current) {
     if (current.slug === mainSlug) return { slug: locationSlug, main: mainSlug, unchanged: true };

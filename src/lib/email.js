@@ -172,7 +172,7 @@ export function marketplaceWaitlistAdminEmail(origin, { name, email, firm, state
 // A copy of every form submission for the site's admin(s): the form, the firm it was for (if any), who was told, and what was sent. The admin Leads tab has the same entries.
 export function leadAdminCopyEmail(origin, { form, firmName, firmSlug, ownersNotified, name, email, phone, message }) {
   const link = `${origin}/admin/#leads`;
-  const lines = [['Form', form], ['Firm', firmName ? `${firmName} (${origin}/firms/${firmSlug})` : null], ['Firm owners emailed', firmName ? (ownersNotified ? String(ownersNotified) : 'none: nobody manages this firm yet') : null], ['Name', name], ['Email', email], ['Phone', phone], ['Message', message]].filter(([, v]) => v);
+  const lines = [['Form', form], ['Firm', firmName ? `${firmName} (${origin}/${firmSlug})` : null], ['Firm owners emailed', firmName ? (ownersNotified ? String(ownersNotified) : 'none: nobody manages this firm yet') : null], ['Name', name], ['Email', email], ['Phone', phone], ['Message', message]].filter(([, v]) => v);
   return {
     subject: `New ${form === 'firm-profile' ? 'inquiry' : form + ' form'}${firmName ? ` for ${firmName}` : ''}`,
     text: `${lines.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nAll entries: ${link}`,
@@ -182,7 +182,7 @@ export function leadAdminCopyEmail(origin, { form, firmName, firmSlug, ownersNot
 
 export function reportEmail(origin, { slug, reason, name, email, message }) {
   const link = `${origin}/admin/#leads`;
-  const firm = slug ? `${origin}/firms/${slug}` : '(no firm given)';
+  const firm = slug ? `${origin}/${slug}` : '(no firm given)';
   const lines = [['Listing', firm], ['Reason', reason], ['From', `${name} <${email}>`], ['Details', message]].filter(([, v]) => v);
   return {
     subject: `Listing reported${slug ? ': ' + slug : ''}`,
@@ -197,7 +197,7 @@ export function commentEmail(origin, { slug, firmName, stars, comment }) {
   return {
     subject: `Rating comment to review: ${firmName || slug}`,
     text: `A LawDB member left a ${stars}-star rating with a comment for ${firmName || slug}. It stays hidden until you approve it.\n\n"${comment}"\n\nApprove or reject it in the admin: ${link}`,
-    html: `<p>A LawDB member left a <b>${stars}-star</b> rating with a comment for <a href="${esc(origin)}/firms/${esc(slug)}">${esc(firmName || slug)}</a>. It stays hidden until you approve it.</p><blockquote style="border-left:3px solid #c9a050;margin:12px 0;padding:4px 12px;color:#142434">${esc(comment)}</blockquote><p><a href="${esc(link)}">Approve or reject it in the admin</a></p>`,
+    html: `<p>A LawDB member left a <b>${stars}-star</b> rating with a comment for <a href="${esc(origin)}/${esc(slug)}">${esc(firmName || slug)}</a>. It stays hidden until you approve it.</p><blockquote style="border-left:3px solid #c9a050;margin:12px 0;padding:4px 12px;color:#142434">${esc(comment)}</blockquote><p><a href="${esc(link)}">Approve or reject it in the admin</a></p>`,
   };
 }
 
@@ -227,7 +227,7 @@ export function verificationRequestEmail(origin, { firmName, slug, society, regi
 
 // To the firm's owners when the admin has verified it.
 export function verifiedEmail(origin, { firmName, slug }) {
-  const link = `${origin}/firms/${slug}`;
+  const link = `${origin}/${slug}`;
   return {
     subject: `${firmName} is now Verified by LawDB`,
     text: `We checked ${firmName} and it is now Verified by LawDB. Your page shows a Verified badge, the date, what we checked and a link to the state bar's own directory. It is not an endorsement, and it does not say anything about your work.\n\nSee your page (it can take a few hours to update): ${link}`,

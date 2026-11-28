@@ -198,14 +198,14 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     ? h('div', null, h('h1', { class: 'ed-title' }, 'Add a firm'), h('p', { class: 'ed-sub' }, 'Fill in what you know. Pictures, other offices, social profiles and the blog feed can be added once the firm is saved.'))
     : h('div', null,
       h('h1', { class: 'ed-title' }, mode === 'owner' ? 'Edit your profile: ' : 'Edit Profile: ',
-        data.status === 'live' ? h('a', { class: 'ed-handle', href: `/firms/${slug}`, target: '_blank', rel: 'noopener', title: 'Open the public page' }, '@' + slug) : h('span', { class: 'ed-handle' }, '@' + slug)),
+        data.status === 'live' ? h('a', { class: 'ed-handle', href: `/${slug}`, target: '_blank', rel: 'noopener', title: 'Open the public page' }, '@' + slug) : h('span', { class: 'ed-handle' }, '@' + slug)),
       h('p', { class: 'ed-sub' },
         firm.website && h('a', { href: firm.website, target: '_blank', rel: 'noopener nofollow' }, icon('globe'), host(firm.website)),
         data.updatedAt && h('span', null, 'Updated: ', when(data.updatedAt)),
         h('span', { class: 'badge' + (firm.featured ? ' featured' : '') }, firm.featured ? 'Featured' : 'Basic'),
         data.status && data.status !== 'live' && h('span', { class: 'badge new' }, data.status === 'pending' ? 'Awaiting approval' : 'Hidden'),
         h('a', { href: placeLink, target: '_blank', rel: 'noopener' }, 'Find on Google Maps ↗'),
-        data.status === 'live' && h('a', { href: `/firms/${slug}`, target: '_blank', rel: 'noopener' }, 'View public page ↗')));
+        data.status === 'live' && h('a', { href: `/${slug}`, target: '_blank', rel: 'noopener' }, 'View public page ↗')));
 
   // ---- Profile Images (a collapsible bar, loaded when it is opened)
   let pics = null;
@@ -245,7 +245,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
       if (st.isLocation) { body.replaceChildren(h('p', null, 'This page is an office of ', h('b', null, st.main.name), '. It is Featured whenever that listing is, and its plan and billing are managed there.')); return; }
       const kids = [h('p', { class: 'ed-hint' }, 'A firm with offices in several cities gets a page for each office, so each shows in its own city\'s list and on the map, with its own address, phone number and website. One Featured plan covers all of them.')];
       if (st.items.length) kids.push(h('ul', { class: 'ed-loc-list' }, st.items.map((l) => h('li', null, h('b', null, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.state}`), ' ',
-        l.status === 'live' ? h('a', { href: `/firms/${l.slug}`, target: '_blank', rel: 'noopener' }, 'View page') : h('span', { class: 'badge new' }, 'Awaiting approval')))));
+        l.status === 'live' ? h('a', { href: `/${l.slug}`, target: '_blank', rel: 'noopener' }, 'View page') : h('span', { class: 'badge new' }, 'Awaiting approval')))));
       if (st.canAdd) kids.push(addForm());
       else kids.push(locked ? lockNote(st.reason) : h('p', { class: 'muted' }, st.reason));
       body.replaceChildren(...kids);
@@ -271,7 +271,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     });
     return h('details', { class: 'ed-addr' }, h('summary', null, 'Change the page address'),
       h('p', { class: 'ed-hint' }, 'Lowercase letters, digits and dashes. The old address keeps working: it redirects to the new one for good, for the page and for its stories. The owner, inquiries, ratings, followers and numbers all stay with the firm.'),
-      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input),
+      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/'), input),
       h('div', { class: 'row' }, go), msg);
   }
 
@@ -292,9 +292,9 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
         keep = into;
         msg.replaceChildren(h('p', { class: 'ed-hint' }, 'Keep: ', h('b', null, r.firm.name || into), ` (${[r.firm.city, r.firm.state].filter(Boolean).join(', ')}, ${r.status}). `,
           h('b', null, '@' + slug), ' will be deleted. Its owners, inquiries, followers, ratings, blog feed and numbers move to the kept listing, and ',
-          h('b', null, `/firms/${slug}`), ' redirects there for good. This cannot be undone.'));
+          h('b', null, `/${slug}`), ' redirects there for good. This cannot be undone.'));
         go.hidden = false;
-      } catch (err) { msg.replaceChildren(note('msg-err', err.status === 404 ? `There is no listing at /firms/${into}.` : err.message)); }
+      } catch (err) { msg.replaceChildren(note('msg-err', err.status === 404 ? `There is no listing at /${into}.` : err.message)); }
     });
     go.addEventListener('click', async () => {
       if (!keep) return;
@@ -308,7 +308,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     });
     return h('details', { class: 'ed-addr' }, h('summary', null, 'Merge into another listing (duplicate)'),
       h('p', { class: 'ed-hint' }, 'Use this when the same firm is listed twice. Enter the address of the listing to KEEP; this one is removed.'),
-      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input, look),
+      h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/'), input, look),
       msg, h('div', { class: 'row' }, go));
   }
 
@@ -339,7 +339,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
     return h('details', { class: 'ed-addr', open: pages.length > 0 }, h('summary', null, pages.length ? `Offices of this firm (${pages.length})` : 'Offices in other cities (one plan)'),
       pages.length ? h('ul', { class: 'ed-loc-list' }, pages.map((l) => h('li', null, h('a', { href: `#firms/edit/${l.slug}` }, l.name), ' ', h('span', { class: 'muted' }, `${l.city}, ${l.state}${l.status !== 'live' ? ' (' + l.status + ')' : ''}`)))) : null,
       h('p', { class: 'ed-hint' }, pages.length ? 'Each office page is Featured whenever this listing is. To add another existing listing as an office page, enter this listing\'s address on that listing\'s page.' : 'If this page is another office of a firm that already has a main listing, enter that listing\'s address. This page then follows the main listing\'s Featured plan.'),
-      pages.length ? null : h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/firms/'), input, go), msg);
+      pages.length ? null : h('div', { class: 'row' }, h('span', { class: 'ed-prefix' }, 'lawdb.ai/'), input, go), msg);
   }
 
   // ---- Basic Information
@@ -350,7 +350,7 @@ export function profileEditor({ mode, data, base, onSaved, onCreated, flash }) {
         fld('Profile Status', c.status, data.status === 'pending' ? 'Approve it under Approvals.' : null),
         fld('Plan', c.featured, mode === 'owner' ? 'Managed by LawDB (see Your plan)' : null)),
     fld('Official Firm Name', c.name),
-    !isNew && fld('Username', text('@' + slug, { readonly: true, 'aria-label': 'Username' }), 'The address of the page: lawdb.ai/firms/' + slug + (admin ? '' : '. To change it, write to info@lawdb.ai.')),
+    !isNew && fld('Username', text('@' + slug, { readonly: true, 'aria-label': 'Username' }), 'The address of the page: lawdb.ai/' + slug + (admin ? '' : '. To change it, write to info@lawdb.ai.')),
     admin && !isNew && addressControl(),
     admin && !isNew && mergeControl(),
     admin && !isNew && locationControl(),

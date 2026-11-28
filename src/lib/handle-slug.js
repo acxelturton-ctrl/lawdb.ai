@@ -1,4 +1,4 @@
-// Short firm addresses: lawdb.ai/firms/<handle>, the way a firm is known on social media (smithlaw, not smith-law-firm-miami-fl).
+// Short firm addresses: lawdb.ai/<handle>, the way a firm is known on social media (smithlaw, not smith-law-firm-miami-fl).
 //
 // The handle comes from, in this order: the firm's Instagram, X, Facebook, LinkedIn company page and YouTube handles, then its website's name.
 // A handle is only used when it plainly belongs to the firm (it contains a distinctive word of the firm's name, or the name's initials), so a
@@ -10,6 +10,7 @@
 // Every change goes through renameFirmSlug, so the old address becomes a permanent redirect and nothing breaks.
 import { renameFirmSlug, SLUG_MIN } from './firm-slug.js';
 import { setting, setSetting } from './marketplace.js';
+import { isReserved } from './reserved-paths.js';
 
 const HANDLE_LEGAL = ['llp', 'pllc', 'llc', 'lpa', 'pllp', 'apc', 'plc', 'chtd', 'ltd'];
 const NAME_LEGAL = new Set([...HANDLE_LEGAL, 'pa', 'pc', 'lp', 'sc', 'pl', 'inc', 'corp', 'co', 'p', 'a']);
@@ -126,7 +127,7 @@ export async function shortenSlugs(env) {
       let d = {}; try { d = JSON.parse(r.data) || {}; } catch { d = {}; }
       const social = typeof d.social === 'string' ? JSON.parse(d.social) : d.social;
       const { slug: base } = baseHandle({ name: r.name, city: r.city, website: d.website, social });
-      const isFree = async (s) => s === r.slug || !(await env.DB.prepare('SELECT 1 FROM firms WHERE slug = ? UNION ALL SELECT 1 FROM firm_redirects WHERE old_slug = ?').bind(s, s).first());
+      const isFree = async (s) => !isReserved(s) && (s === r.slug || !(await env.DB.prepare('SELECT 1 FROM firms WHERE slug = ? UNION ALL SELECT 1 FROM firm_redirects WHERE old_slug = ?').bind(s, s).first()));
       const next = await uniqueHandle(base, r.state, isFree);
       if (!next || next === r.slug) { stats.unchanged++; continue; }
       await renameFirmSlug(env, null, r.slug, next);

@@ -31,7 +31,7 @@ function firmCard(f, { me, onConnect, onRespond, onMenu } = {}) {
   else if (link && link.status === 'pending' && link.direction === 'out') actions.append(h('span', { class: 'pn-state' }, 'Request sent'));
   else if (link && link.status === 'pending') actions.append(h('button', { type: 'button', class: 'primary', onclick: () => onRespond && onRespond(link.id, 'accept') }, 'Accept request'), h('button', { type: 'button', onclick: () => onRespond && onRespond(link.id, 'decline') }, 'Decline'));
   else if (onConnect) actions.append(h('button', { type: 'button', class: 'primary', onclick: () => onConnect(f) }, 'Connect'));
-  if (!f.sample && !f.preview) actions.append(h('a', { class: 'pn-link', href: `/firms/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗'));
+  if (!f.sample && !f.preview) actions.append(h('a', { class: 'pn-link', href: `/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗'));
   if (onMenu && !f.sample && !f.preview) actions.append(h('button', { type: 'button', class: 'pn-more', 'aria-label': `More about ${f.name}`, onclick: () => onMenu(f) }, '⋯'));
   return h('article', { class: 'pn-card' + (f.sample ? ' sample' : ''), 'data-slug': f.slug },
     f.sample ? h('span', { class: 'pn-ribbon' }, 'Sample') : null,
@@ -169,7 +169,7 @@ export async function viewPro({ mine, slug, tab = 'overview', onPlanChange }) {
     return h('div', { class: 'pn-req' }, h('div', null, h('b', null, f.name), h('small', { class: 'muted' }, ` ${f.city}, ${f.state} · ${date(i.at)}`),
       i.message ? h('p', { class: 'pn-note' }, `“${i.message}”`) : null,
       f.verified ? h('span', { class: 'pn-badge ver' }, check(), ' Verified by LawDB') : h('span', { class: 'pn-badge' }, 'Not yet verified'),
-      h('a', { class: 'pn-link', href: `/firms/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗')),
+      h('a', { class: 'pn-link', href: `/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗')),
       h('div', { class: 'row' }, incoming
         ? [h('button', { class: 'primary', type: 'button', onclick: () => respond(i.id, 'accept') }, 'Accept'), h('button', { type: 'button', onclick: () => respond(i.id, 'decline') }, 'Decline')]
         : h('button', { type: 'button', onclick: () => respond(i.id, 'withdraw') }, 'Withdraw')));
@@ -244,7 +244,7 @@ export async function viewPro({ mine, slug, tab = 'overview', onPlanChange }) {
         c ? h('p', { class: 'pn-contact' }, h('b', null, 'Contact: '), c.name ? `${c.name}, ` : '', h('a', { href: `mailto:${c.email}` }, c.email)) : h('p', { class: 'muted' }, 'Their contact person is no longer available.'),
         h('p', { class: 'muted' }, [f.phone && `Firm phone: ${f.phone}`, f.website && f.website.replace(/^https?:\/\//, '')].filter(Boolean).join(' · ')),
         !f.active ? h('p', { class: 'muted' }, 'This firm is not listed in the network at the moment.') : null,
-        h('a', { class: 'pn-link', href: `/firms/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗')),
+        h('a', { class: 'pn-link', href: `/${encodeURIComponent(f.slug)}`, target: '_blank', rel: 'noopener' }, 'Public profile ↗')),
         h('div', { class: 'row' }, h('button', { type: 'button', onclick: () => confirm(`End your connection with ${f.name}?`) && respond(i.id, 'remove') }, 'End connection')));
     };
     return h('div', null,

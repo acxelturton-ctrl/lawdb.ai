@@ -41,7 +41,7 @@ export function lawyerLd(l, url, origin) {
   return {
     '@context': 'https://schema.org', '@type': 'Person', name: l.name, ...(l.title ? { jobTitle: l.title } : {}), ...(l.photo ? { image: l.photo.startsWith('/') ? origin + l.photo : l.photo } : {}), url,
     address: { '@type': 'PostalAddress', addressLocality: l.city, addressRegion: l.state, addressCountry: 'US' },
-    ...(l.firmSlug ? { worksFor: { '@type': 'LegalService', name: l.firmName, url: `${origin}/firms/${l.firmSlug}` } } : {}),
+    ...(l.firmSlug ? { worksFor: { '@type': 'LegalService', name: l.firmName, url: `${origin}/${l.firmSlug}` } } : {}),
     ...(l.phone ? { telephone: `+1${l.phone}` } : {}), ...(l.email ? { email: l.email } : {}),
     ...(Object.keys(l.socials || {}).length || l.sourceUrl ? { sameAs: [...Object.values(l.socials || {}), ...(l.sourceUrl ? [l.sourceUrl] : [])] } : {}),
     ...((l.areas || []).length ? { knowsAbout: l.areas } : {}),
@@ -64,7 +64,7 @@ export function renderLawyerPage(l, { origin = 'https://lawdb.ai' } = {}) {
   const socials = Object.keys(l.socials || {}).map((k) => `<li><a href="${esc(l.socials[k])}" target="_blank" rel="noopener nofollow me">${esc(NET_LABEL[k])}</a></li>`).join('');
   const paras = (l.bio && l.bio.length ? l.bio : about.paragraphs).map((p) => `<p class="lp-p">${esc(p)}</p>`).join('');
   const areas = (l.areas || []).length ? `<section class="lp-areas"><h2>Practice areas</h2><ul>${l.areas.map((a) => `<li>${esc(a)}</li>`).join('')}</ul></section>` : '';
-  const firm = l.firmSlug ? `<p class="lp-firm">${esc(first)} is listed with <a href="/firms/${esc(l.firmSlug)}">${esc(l.firmName)}</a>, a law firm in ${esc(l.city)}, ${esc(l.state)}.</p>` : '';
+  const firm = l.firmSlug ? `<p class="lp-firm">${esc(first)} is listed with <a href="/${esc(l.firmSlug)}">${esc(l.firmName)}</a>, a law firm in ${esc(l.city)}, ${esc(l.state)}.</p>` : '';
   const role = `${l.title ? `${esc(l.title)} &middot; ` : ''}${esc(l.city)}, ${esc(l.state)}`;
   const page = [
     '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' + C.FAVICONS + '\n<meta name="viewport" content="width=device-width, initial-scale=1.0">',
