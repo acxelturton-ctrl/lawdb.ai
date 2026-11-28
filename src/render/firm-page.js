@@ -406,6 +406,11 @@ function stickyBar(f) {
 }
 
 // `tab` is 'overview' (the whole profile, at /<handle>) or one of the sub-pages (see firm-tabs.js); `tabs` is the list this firm has; `allPosts` feeds the Articles tab.
+// LawDB member ratings (the stars box on the page and the "Rate this firm on LawDB" link) are switched off until the site has real traffic.
+// To bring them back set this to true: follow.js, /api/firms/:slug/ratings and the Worker's rating box are all still in place.
+const MEMBER_RATINGS = false;
+const RATINGS_SLOT = MEMBER_RATINGS ? '\n    <span class="pf-rate-slot" data-slot="rate"></span>' : '';
+
 export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby = [], locations = [], origin = 'https://lawdb.ai', stats = null, verified = null, tab = 'overview', tabs = ['overview'], allPosts = [], lawyers = [] }) {
   const prov = STATES[f.state] || f.state;
   const customCover = /^img\/[0-9a-f]{24}$/.test(f.heroImage || '');
@@ -465,8 +470,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<div class="pf-meta"><span class="pf-mi">${C.ICONS.pin}${esc(f.city)}, ${esc(prov)}</span>` +
     (website ? `<a class="pf-mi" href="${esc(website)}" target="_blank" rel="${f.featured ? 'noopener sponsored' : 'noopener nofollow'}">${IC.link}${esc(hostOf(website))}</a>` : '') +
     (rated ? `<a class="pf-mi" href="${esc(mapsSearch)}" target="_blank" rel="noopener">${C.ICONS.star}<b>${num(f.rating).toFixed(1)}</b> from ${num(f.count)} Google reviews</a>` : '') +
-    // The LawDB member rating, apart from the Google one: the Worker's script (follow.js) fills in the average and count, or invites the first rating.
-    `<a class="pf-mi pf-lrate" href="#rate" data-lawdb-rating="${esc(f.slug)}">${C.ICONS.star}<span>Rate this firm on LawDB</span></a>` +
+    (MEMBER_RATINGS ? `<a class="pf-mi pf-lrate" href="#rate" data-lawdb-rating="${esc(f.slug)}">${C.ICONS.star}<span>Rate this firm on LawDB</span></a>` : '') +
     `<span class="pf-mi lw-fcount" data-fcount="${esc(f.slug)}"></span></div>`;
 
   const card =
@@ -497,7 +501,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
   const leadScript = fill(C.LEAD_SCRIPT, { SLUG: String(f.slug).replace(/[^a-z0-9-]/g, ''), NAME: jsName });
 
   // The Overview is the whole profile; a tab page is its own content, then the contact form.
-  const overviewBody = aboutHtml + reviewsHtml(f) + testimonialsHtml(f) + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' + profilesHtml + (guide ? '\n    ' + guide : '');
+  const overviewBody = aboutHtml + reviewsHtml(f) + testimonialsHtml(f) + practiceHtml(f, cards) + bioHtml + verifiedHtml(verified) + glanceHtml(f) + blockHtml(f.block) + photosHtml + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + (locHtml ? '\n    ' + locHtml : '') + officesHtml(f) + locationsHtml(f, locations) + (hoursHtml ? '\n    ' + hoursHtml : '') + '' + RATINGS_SLOT + '' + profilesHtml + (guide ? '\n    ' + guide : '');
   const tabBody = tab === 'lawyers' ? lawyersBodyHtml(f, glance, lawyers) : tab === 'articles' ? renderFirmArticlesPage({ firmName: f.name, posts: allPosts }) : '';
 
   const page = [
@@ -509,6 +513,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     '<meta property="og:type" content="website">',
     `<link rel="canonical" href="${esc(url)}">`,
     `<meta property="og:url" content="${esc(url)}">`,
+    `<meta name="lawdb-firm" content="${esc(f.slug)}">`,
     '<meta property="og:site_name" content="LawDB.ai">\n<meta property="og:locale" content="en_US">',
     `<meta property="og:image" content="${ogImage}">${customCover ? '' : '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}`,
     `<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${ogTitle}">`,
@@ -517,7 +522,7 @@ export function renderFirmPage({ firm: f, hours, images = [], posts = [], nearby
     `<script type="application/ld+json">\n${jsonForHtml(crumbLd)}\n</script>`,
     C.STYLE + (tabs.length > 1 ? TABNAV_CSS : '') + PHOTO_CSS + GLANCE_CSS + OFFICES_CSS + (chipsHtml(f, verified) ? CHIPS_CSS : '') + (verified ? VERIFIED_CSS : '') + (f.block && f.block.image ? BLOCK_CSS : '') + (practiceHtml(f, cards) ? PRACTICE_CSS : '') + '\n<link rel="stylesheet" href="../desktop.css">\n<link rel="stylesheet" href="../site.css">\n<link rel="stylesheet" href="/profile-v2.css?v=1">\n</head>',
     '<body class="pg-firm pg-msp">\n  ' + C.HEADER,
-    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + tabNavHtml(f, tabs, tab) + (isTab ? tabBody + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + '\n    <span class="pf-rate-slot" data-slot="rate"></span>' : overviewBody),
+    '  <div class="wrap pf-wrap">\n   <div class="pf-main">\n    ' + breadcrumb(f, prov) + card + tabNavHtml(f, tabs, tab) + (isTab ? tabBody + '\n    <span id="contact" class="pf-anchor"></span>' + fill(C.LEAD_SLIM, toks) + '' + RATINGS_SLOT + '' : overviewBody),
     carousel(f, nearby),
     '\n\n    ' + leadScript,
     '\n    ' + CONTACT_JS,

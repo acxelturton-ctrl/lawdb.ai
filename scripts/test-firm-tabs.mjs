@@ -46,6 +46,8 @@ assert.match(ar, /Post 3/);
 // --- the Overview keeps its address and gains only the tab bar
 const ov = renderFirmPage({ firm, tabs, posts: [post(1)] });
 assert.match(ov, /rel="canonical" href="https:\/\/lawdb\.ai\/test-law"/);
+assert.ok(!ov.includes('data-slot="rate"') && !ov.includes('Rate this firm on LawDB') && !ov.includes('data-lawdb-rating'), 'LawDB member ratings are switched off on every profile page');
+assert.match(ov, /<meta name="lawdb-firm" content="test-law">/, 'the page tells the page-view script which firm it is');
 assert.match(ov, /<title>Test Law \| Miami, FL Lawyers \| LawDB<\/title>/);
 assert.match(ov, /class="pf-ptabs"/);
 assert.match(ov, /class="pf-about"/);

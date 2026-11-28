@@ -107,7 +107,9 @@
   try{ utm = (new URLSearchParams(location.search).get('utm_source') || '').slice(0,30); }catch(e){}
   /* "v" marks the first look at a firm's page in this browser tab (a note kept only in this tab), so the firm's dashboard can count visitors, not just page views */
   var v = 0;
-  if(/^\/firms\/[a-z0-9-]+$/.test(path)){
+  var fmeta = document.querySelector('meta[name="lawdb-firm"]');
+  var firmHome = !!fmeta && path === '/' + fmeta.getAttribute('content');   /* a firm's own page is lawdb.ai/<handle> */
+  if(firmHome){
     try{ v = sessionStorage.getItem('lw_v:'+path) ? 0 : 1; sessionStorage.setItem('lw_v:'+path,'1'); }catch(e){ v = 1; }
   }
   post({ t:'pv', p:path, m: (window.innerWidth || screen.width) < 760 ? 1 : 0, s:fresh, r:host, u:utm, v:v });
@@ -118,7 +120,7 @@
     try{ return NETS[new URL(href, location.href).hostname.split('.').slice(-2).join('.')] || ''; }catch(e){ return ''; }
   }
   function ev(name){ post({ t:'ev', e:name, p:path }); }
-  var onFirm = /^\/firms\/[a-z0-9-]+$/.test(path);
+  var onFirm = firmHome;
   document.addEventListener('click', function(e){
     var el = e.target && e.target.closest ? e.target.closest('a,button') : null;
     if(!el) return;

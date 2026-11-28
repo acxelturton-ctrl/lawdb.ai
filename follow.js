@@ -56,7 +56,7 @@
   }
 
   // Firm cards on the home page, city and practice-area pages and the lawyer search get a Follow button too.
-  var slugOf = function (href) { var m = (href || '').match(/\/firms\/([a-z0-9][a-z0-9-]*)\/?$/); return m ? m[1] : null; };
+  var slugOf = function (href) { var m = (href || '').match(/^\/(?:firms\/)?([a-z0-9][a-z0-9-]*)\/?$/); return m ? m[1] : null; };
   var mk = function (slug) { var b = document.createElement('button'); b.type = 'button'; b.className = 'lw-fbtn lw-in'; b.setAttribute('data-follow', slug); b.textContent = '+ Follow'; return b; };
   function decorate(root) {
     var n = 0;
