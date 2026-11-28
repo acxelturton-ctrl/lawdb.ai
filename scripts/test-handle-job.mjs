@@ -31,12 +31,13 @@ add('marketplace-co-tampa-fl', 'Marketplace Law', 'Tampa', 'FL', { website: 'htt
 raw.prepare("INSERT INTO mp_accounts (firm_slug) VALUES ('smith-law-miami-fl')").run();
 raw.prepare("INSERT INTO mp_ledger (firm_slug, kind, amount_cents, balance_after) VALUES ('has-credit-orlando-fl', 'promo', 500, 500)").run();
 
+const run = async () => { await setSetting(env, 'slug_shorten_lock', '0'); return shortenSlugs(env); };   // (the real job skips a run that starts within 55 seconds of the last)
 // off by default
-assert.equal(await shortenSlugs(env), null);
+assert.equal(await run(), null);
 assert.equal(raw.prepare("SELECT count(*) c FROM firm_redirects").get().c, 0);
 
 await setSetting(env, 'slug_shorten_batch', '2');
-let s = await shortenSlugs(env);                       // batch of 2 (alphabetical): eric-ramos..., has-credit...
+let s = await run();                       // batch of 2 (alphabetical): eric-ramos..., has-credit...
 assert.equal(s.renamed, 1, 'eric is renamed; the firm with credit history is refused and counted as an error');
 assert.equal(s.errors, 1); assert.match(s.lastError, /credit history/);
 assert.ok(raw.prepare("SELECT 1 FROM firms WHERE slug = 'ericramoslaw'").get(), 'new short address');
@@ -44,7 +45,7 @@ assert.equal(await redirectTarget(env, 'eric-ramos-law-pllc-san-antonio-tx'), 'e
 assert.equal(JSON.parse(raw.prepare("SELECT data FROM firms WHERE slug = 'ericramoslaw'").get().data).slug, 'ericramoslaw');
 
 await setSetting(env, 'slug_shorten_batch', '50');
-s = await shortenSlugs(env);
+s = await run();
 assert.ok(raw.prepare("SELECT 1 FROM firms WHERE slug = 'smithlaw'").get() || raw.prepare("SELECT 1 FROM firms WHERE slug = 'smithlaw-fl'").get());
 const smith = raw.prepare("SELECT slug FROM firms WHERE name = 'Smith Law' ORDER BY slug").all().map((r) => r.slug);
 assert.deepEqual(smith, ['smithlaw', 'smithlaw-fl'], 'two firms with one handle: the first keeps it, the other adds its state');
@@ -68,10 +69,12 @@ r = await ask('/no-such-firm'); assert.equal(r.status, 404);
 
 // it reaches the end, turns itself off, and a second run changes nothing
 // (firms renamed into the part not yet visited are looked at once more and found unchanged)
-for (let i = 0; i < 5 && !s?.finished; i++) s = await shortenSlugs(env);
+for (let i = 0; i < 5 && !s?.finished; i++) s = await run();
 assert.ok(s.finished && await setting(env, 'slug_shorten_batch') === '0', 'stops at the end and switches itself off');
 const before = raw.prepare('SELECT count(*) c FROM firm_redirects').get().c;
 await setSetting(env, 'slug_shorten_batch', '50'); await setSetting(env, 'slug_shorten_cursor', '');
-await shortenSlugs(env);
+await run();
 assert.equal(raw.prepare('SELECT count(*) c FROM firm_redirects').get().c, before, 'running it again renames nothing');
+await setSetting(env, 'slug_shorten_batch', '50'); await setSetting(env, 'slug_shorten_cursor', '');
+await shortenSlugs(env); assert.equal(await shortenSlugs(env), null, 'a second run right away is skipped while the first may still be going');
 console.log('handle job: ok');

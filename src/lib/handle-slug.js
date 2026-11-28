@@ -6,7 +6,7 @@
 // "llp" / "pllc". With nothing usable the firm's own name is used, without its city, state and "PA/PLLC" style endings.
 // When two firms want the same handle the first keeps it and the next adds its state (smithlaw-tx), then a number.
 //
-// shortenSlugs() runs from the 5-minute cron in small batches and only while the owner has turned it on (site_settings.slug_shorten_batch > 0).
+// shortenSlugs() runs from the every-minute cron in small batches and only while the owner has turned it on (site_settings.slug_shorten_batch > 0).
 // Every change goes through renameFirmSlug, so the old address becomes a permanent redirect and nothing breaks.
 import { renameFirmSlug, SLUG_MIN } from './firm-slug.js';
 import { setting, setSetting } from './marketplace.js';
@@ -116,6 +116,10 @@ export const BATCH_MAX = 150;
 export async function shortenSlugs(env) {
   const limit = Math.min(BATCH_MAX, Math.max(0, parseInt(await setting(env, 'slug_shorten_batch', '0'), 10) || 0));
   if (!limit) return null;
+  // One run at a time: a run that is still going (started less than 55 seconds ago) is left to finish.
+  const lock = Number(await setting(env, 'slug_shorten_lock', '0'));
+  if (Date.now() - lock < 55000) return null;
+  await setSetting(env, 'slug_shorten_lock', Date.now());
   const cursor = await setting(env, 'slug_shorten_cursor', '');
   const rows = (await env.DB.prepare('SELECT slug, name, city, state, data FROM firms WHERE slug > ? ORDER BY slug LIMIT ?').bind(cursor, limit).all()).results;
   let stats = {}; try { stats = JSON.parse(await setting(env, 'slug_shorten_stats', '{}')) || {}; } catch { stats = {}; }

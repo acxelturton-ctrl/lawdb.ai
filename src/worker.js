@@ -249,7 +249,8 @@ export default {
   async scheduled(event, env, ctx) {
     if (!env.DB) return; // preview mode: nothing to run without a database
     ctx.waitUntil(event.cron === '37 7 * * *' ? searchNightly(env).catch((err) => console.error('search console run failed', err))
-      : event.cron === '*/5 * * * *' ? Promise.all([feedBatch(env).catch((err) => console.error('blog finder run failed', err)), processAlerts(env).catch((err) => console.error('marketplace alerts failed', err)), shortenSlugs(env).catch((err) => console.error('address shortening failed', err))])
+      : event.cron === '*/5 * * * *' ? Promise.all([feedBatch(env).catch((err) => console.error('blog finder run failed', err)), processAlerts(env).catch((err) => console.error('marketplace alerts failed', err))])
+      : event.cron === '* * * * *' ? shortenSlugs(env).catch((err) => console.error('address shortening failed', err))   // every minute, but only does anything while the owner has switched it on
       : event.cron === '7 * * * *' ? hourly(env).catch((err) => console.error('hourly run failed', err))
       : nightly(env));
   },
